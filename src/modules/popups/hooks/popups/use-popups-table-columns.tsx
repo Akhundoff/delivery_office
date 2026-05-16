@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useContext, useMemo } from "react";
 import { Column } from "react-table";
 import { Dropdown, Modal, Tag } from "antd";
 import * as Icons from "@ant-design/icons";
@@ -6,6 +6,7 @@ import { nextTableColumns } from "@shared/modules/next-table/helpers/next-table-
 import { useBackgroundNavigate } from "@shared/hooks";
 import { PopupsService } from "../../services";
 import { IPopup, PopupTarget, PopupType } from "../../interfaces";
+import { PopupsTableContext } from "../../context";
 
 const targetLabel: Record<PopupTarget, string> = {
   [PopupTarget.MOBILE]: "Mobil",
@@ -19,7 +20,8 @@ const typeColor: Record<PopupType, string> = {
   [PopupType.WARNING]: "orange",
 };
 
-export const usePopupsTableColumns = (handleFetch: () => void): Column<IPopup>[] => {
+export const usePopupsTableColumns = (): Column<IPopup>[] => {
+  const { handleFetch } = useContext(PopupsTableContext);
   const navigate = useBackgroundNavigate();
 
   const handleDelete = useCallback((id: number) => {

@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useContext, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Column } from 'react-table';
 import { Button, Dropdown, message, Modal, Select } from 'antd';
@@ -9,8 +9,10 @@ import { CheckCell } from '@shared/components/cells';
 import { StopPropagation } from '@shared/components/stop-propagation';
 import { INotificationTemplate } from '../../interfaces';
 import { NotificationTemplatesService } from '../../services';
+import { NotificationTemplatesTableContext } from '../../context';
 
-export const useNotificationTemplatesTableColumns = (handleFetch: () => void): Column<INotificationTemplate>[] => {
+export const useNotificationTemplatesTableColumns = (): Column<INotificationTemplate>[] => {
+    const { handleFetch } = useContext(NotificationTemplatesTableContext);
     const navigate = useNavigate();
 
     const handleToggleActive = useCallback(async (id: number, currentActive: boolean) => {

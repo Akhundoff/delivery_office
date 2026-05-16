@@ -5,7 +5,7 @@ import { BoxesTableContext } from "../../context";
 
 export const useBoxesTable = () => {
   const { handleFetch } = useContext(BoxesTableContext);
-  const columns = useBoxesTableColumns(handleFetch);
+  const columns = useBoxesTableColumns();
   const { searchParams, remove } = useSearchParams<{
     reFetchBoxesTable?: string;
   }>();

@@ -5,7 +5,7 @@ import { PopupsTableContext } from "../../context";
 
 export const usePopupsTable = () => {
   const { handleFetch } = useContext(PopupsTableContext);
-  const columns = usePopupsTableColumns(handleFetch);
+  const columns = usePopupsTableColumns();
   const { searchParams, remove } = useSearchParams<{ reFetchPopupsTable?: string }>();
 
   useEffect(() => {

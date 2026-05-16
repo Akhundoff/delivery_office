@@ -5,7 +5,7 @@ import { PlansTableContext } from "../../context";
 
 export const usePlansTable = () => {
   const { handleFetch } = useContext(PlansTableContext);
-  const columns = usePlansTableColumns(handleFetch);
+  const columns = usePlansTableColumns();
   const { searchParams, remove } = useSearchParams<{ reFetchPlansTable?: string }>();
 
   useEffect(() => {

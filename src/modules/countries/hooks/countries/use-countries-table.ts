@@ -5,7 +5,7 @@ import { CountriesTableContext } from "../../context";
 
 export const useCountriesTable = () => {
   const { handleFetch } = useContext(CountriesTableContext);
-  const columns = useCountriesTableColumns(handleFetch);
+  const columns = useCountriesTableColumns();
   const { searchParams, remove } = useSearchParams<{ reFetchCountriesTable?: string }>();
 
   useEffect(() => {

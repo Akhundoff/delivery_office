@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useContext, useMemo } from "react";
 import { Column } from "react-table";
 import { Button, Dropdown, MenuProps, Modal, message } from "antd";
 import * as Icons from "@ant-design/icons";
@@ -9,8 +9,10 @@ import { useBackgroundNavigate } from "@shared/hooks";
 
 import { ReturnTypesService } from "../../services";
 import { IReturnType } from "../../interfaces";
+import { ReturnTypesTableContext } from "../../context";
 
-export const useReturnTypesTableColumns = (handleFetch: () => void): Column<IReturnType>[] => {
+export const useReturnTypesTableColumns = (): Column<IReturnType>[] => {
+  const { handleFetch } = useContext(ReturnTypesTableContext);
   const navigate = useBackgroundNavigate();
 
   const actionsColumn = useMemo<Column<IReturnType>>(

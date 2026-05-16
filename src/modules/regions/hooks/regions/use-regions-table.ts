@@ -5,7 +5,7 @@ import { RegionsTableContext } from "../../context";
 
 export const useRegionsTable = () => {
   const { handleFetch } = useContext(RegionsTableContext);
-  const columns = useRegionsTableColumns(handleFetch);
+  const columns = useRegionsTableColumns();
   const { searchParams, remove } = useSearchParams<{ reFetchRegionsTable?: string }>();
 
   useEffect(() => {

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useContext, useMemo } from "react";
 import { Column } from "react-table";
 import { Button, Dropdown, MenuProps, Modal, message } from "antd";
 import * as Icons from "@ant-design/icons";
@@ -9,8 +9,10 @@ import { useBackgroundNavigate } from "@shared/hooks";
 
 import { RegionsService } from "../../services";
 import { IRegion } from "../../interfaces";
+import { RegionsTableContext } from "../../context";
 
-export const useRegionsTableColumns = (handleFetch: () => void): Column<IRegion>[] => {
+export const useRegionsTableColumns = (): Column<IRegion>[] => {
+  const { handleFetch } = useContext(RegionsTableContext);
   const navigate = useBackgroundNavigate();
 
   const actionsColumn = useMemo<Column<IRegion>>(

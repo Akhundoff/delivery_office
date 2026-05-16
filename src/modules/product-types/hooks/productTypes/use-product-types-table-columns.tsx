@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useContext, useMemo } from "react";
 import { Column } from "react-table";
 import { Button, Dropdown, MenuProps, Modal, Tag, message } from "antd";
 import * as Icons from "@ant-design/icons";
@@ -9,8 +9,10 @@ import { useBackgroundNavigate } from "@shared/hooks";
 
 import { ProductTypesService } from "../../services";
 import { IProductType } from "../../interfaces";
+import { ProductTypesTableContext } from "../../context";
 
-export const useProductTypesTableColumns = (handleFetch: () => void): Column<IProductType>[] => {
+export const useProductTypesTableColumns = (): Column<IProductType>[] => {
+  const { handleFetch } = useContext(ProductTypesTableContext);
   const navigate = useBackgroundNavigate();
 
   const actionsColumn = useMemo<Column<IProductType>>(

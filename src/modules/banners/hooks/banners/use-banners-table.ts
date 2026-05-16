@@ -5,7 +5,7 @@ import { BannersTableContext } from "../../context";
 
 export const useBannersTable = () => {
   const { handleFetch } = useContext(BannersTableContext);
-  const columns = useBannersTableColumns(handleFetch);
+  const columns = useBannersTableColumns();
   const { searchParams, remove } = useSearchParams<{ reFetchBannersTable?: string }>();
 
   useEffect(() => {

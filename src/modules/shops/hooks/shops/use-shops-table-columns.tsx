@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useContext, useMemo } from "react";
 import { Column } from "react-table";
 import { Dropdown, Modal } from "antd";
 import * as Icons from "@ant-design/icons";
@@ -6,8 +6,10 @@ import { nextTableColumns } from "@shared/modules/next-table/helpers/next-table-
 import { useBackgroundNavigate } from "@shared/hooks";
 import { ShopsService } from "../../services";
 import { IShop } from "../../interfaces";
+import { ShopsTableContext } from "../../context";
 
-export const useShopsTableColumns = (handleFetch: () => void): Column<IShop>[] => {
+export const useShopsTableColumns = (): Column<IShop>[] => {
+  const { handleFetch } = useContext(ShopsTableContext);
   const navigate = useBackgroundNavigate();
 
   const handleDelete = useCallback((id: number) => {

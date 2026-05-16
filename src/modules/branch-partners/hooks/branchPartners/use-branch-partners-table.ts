@@ -5,7 +5,7 @@ import { BranchPartnersTableContext } from "../../context";
 
 export const useBranchPartnersTable = () => {
   const { handleFetch } = useContext(BranchPartnersTableContext);
-  const columns = useBranchPartnersTableColumns(handleFetch);
+  const columns = useBranchPartnersTableColumns();
   const { searchParams, remove } = useSearchParams<{ reFetchBranchPartnersTable?: string }>();
 
   useEffect(() => {

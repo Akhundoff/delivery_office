@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useContext, useMemo } from "react";
 import { Column } from "react-table";
 import { Button, Dropdown, MenuProps, Modal, message } from "antd";
 import * as Icons from "@ant-design/icons";
@@ -9,8 +9,10 @@ import { useBackgroundNavigate } from "@shared/hooks";
 
 import { CargoesService } from "../../services";
 import { ICargo } from "../../interfaces";
+import { CargoesTableContext } from "../../context";
 
-export const useCargoesTableColumns = (handleFetch: () => void): Column<ICargo>[] => {
+export const useCargoesTableColumns = (): Column<ICargo>[] => {
+  const { handleFetch } = useContext(CargoesTableContext);
   const navigate = useBackgroundNavigate();
 
   const actionsColumn = useMemo<Column<ICargo>>(

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useContext, useMemo } from "react";
 import { Column } from "react-table";
 import { Button, Dropdown, MenuProps, Modal, Select, Tag, message } from "antd";
 import * as Icons from "@ant-design/icons";
@@ -7,11 +7,12 @@ import { nextTableColumns } from "@shared/modules/next-table/helpers/next-table-
 import { filterOption } from "@shared/modules/antd/helpers/filter-option";
 import { useBackgroundNavigate } from "@shared/hooks";
 import { SettingsContext } from "@modules/settings";
-import { useContext } from "react";
 import { PlansService } from "../../services";
 import { IPlan } from "../../interfaces";
+import { PlansTableContext } from "../../context";
 
-export const usePlansTableColumns = (handleFetch: () => void): Column<IPlan>[] => {
+export const usePlansTableColumns = (): Column<IPlan>[] => {
+  const { handleFetch } = useContext(PlansTableContext);
   const navigate = useBackgroundNavigate();
   const settings = useContext(SettingsContext);
 

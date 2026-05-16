@@ -5,7 +5,7 @@ import { UsersTableContext } from "../../context";
 
 export const useUsersTable = () => {
   const { handleFetch } = useContext(UsersTableContext);
-  const columns = useUsersTableColumns(handleFetch);
+  const columns = useUsersTableColumns();
   const navigate = useBackgroundNavigate();
   const { searchParams, remove } = useSearchParams<{ reFetchUsersTable?: string }>();
 

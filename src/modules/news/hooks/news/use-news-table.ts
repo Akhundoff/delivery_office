@@ -5,7 +5,7 @@ import { NewsTableContext } from "../../context";
 
 export const useNewsTable = () => {
   const { handleFetch } = useContext(NewsTableContext);
-  const columns = useNewsTableColumns(handleFetch);
+  const columns = useNewsTableColumns();
   const { searchParams, remove } = useSearchParams<{ reFetchNewsTable?: string }>();
 
   useEffect(() => {

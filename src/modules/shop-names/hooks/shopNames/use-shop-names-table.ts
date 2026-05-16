@@ -5,7 +5,7 @@ import { ShopNamesTableContext } from "../../context";
 
 export const useShopNamesTable = () => {
   const { handleFetch } = useContext(ShopNamesTableContext);
-  const columns = useShopNamesTableColumns(handleFetch);
+  const columns = useShopNamesTableColumns();
   const { searchParams, remove } = useSearchParams<{ reFetchShopNamesTable?: string }>();
 
   useEffect(() => {

@@ -5,7 +5,7 @@ import { ProductTypesTableContext } from "../../context";
 
 export const useProductTypesTable = () => {
   const { handleFetch } = useContext(ProductTypesTableContext);
-  const columns = useProductTypesTableColumns(handleFetch);
+  const columns = useProductTypesTableColumns();
   const { searchParams, remove } = useSearchParams<{ reFetchProductTypesTable?: string }>();
 
   useEffect(() => {

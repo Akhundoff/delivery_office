@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useContext, useMemo } from "react";
 import { Column } from "react-table";
 import { Button, Dropdown, MenuProps, Modal, Tag, message } from "antd";
 import * as Icons from "@ant-design/icons";
@@ -9,8 +9,10 @@ import { useBackgroundNavigate } from "@shared/hooks";
 
 import { BranchPartnersService } from "../../services";
 import { IBranchPartner } from "../../interfaces";
+import { BranchPartnersTableContext } from "../../context";
 
-export const useBranchPartnersTableColumns = (handleFetch: () => void): Column<IBranchPartner>[] => {
+export const useBranchPartnersTableColumns = (): Column<IBranchPartner>[] => {
+  const { handleFetch } = useContext(BranchPartnersTableContext);
   const navigate = useBackgroundNavigate();
 
   const actionsColumn = useMemo<Column<IBranchPartner>>(

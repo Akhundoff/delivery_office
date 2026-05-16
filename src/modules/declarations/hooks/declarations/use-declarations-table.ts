@@ -5,7 +5,7 @@ import { DeclarationsTableContext } from "../../context";
 
 export const useDeclarationsTable = () => {
   const { handleFetch } = useContext(DeclarationsTableContext);
-  const columns = useDeclarationsTableColumns(handleFetch);
+  const columns = useDeclarationsTableColumns();
   const navigate = useBackgroundNavigate();
   const { searchParams, remove } = useSearchParams<{ reFetchDeclarationsTable?: string }>();
 

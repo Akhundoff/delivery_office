@@ -5,7 +5,7 @@ import { CargoesTableContext } from "../../context";
 
 export const useCargoesTable = () => {
   const { handleFetch } = useContext(CargoesTableContext);
-  const columns = useCargoesTableColumns(handleFetch);
+  const columns = useCargoesTableColumns();
   const { searchParams, remove } = useSearchParams<{ reFetchCargoesTable?: string }>();
 
   useEffect(() => {

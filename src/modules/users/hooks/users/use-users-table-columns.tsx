@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useContext, useMemo } from 'react';
 import { Column } from 'react-table';
 import { Button, Dropdown, MenuProps, Modal, Select, message } from 'antd';
 import * as Icons from '@ant-design/icons';
@@ -12,8 +12,10 @@ import { useBackgroundNavigate } from '@shared/hooks';
 import { UsersService } from '../../services';
 import { IUser } from '../../interfaces';
 import { userQueryKeys } from '../../utils';
+import { UsersTableContext } from '../../context';
 
-export const useUsersTableColumns = (handleFetch: () => void): Column<IUser>[] => {
+export const useUsersTableColumns = (): Column<IUser>[] => {
+    const { handleFetch } = useContext(UsersTableContext);
     const navigate = useBackgroundNavigate();
 
     const actionsColumn = useMemo<Column<IUser>>(

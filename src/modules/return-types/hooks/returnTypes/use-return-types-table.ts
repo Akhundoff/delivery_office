@@ -5,7 +5,7 @@ import { ReturnTypesTableContext } from "../../context";
 
 export const useReturnTypesTable = () => {
   const { handleFetch } = useContext(ReturnTypesTableContext);
-  const columns = useReturnTypesTableColumns(handleFetch);
+  const columns = useReturnTypesTableColumns();
   const { searchParams, remove } = useSearchParams<{ reFetchReturnTypesTable?: string }>();
 
   useEffect(() => {

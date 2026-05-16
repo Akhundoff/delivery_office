@@ -5,7 +5,7 @@ import { FaqTableContext } from "../../context";
 
 export const useFaqTable = () => {
   const { handleFetch } = useContext(FaqTableContext);
-  const columns = useFaqTableColumns(handleFetch);
+  const columns = useFaqTableColumns();
   const { searchParams, remove } = useSearchParams<{ reFetchFaqTable?: string }>();
 
   useEffect(() => {

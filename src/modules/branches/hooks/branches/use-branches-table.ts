@@ -5,7 +5,7 @@ import { BranchesTableContext } from "../../context";
 
 export const useBranchesTable = () => {
   const { handleFetch } = useContext(BranchesTableContext);
-  const columns = useBranchesTableColumns(handleFetch);
+  const columns = useBranchesTableColumns();
   const { searchParams, remove } = useSearchParams<{ reFetchBranchesTable?: string }>();
 
   useEffect(() => {
