@@ -68,6 +68,29 @@ Port the pattern from `delivery_management`'s `TableProvider`:
 
 Reads current URL search params as a typed object. Provides a stable `remove(name)` ref to strip a param and navigate. Depends on `useBackgroundNavigate` (already exists).
 
+This hook is the backbone of the **cross-modal refetch pattern** used throughout the warehouse architecture:
+
+```
+Modal closes → navigates back with ?reFetchXxxTable=1 in URL
+List hook detects param via useSearchParams → removes it → calls handleFetch()
+```
+
+Concrete example from warehouse (`baskets/hooks/use-table.tsx`):
+```ts
+const { searchParams, remove } = useSearchParams<{ reFetchBasketTable?: string }>();
+
+useEffect(() => {
+  (async () => {
+    if (searchParams.reFetchBasketTable) {
+      remove.current('reFetchBasketTable');
+      await handleFetch();
+    }
+  })();
+}, [handleFetch, remove, searchParams.reFetchBasketTable]);
+```
+
+Every list module in the new project will follow this same pattern to trigger a refetch after create/update/delete in a modal. `useSearchParams` + `localURLMaker` (Tier 2) together enable this flow.
+
 Export from `hooks/index.ts`.
 
 ---
