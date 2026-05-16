@@ -6,7 +6,7 @@ export const caller = async (input: RequestInfo, init?: RequestInit): Promise<Re
   const additionalHeaders: HeadersInit = {
     Accept: 'application/json',
     Authorization: accessToken ? `Bearer ${accessToken}` : '',
-    lang: 'az',
+    lang: localStorage.getItem('i18nextLng') || 'az',
   };
 
   const countryId = localStorage.getItem('warehouse.country_id');
