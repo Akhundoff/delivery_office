@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useContext, useEffect } from "react";
 import { useDeclarationsTableColumns } from "./use-declarations-table-columns";
 import { DeclarationsService } from "../../services";
 import {
@@ -8,11 +8,23 @@ import {
 } from "@shared/modules/next-table/context/actions";
 import { NextTableFetchParams } from "@shared/modules/next-table/types";
 import { tableQueryMaker } from "@shared/modules/next-table/utils";
-import { useBackgroundNavigate } from "@shared/hooks";
+import { useBackgroundNavigate, useSearchParams } from "@shared/hooks";
+import { DeclarationsTableContext } from "../../context";
 
 export const useDeclarationsTable = () => {
   const columns = useDeclarationsTableColumns();
   const navigate = useBackgroundNavigate();
+  const { handleFetch } = useContext(DeclarationsTableContext);
+  const { searchParams, remove } = useSearchParams<{ reFetchDeclarationsTable?: string }>();
+
+  useEffect(() => {
+    (async () => {
+      if (searchParams.reFetchDeclarationsTable) {
+        remove.current('reFetchDeclarationsTable');
+        await handleFetch();
+      }
+    })();
+  }, [handleFetch, remove, searchParams.reFetchDeclarationsTable]);
 
   const onFetch = useCallback(
     (params: NextTableFetchParams) => async (dispatch: any) => {

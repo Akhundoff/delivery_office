@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useContext, useEffect } from "react";
 import {
   nextTableFetchDataFailedAction,
   nextTableFetchDataStartedAction,
@@ -6,12 +6,25 @@ import {
 } from "@shared/modules/next-table/context/actions";
 import { NextTableFetchParams } from "@shared/modules/next-table/types";
 import { tableQueryMaker } from "@shared/modules/next-table/utils";
+import { useSearchParams } from "@shared/hooks";
 
 import { RegionsService } from "../../services";
 import { useRegionsTableColumns } from "./use-regions-table-columns";
+import { RegionsTableContext } from "../../context";
 
 export const useRegionsTable = () => {
   const columns = useRegionsTableColumns();
+  const { handleFetch } = useContext(RegionsTableContext);
+  const { searchParams, remove } = useSearchParams<{ reFetchRegionsTable?: string }>();
+
+  useEffect(() => {
+    (async () => {
+      if (searchParams.reFetchRegionsTable) {
+        remove.current('reFetchRegionsTable');
+        await handleFetch();
+      }
+    })();
+  }, [handleFetch, remove, searchParams.reFetchRegionsTable]);
 
   const onFetch = useCallback(
     (params: NextTableFetchParams) => async (dispatch: any) => {

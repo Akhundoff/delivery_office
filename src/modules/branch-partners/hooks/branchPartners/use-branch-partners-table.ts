@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useContext, useEffect } from "react";
 import {
   nextTableFetchDataFailedAction,
   nextTableFetchDataStartedAction,
@@ -6,12 +6,25 @@ import {
 } from "@shared/modules/next-table/context/actions";
 import { NextTableFetchParams } from "@shared/modules/next-table/types";
 import { tableQueryMaker } from "@shared/modules/next-table/utils";
+import { useSearchParams } from "@shared/hooks";
 
 import { BranchPartnersService } from "../../services";
 import { useBranchPartnersTableColumns } from "./use-branch-partners-table-columns";
+import { BranchPartnersTableContext } from "../../context";
 
 export const useBranchPartnersTable = () => {
   const columns = useBranchPartnersTableColumns();
+  const { handleFetch } = useContext(BranchPartnersTableContext);
+  const { searchParams, remove } = useSearchParams<{ reFetchBranchPartnersTable?: string }>();
+
+  useEffect(() => {
+    (async () => {
+      if (searchParams.reFetchBranchPartnersTable) {
+        remove.current('reFetchBranchPartnersTable');
+        await handleFetch();
+      }
+    })();
+  }, [handleFetch, remove, searchParams.reFetchBranchPartnersTable]);
 
   const onFetch = useCallback(
     (params: NextTableFetchParams) => async (dispatch: any) => {

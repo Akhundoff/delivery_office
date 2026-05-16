@@ -86,7 +86,7 @@ export const useCountryForm = () => {
 
       if (result.status === 200) {
         message.success(id ? "Dəyişikliklər saxlanıldı" : "Ölkə yaradıldı");
-        closeModal("/countries");
+        closeModal("/countries", { reFetchCountriesTable: "1" });
       } else if (result.status === 422) {
         const raw = result.data as Record<string, string[]>;
         const map: Record<string, string> = {

@@ -7,13 +7,19 @@ export const useCloseModal = () => {
     const navigate = useBackgroundNavigate();
 
     const close = useCallback(
-        (fallback: string) => {
+        (fallback: string, query: Record<string, string> = {}) => {
+            const appendQuery = (to: any): any => {
+                if (!Object.keys(query).length) return to;
+                const qs = new URLSearchParams(query).toString();
+                if (typeof to === 'string') return `${to}${to.includes('?') ? '&' : '?'}${qs}`;
+                return { ...to, search: qs ? `?${qs}` : (to.search || '') };
+            };
             if (location.state?.modal) {
-                navigate(location.state.modal);
+                navigate(appendQuery(location.state.modal));
             } else if (location.state?.background) {
-                navigate(location.state.background);
+                navigate(appendQuery(location.state.background));
             } else {
-                navigate(fallback);
+                navigate(appendQuery(fallback));
             }
         },
         [location.state?.background, location.state?.modal, navigate],

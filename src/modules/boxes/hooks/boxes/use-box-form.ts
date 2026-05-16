@@ -26,7 +26,7 @@ export const useBoxForm = () => {
     const result = id ? await BoxesService.update(id, values) : await BoxesService.create(values);
     if (result.status === 200) {
       message.success(id ? "Dəyişikliklər saxlanıldı" : "Yeşik yaradıldı");
-      closeModal("/boxes");
+      closeModal("/boxes", { reFetchBoxesTable: "1" });
     } else if (result.status === 422) {
       const errors: Record<string, string> = {};
       const map: Record<string, string> = { container_name: "name", branch_id: "branchId" };

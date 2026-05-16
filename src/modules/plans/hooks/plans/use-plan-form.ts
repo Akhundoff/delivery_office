@@ -38,7 +38,7 @@ export const usePlanForm = () => {
     const result = id ? await PlansService.update(id, values) : await PlansService.create(values);
     if (result.status === 200) {
       message.success(id ? "Dəyişikliklər saxlanıldı" : "Tarif yaradıldı");
-      closeModal("/plans");
+      closeModal("/plans", { reFetchPlansTable: "1" });
     } else if (result.status === 422) {
       const errors: Record<string, string> = {};
       const map: Record<string, string> = { country_id: "countryId", from_weight: "weightFrom", to_weight: "weightTo", old_price: "oldPrice", descr: "description", tariff_category_id: "categoryId" };

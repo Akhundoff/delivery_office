@@ -31,7 +31,7 @@ export const useCargoForm = () => {
       const result = id ? await CargoesService.update(id, values) : await CargoesService.create(values);
       if (result.status === 200) {
         message.success(id ? "Dəyişikliklər saxlanıldı" : "Karqo yaradıldı");
-        closeModal("/cargoes");
+        closeModal("/cargoes", { reFetchCargoesTable: "1" });
       } else if (result.status === 422) {
         const raw = result.data as Record<string, string[]>;
         const errors: Record<string, string> = {};

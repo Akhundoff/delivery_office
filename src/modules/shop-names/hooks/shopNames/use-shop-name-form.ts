@@ -26,7 +26,7 @@ export const useShopNameForm = () => {
     const result = id ? await ShopNamesService.update(id, values) : await ShopNamesService.create(values);
     if (result.status === 200) {
       message.success(id ? "Dəyişikliklər saxlanıldı" : "Mağaza yaradıldı");
-      closeModal("/shop-names");
+      closeModal("/shop-names", { reFetchShopNamesTable: "1" });
     } else if (result.status === 422) {
       const errors: Record<string, string> = {};
       Object.entries(result.data as Record<string, string[]>).forEach(([k, v]) => {

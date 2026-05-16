@@ -65,7 +65,7 @@ export const useCreateUser = () => {
         message.success(
           id ? "Dəyişikliklər saxlanıldı" : "İstifadəçi yaradıldı",
         );
-        closeModal("/users");
+        closeModal("/users", { reFetchUsersTable: "1" });
       } else {
         message.error((result.data as string) || "Xəta baş verdi");
         helpers.setSubmitting(false);

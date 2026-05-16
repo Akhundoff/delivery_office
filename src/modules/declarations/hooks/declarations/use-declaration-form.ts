@@ -128,7 +128,7 @@ export const useDeclarationForm = () => {
         message.success(
           id ? "Dəyişikliklər saxlanıldı" : "Bəyannamə yaradıldı",
         );
-        closeModal("/declarations");
+        closeModal("/declarations", { reFetchDeclarationsTable: "1" });
       } else if (result.status === 422) {
         const errors: Record<string, string> = {};
         const raw = result.data as Record<string, string[]>;

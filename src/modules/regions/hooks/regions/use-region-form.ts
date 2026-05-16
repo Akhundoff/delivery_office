@@ -47,7 +47,7 @@ export const useRegionForm = () => {
 
       if (result.status === 200) {
         message.success(id ? "Dəyişikliklər saxlanıldı" : "Rayon yaradıldı");
-        closeModal("/regions");
+        closeModal("/regions", { reFetchRegionsTable: "1" });
       } else if (result.status === 422) {
         const raw = result.data as Record<string, string[]>;
         const map: Record<string, string> = {

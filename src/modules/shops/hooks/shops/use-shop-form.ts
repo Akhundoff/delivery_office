@@ -39,7 +39,7 @@ export const useShopForm = () => {
       const result = id ? await ShopsService.update(id, values) : await ShopsService.create(values);
       if (result.status === 200) {
         message.success(id ? "Dəyişikliklər saxlanıldı" : "Mağaza yaradıldı");
-        closeModal("/shops");
+        closeModal("/shops", { reFetchShopsTable: "1" });
       } else if (result.status === 422) {
         helpers.setErrors(result.data as any);
       } else {

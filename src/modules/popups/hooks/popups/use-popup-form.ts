@@ -55,7 +55,7 @@ export const usePopupForm = () => {
       const result = id ? await PopupsService.update(id, values) : await PopupsService.create(values);
       if (result.status === 200) {
         message.success(id ? "Dəyişikliklər saxlanıldı" : "Popup yaradıldı");
-        closeModal("/popups");
+        closeModal("/popups", { reFetchPopupsTable: "1" });
       } else if (result.status === 422) {
         helpers.setErrors(result.data as any);
       } else {

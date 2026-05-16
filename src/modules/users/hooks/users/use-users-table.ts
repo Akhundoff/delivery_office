@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useContext, useEffect } from "react";
 import { useUsersTableColumns } from "./use-users-table-columns";
 import { UsersService } from "../../services";
 import {
@@ -8,11 +8,23 @@ import {
 } from "@shared/modules/next-table/context/actions";
 import { NextTableFetchParams } from "@shared/modules/next-table/types";
 import { tableQueryMaker } from "@shared/modules/next-table/utils";
-import { useBackgroundNavigate } from "@shared/hooks";
+import { useBackgroundNavigate, useSearchParams } from "@shared/hooks";
+import { UsersTableContext } from "../../context";
 
 export const useUsersTable = () => {
   const columns = useUsersTableColumns();
   const navigate = useBackgroundNavigate();
+  const { handleFetch } = useContext(UsersTableContext);
+  const { searchParams, remove } = useSearchParams<{ reFetchUsersTable?: string }>();
+
+  useEffect(() => {
+    (async () => {
+      if (searchParams.reFetchUsersTable) {
+        remove.current('reFetchUsersTable');
+        await handleFetch();
+      }
+    })();
+  }, [handleFetch, remove, searchParams.reFetchUsersTable]);
 
   const onFetch = useCallback(
     (params: NextTableFetchParams) => async (dispatch: any) => {

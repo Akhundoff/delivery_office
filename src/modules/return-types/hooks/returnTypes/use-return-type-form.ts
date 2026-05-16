@@ -40,7 +40,7 @@ export const useReturnTypeForm = () => {
 
       if (result.status === 200) {
         message.success(id ? "Dəyişikliklər saxlanıldı" : "İadə səbəbi yaradıldı");
-        closeModal("/return-types");
+        closeModal("/return-types", { reFetchReturnTypesTable: "1" });
       } else if (result.status === 422) {
         const raw = result.data as Record<string, string[]>;
         const errors: Record<string, string> = {};

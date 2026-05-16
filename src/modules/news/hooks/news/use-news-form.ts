@@ -33,7 +33,7 @@ export const useNewsForm = () => {
       const result = id ? await NewsService.update(id, values) : await NewsService.create(values);
       if (result.status === 200) {
         message.success(id ? "Dəyişikliklər saxlanıldı" : "Xəbər yaradıldı");
-        closeModal("/news");
+        closeModal("/news", { reFetchNewsTable: "1" });
       } else if (result.status === 422) {
         helpers.setErrors(result.data as any);
       } else {

@@ -45,7 +45,7 @@ export const useBranchPartnerForm = () => {
 
       if (result.status === 200) {
         message.success(id ? "Dəyişikliklər saxlanıldı" : "Şirkət yaradıldı");
-        closeModal("/branch-partners");
+        closeModal("/branch-partners", { reFetchBranchPartnersTable: "1" });
       } else if (result.status === 422) {
         const raw = result.data as Record<string, string[]>;
         const map: Record<string, string> = {

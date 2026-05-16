@@ -33,7 +33,7 @@ export const useBannerForm = () => {
       const result = id ? await BannersService.update(id, values) : await BannersService.create(values);
       if (result.status === 200) {
         message.success(id ? "Dəyişikliklər saxlanıldı" : "Banner yaradıldı");
-        closeModal("/banners");
+        closeModal("/banners", { reFetchBannersTable: "1" });
       } else if (result.status === 422) {
         helpers.setErrors(result.data as any);
       } else {
