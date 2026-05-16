@@ -1,0 +1,1 @@
+export { AboutService } from "./services";

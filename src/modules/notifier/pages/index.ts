@@ -1,0 +1,13 @@
+export { SmsNotificationsPage } from './sms-notifications.page';
+export { WhatsappNotificationsPage } from './whatsapp-notifications.page';
+export { EmailNotificationsPage } from './email-notifications.page';
+export { NotificationTemplatesPage } from './notification-templates.page';
+export { SendBulkMobileNotificationsPage } from './send-bulk-mobile-notifications.page';
+export { SmsNotificationsQueuePage } from './sms-notifications-queue.page';
+export { EmailNotificationsQueuePage } from './email-notifications-queue.page';
+export { WhatsappNotificationsQueuePage } from './whatsapp-notifications-queue.page';
+export { SendBulkSmsNotificationsPage } from './send-bulk-sms-notifications.page';
+export { SendBulkEmailNotificationsPage } from './send-bulk-email-notifications.page';
+export { SendBulkWhatsappNotificationsPage } from './send-bulk-whatsapp-notifications.page';
+export { CreateNotificationTemplatePage } from './create-notification-template.page';
+export { NotificationTemplateDetailsPage } from './notification-template-details.page';

@@ -1,0 +1,21 @@
+export type IDeclarationFormValues = {
+  userId: string;
+  globalTrackCode: string;
+  shop: string;
+  productTypeId: string;
+  quantity: string;
+  weight: string;
+  price: string;
+  deliveryPrice: string;
+  voen: string;
+  isLiquid: boolean;
+  isSpecial: boolean;
+  planTypeId: string;
+  wardrobeNumber: string;
+  boxId: string;
+  file: File | null;
+  description: string;
+  countryId: string;
+  branchId: string;
+  isCommercial: boolean;
+};

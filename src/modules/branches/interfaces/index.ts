@@ -1,0 +1,41 @@
+export type IBranchListItem = {
+  id: number;
+  name: string;
+  descr: string;
+  address: string;
+  phone: string;
+  email: string;
+  workinghours: string;
+  isBranch: boolean;
+  isRegionBranch: boolean;
+  hide: boolean;
+  sortingLetter: string;
+  latitude: string;
+  longitude: string;
+  mapUrl: string;
+  parent: { id: number; name: string } | null;
+  status: { id: number; name: string } | null;
+  company: { id: number; name: string } | null;
+  createdAt: string;
+};
+
+export type IBranchFormValues = {
+  name: string;
+  descr: string;
+  address: string;
+  phone: string;
+  email: string;
+  workinghours: string;
+  isBranch: boolean;
+  isRegionBranch: boolean;
+  hide: boolean;
+  latitude: string;
+  longitude: string;
+  mapUrl: string;
+  parentId: string;
+  stateId: string;
+  companyId: string;
+  sortingLetter: string;
+  openHour: string;
+  closeHour: string;
+};

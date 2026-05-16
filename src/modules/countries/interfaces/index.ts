@@ -1,0 +1,47 @@
+export type ICountry = {
+  id: number;
+  name: string;
+  abbr: string;
+  currency: string;
+  currencyType: string;
+  countryCode: string;
+  unit: "KG" | "LBS";
+  address: string;
+  minSize: number;
+  box: boolean;
+  isOrder: boolean;
+  isDeclaration: boolean;
+  fullDeclaration: boolean;
+  zeroPrice: boolean;
+  zeroSend: boolean;
+  smsConfirmation: boolean;
+  hasWarehouse: boolean;
+  description: string;
+  state: { id: number; name: string } | null;
+  createdAt: string;
+};
+
+export type ICountryFormValues = {
+  name: string;
+  abbr: string;
+  currency: string;
+  currencyType: string;
+  countryCode: string;
+  unit: string;
+  address: string;
+  addressHeading: string;
+  minSize: string;
+  box: boolean;
+  isOrder: boolean;
+  isDeclaration: boolean;
+  fullDeclaration: boolean;
+  zeroPrice: boolean;
+  zeroSend: boolean;
+  smsConfirmation: boolean;
+  hasWarehouse: boolean;
+  description: string;
+  stateId: string;
+  carrierCompanyName: string;
+  carrierCompanyAddress: string;
+  carrierCompanyPhone: string;
+};
