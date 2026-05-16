@@ -4,13 +4,14 @@ import { useQuery } from "react-query";
 import { FormikHelpers } from "formik";
 import { message } from "antd";
 
-import { useCloseModal } from "@shared/hooks";
+import { useBackgroundNavigate } from "@shared/hooks";
+import { localURLMaker } from "@shared/utils";
 import { ReturnTypesService } from "../../services";
 import { IReturnTypeFormValues } from "../../interfaces";
 
 export const useReturnTypeForm = () => {
   const { id } = useParams<{ id?: string }>();
-  const [closeModal] = useCloseModal();
+  const navigate = useBackgroundNavigate();
 
   const detail = useQuery(
     ["return-types", id],
@@ -40,7 +41,7 @@ export const useReturnTypeForm = () => {
 
       if (result.status === 200) {
         message.success(id ? "Dəyişikliklər saxlanıldı" : "İadə səbəbi yaradıldı");
-        closeModal("/return-types", { reFetchReturnTypesTable: "1" });
+        navigate(localURLMaker('/return-types', {}, { reFetchReturnTypesTable: '1' }));
       } else if (result.status === 422) {
         const raw = result.data as Record<string, string[]>;
         const errors: Record<string, string> = {};
@@ -53,7 +54,7 @@ export const useReturnTypeForm = () => {
       }
       helpers.setSubmitting(false);
     },
-    [id, closeModal],
+    [id, navigate],
   );
 
   return {

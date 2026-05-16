@@ -4,7 +4,8 @@ import { useQuery } from "react-query";
 import { FormikHelpers } from "formik";
 import { message } from "antd";
 
-import { useCloseModal } from "@shared/hooks";
+import { useBackgroundNavigate } from "@shared/hooks";
+import { localURLMaker } from "@shared/utils";
 import { BranchesService } from "../../services";
 import { IBranchFormValues } from "../../interfaces";
 
@@ -31,7 +32,7 @@ const emptyValues: IBranchFormValues = {
 
 export const useBranchForm = () => {
   const { id } = useParams<{ id?: string }>();
-  const [closeModal] = useCloseModal();
+  const navigate = useBackgroundNavigate();
 
   const detail = useQuery(
     ["branches", id],
@@ -78,7 +79,7 @@ export const useBranchForm = () => {
 
       if (result.status === 200) {
         message.success(id ? "Dəyişikliklər saxlanıldı" : "Filial yaradıldı");
-        closeModal("/branches", { reFetchBranchesTable: "1" });
+        navigate(localURLMaker('/branches', {}, { reFetchBranchesTable: '1' }));
       } else if (result.status === 422) {
         const raw = result.data as Record<string, string[]>;
         const errors: Record<string, string> = {};
@@ -91,7 +92,7 @@ export const useBranchForm = () => {
       }
       helpers.setSubmitting(false);
     },
-    [id, closeModal],
+    [id, navigate],
   );
 
   return {

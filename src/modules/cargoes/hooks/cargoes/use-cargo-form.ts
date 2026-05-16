@@ -3,13 +3,14 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "react-query";
 import { FormikHelpers } from "formik";
 import { message } from "antd";
-import { useCloseModal } from "@shared/hooks";
+import { useBackgroundNavigate } from "@shared/hooks";
+import { localURLMaker } from "@shared/utils";
 import { CargoesService } from "../../services";
 import { ICargoFormValues } from "../../interfaces";
 
 export const useCargoForm = () => {
   const { id } = useParams<{ id?: string }>();
-  const [closeModal] = useCloseModal();
+  const navigate = useBackgroundNavigate();
 
   const detail = useQuery(
     ["cargoes", id],
@@ -31,7 +32,7 @@ export const useCargoForm = () => {
       const result = id ? await CargoesService.update(id, values) : await CargoesService.create(values);
       if (result.status === 200) {
         message.success(id ? "Dəyişikliklər saxlanıldı" : "Karqo yaradıldı");
-        closeModal("/cargoes", { reFetchCargoesTable: "1" });
+        navigate(localURLMaker('/cargoes', {}, { reFetchCargoesTable: '1' }));
       } else if (result.status === 422) {
         const raw = result.data as Record<string, string[]>;
         const errors: Record<string, string> = {};
@@ -45,7 +46,7 @@ export const useCargoForm = () => {
       }
       helpers.setSubmitting(false);
     },
-    [id, closeModal],
+    [id, navigate],
   );
 
   return { initialValues, onSubmit, id, isLoading: !!id && (detail.isLoading || !detail.data) };

@@ -4,14 +4,15 @@ import { FormikHelpers } from "formik";
 import { message } from "antd";
 import dayjs from "dayjs";
 
-import { useCloseModal } from "@shared/hooks";
+import { useBackgroundNavigate } from "@shared/hooks";
+import { localURLMaker } from "@shared/utils";
 import { UsersService } from "../../services";
 import { CreateUserDto } from "../../interfaces";
 import { useGetUserById } from "./use-get-user-by-id";
 
 export const useCreateUser = () => {
   const { id } = useParams<{ id?: string }>();
-  const [closeModal] = useCloseModal();
+  const navigate = useBackgroundNavigate();
 
   const userQuery = useGetUserById(id);
 
@@ -65,13 +66,13 @@ export const useCreateUser = () => {
         message.success(
           id ? "Dəyişikliklər saxlanıldı" : "İstifadəçi yaradıldı",
         );
-        closeModal("/users", { reFetchUsersTable: "1" });
+        navigate(localURLMaker('/users', {}, { reFetchUsersTable: '1' }));
       } else {
         message.error((result.data as string) || "Xəta baş verdi");
         helpers.setSubmitting(false);
       }
     },
-    [id, closeModal],
+    [id, navigate],
   );
 
   const isLoading = !!id && userQuery.isLoading;

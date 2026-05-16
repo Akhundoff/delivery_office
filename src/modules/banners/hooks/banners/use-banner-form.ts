@@ -3,13 +3,14 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "react-query";
 import { FormikHelpers } from "formik";
 import { message } from "antd";
-import { useCloseModal } from "@shared/hooks";
+import { useBackgroundNavigate } from "@shared/hooks";
+import { localURLMaker } from "@shared/utils";
 import { BannersService } from "../../services";
 import { IBannerFormValues } from "../../interfaces";
 
 export const useBannerForm = () => {
   const { id } = useParams<{ id?: string }>();
-  const [closeModal] = useCloseModal();
+  const navigate = useBackgroundNavigate();
 
   const detail = useQuery(
     ["banners", id],
@@ -23,17 +24,27 @@ export const useBannerForm = () => {
 
   const initialValues = useMemo<IBannerFormValues>(() => {
     if (id && detail.data) {
-      return { name: detail.data.name, type: String(detail.data.type), active: detail.data.active, documentFile: null };
+      return {
+        name: detail.data.name,
+        type: String(detail.data.type),
+        active: detail.data.active,
+        documentFile: null,
+      };
     }
     return { name: "", type: "", active: true, documentFile: null };
   }, [id, detail.data]);
 
   const onSubmit = useCallback(
-    async (values: IBannerFormValues, helpers: FormikHelpers<IBannerFormValues>) => {
-      const result = id ? await BannersService.update(id, values) : await BannersService.create(values);
+    async (
+      values: IBannerFormValues,
+      helpers: FormikHelpers<IBannerFormValues>,
+    ) => {
+      const result = id
+        ? await BannersService.update(id, values)
+        : await BannersService.create(values);
       if (result.status === 200) {
         message.success(id ? "Dəyişikliklər saxlanıldı" : "Banner yaradıldı");
-        closeModal("/banners", { reFetchBannersTable: "1" });
+        navigate(localURLMaker('/banners', {}, { reFetchBannersTable: '1' }));
       } else if (result.status === 422) {
         helpers.setErrors(result.data as any);
       } else {
@@ -41,8 +52,13 @@ export const useBannerForm = () => {
       }
       helpers.setSubmitting(false);
     },
-    [id, closeModal],
+    [id, navigate],
   );
 
-  return { initialValues, onSubmit, id, isLoading: !!id && (detail.isLoading || !detail.data) };
+  return {
+    initialValues,
+    onSubmit,
+    id,
+    isLoading: !!id && (detail.isLoading || !detail.data),
+  };
 };

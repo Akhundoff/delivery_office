@@ -3,13 +3,14 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "react-query";
 import { FormikHelpers } from "formik";
 import { message } from "antd";
-import { useCloseModal } from "@shared/hooks";
+import { useBackgroundNavigate } from "@shared/hooks";
+import { localURLMaker } from "@shared/utils";
 import { PopupsService } from "../../services";
 import { IPopupFormValues, PopupTarget, PopupType } from "../../interfaces";
 
 export const usePopupForm = () => {
   const { id } = useParams<{ id?: string }>();
-  const [closeModal] = useCloseModal();
+  const navigate = useBackgroundNavigate();
 
   const detail = useQuery(
     ["popups", id],
@@ -55,7 +56,7 @@ export const usePopupForm = () => {
       const result = id ? await PopupsService.update(id, values) : await PopupsService.create(values);
       if (result.status === 200) {
         message.success(id ? "Dəyişikliklər saxlanıldı" : "Popup yaradıldı");
-        closeModal("/popups", { reFetchPopupsTable: "1" });
+        navigate(localURLMaker('/popups', {}, { reFetchPopupsTable: '1' }));
       } else if (result.status === 422) {
         helpers.setErrors(result.data as any);
       } else {
@@ -63,7 +64,7 @@ export const usePopupForm = () => {
       }
       helpers.setSubmitting(false);
     },
-    [id, closeModal],
+    [id, navigate],
   );
 
   return { initialValues, onSubmit, id, isLoading: !!id && (detail.isLoading || !detail.data) };

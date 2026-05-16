@@ -4,13 +4,14 @@ import { useQuery } from "react-query";
 import { FormikHelpers } from "formik";
 import { message } from "antd";
 
-import { useCloseModal } from "@shared/hooks";
+import { useBackgroundNavigate } from "@shared/hooks";
+import { localURLMaker } from "@shared/utils";
 import { RegionsService } from "../../services";
 import { IRegionFormValues } from "../../interfaces";
 
 export const useRegionForm = () => {
   const { id } = useParams<{ id?: string }>();
-  const [closeModal] = useCloseModal();
+  const navigate = useBackgroundNavigate();
 
   const detail = useQuery(
     ["regions", id],
@@ -47,7 +48,7 @@ export const useRegionForm = () => {
 
       if (result.status === 200) {
         message.success(id ? "Dəyişikliklər saxlanıldı" : "Rayon yaradıldı");
-        closeModal("/regions", { reFetchRegionsTable: "1" });
+        navigate(localURLMaker('/regions', {}, { reFetchRegionsTable: '1' }));
       } else if (result.status === 422) {
         const raw = result.data as Record<string, string[]>;
         const map: Record<string, string> = {
@@ -69,7 +70,7 @@ export const useRegionForm = () => {
       }
       helpers.setSubmitting(false);
     },
-    [id, closeModal],
+    [id, navigate],
   );
 
   return {

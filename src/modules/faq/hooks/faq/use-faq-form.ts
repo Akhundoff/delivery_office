@@ -3,13 +3,14 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "react-query";
 import { FormikHelpers } from "formik";
 import { message } from "antd";
-import { useCloseModal } from "@shared/hooks";
+import { useBackgroundNavigate } from "@shared/hooks";
+import { localURLMaker } from "@shared/utils";
 import { FaqService } from "../../services";
 import { IFaqFormValues } from "../../interfaces";
 
 export const useFaqForm = () => {
   const { id } = useParams<{ id?: string }>();
-  const [closeModal] = useCloseModal();
+  const navigate = useBackgroundNavigate();
 
   const detail = useQuery(
     ["faq", id],
@@ -33,7 +34,7 @@ export const useFaqForm = () => {
       const result = id ? await FaqService.update(id, values) : await FaqService.create(values);
       if (result.status === 200) {
         message.success(id ? "Dəyişikliklər saxlanıldı" : "Sual yaradıldı");
-        closeModal("/faq", { reFetchFaqTable: "1" });
+        navigate(localURLMaker('/faq', {}, { reFetchFaqTable: '1' }));
       } else if (result.status === 422) {
         helpers.setErrors(result.data as any);
       } else {
@@ -41,7 +42,7 @@ export const useFaqForm = () => {
       }
       helpers.setSubmitting(false);
     },
-    [id, closeModal],
+    [id, navigate],
   );
 
   return { initialValues, onSubmit, id, isLoading: !!id && (detail.isLoading || !detail.data) };

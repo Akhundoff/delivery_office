@@ -4,7 +4,8 @@ import { useQuery } from "react-query";
 import { FormikHelpers } from "formik";
 import { message } from "antd";
 
-import { useCloseModal } from "@shared/hooks";
+import { useBackgroundNavigate } from "@shared/hooks";
+import { localURLMaker } from "@shared/utils";
 import { SettingsContext } from "@modules/settings";
 import { UsersService } from "@modules/users/services";
 
@@ -13,7 +14,7 @@ import { DeclarationsService } from "../../services";
 
 export const useDeclarationForm = () => {
   const { id } = useParams<{ id?: string }>();
-  const [closeModal] = useCloseModal();
+  const navigate = useBackgroundNavigate();
   const settings = useContext(SettingsContext);
 
   const declaration = useQuery(
@@ -128,7 +129,7 @@ export const useDeclarationForm = () => {
         message.success(
           id ? "Dəyişikliklər saxlanıldı" : "Bəyannamə yaradıldı",
         );
-        closeModal("/declarations", { reFetchDeclarationsTable: "1" });
+        navigate(localURLMaker('/declarations', {}, { reFetchDeclarationsTable: '1' }));
       } else if (result.status === 422) {
         const errors: Record<string, string> = {};
         const raw = result.data as Record<string, string[]>;
@@ -158,7 +159,7 @@ export const useDeclarationForm = () => {
       }
       helpers.setSubmitting(false);
     },
-    [id, closeModal],
+    [id, navigate],
   );
 
   return {

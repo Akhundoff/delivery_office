@@ -3,13 +3,14 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "react-query";
 import { FormikHelpers } from "formik";
 import { message } from "antd";
-import { useCloseModal } from "@shared/hooks";
+import { useBackgroundNavigate } from "@shared/hooks";
+import { localURLMaker } from "@shared/utils";
 import { NewsService } from "../../services";
 import { INewsFormValues } from "../../interfaces";
 
 export const useNewsForm = () => {
   const { id } = useParams<{ id?: string }>();
-  const [closeModal] = useCloseModal();
+  const navigate = useBackgroundNavigate();
 
   const detail = useQuery(
     ["news", id],
@@ -33,7 +34,7 @@ export const useNewsForm = () => {
       const result = id ? await NewsService.update(id, values) : await NewsService.create(values);
       if (result.status === 200) {
         message.success(id ? "Dəyişikliklər saxlanıldı" : "Xəbər yaradıldı");
-        closeModal("/news", { reFetchNewsTable: "1" });
+        navigate(localURLMaker('/news', {}, { reFetchNewsTable: '1' }));
       } else if (result.status === 422) {
         helpers.setErrors(result.data as any);
       } else {
@@ -41,7 +42,7 @@ export const useNewsForm = () => {
       }
       helpers.setSubmitting(false);
     },
-    [id, closeModal],
+    [id, navigate],
   );
 
   return { initialValues, onSubmit, id, isLoading: !!id && (detail.isLoading || !detail.data) };

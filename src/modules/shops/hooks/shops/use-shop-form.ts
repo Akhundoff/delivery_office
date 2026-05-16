@@ -3,13 +3,14 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "react-query";
 import { FormikHelpers } from "formik";
 import { message } from "antd";
-import { useCloseModal } from "@shared/hooks";
+import { useBackgroundNavigate } from "@shared/hooks";
+import { localURLMaker } from "@shared/utils";
 import { ShopsService } from "../../services";
 import { IShopFormValues } from "../../interfaces";
 
 export const useShopForm = () => {
   const { id } = useParams<{ id?: string }>();
-  const [closeModal] = useCloseModal();
+  const navigate = useBackgroundNavigate();
 
   const detail = useQuery(
     ["shops", id],
@@ -39,7 +40,7 @@ export const useShopForm = () => {
       const result = id ? await ShopsService.update(id, values) : await ShopsService.create(values);
       if (result.status === 200) {
         message.success(id ? "Dəyişikliklər saxlanıldı" : "Mağaza yaradıldı");
-        closeModal("/shops", { reFetchShopsTable: "1" });
+        navigate(localURLMaker('/shops', {}, { reFetchShopsTable: '1' }));
       } else if (result.status === 422) {
         helpers.setErrors(result.data as any);
       } else {
@@ -47,7 +48,7 @@ export const useShopForm = () => {
       }
       helpers.setSubmitting(false);
     },
-    [id, closeModal],
+    [id, navigate],
   );
 
   return { initialValues, onSubmit, id, isLoading: !!id && (detail.isLoading || !detail.data) };

@@ -4,13 +4,14 @@ import { useQuery } from "react-query";
 import { FormikHelpers } from "formik";
 import { message } from "antd";
 
-import { useCloseModal } from "@shared/hooks";
+import { useBackgroundNavigate } from "@shared/hooks";
+import { localURLMaker } from "@shared/utils";
 import { ProductTypesService } from "../../services";
 import { IProductTypeFormValues } from "../../interfaces";
 
 export const useProductTypeForm = () => {
   const { id } = useParams<{ id?: string }>();
-  const [closeModal] = useCloseModal();
+  const navigate = useBackgroundNavigate();
 
   const detail = useQuery(
     ["product-types", id],
@@ -46,7 +47,7 @@ export const useProductTypeForm = () => {
 
       if (result.status === 200) {
         message.success(id ? "Dəyişikliklər saxlanıldı" : "Məhsul tipi yaradıldı");
-        closeModal("/product-types", { reFetchProductTypesTable: "1" });
+        navigate(localURLMaker('/product-types', {}, { reFetchProductTypesTable: '1' }));
       } else if (result.status === 422) {
         const raw = result.data as Record<string, string[]>;
         const map: Record<string, string> = {
@@ -67,7 +68,7 @@ export const useProductTypeForm = () => {
       }
       helpers.setSubmitting(false);
     },
-    [id, closeModal],
+    [id, navigate],
   );
 
   return {

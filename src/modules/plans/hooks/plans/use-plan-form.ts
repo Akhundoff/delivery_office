@@ -3,13 +3,14 @@ import { useParams } from "react-router-dom";
 import { useQuery } from "react-query";
 import { FormikHelpers } from "formik";
 import { message } from "antd";
-import { useCloseModal } from "@shared/hooks";
+import { useBackgroundNavigate } from "@shared/hooks";
+import { localURLMaker } from "@shared/utils";
 import { PlansService } from "../../services";
 import { IPlanFormValues } from "../../interfaces";
 
 export const usePlanForm = () => {
   const { id } = useParams<{ id?: string }>();
-  const [closeModal] = useCloseModal();
+  const navigate = useBackgroundNavigate();
 
   const detail = useQuery(["plans", id], async () => {
     const result = await PlansService.getById(id!);
@@ -38,7 +39,7 @@ export const usePlanForm = () => {
     const result = id ? await PlansService.update(id, values) : await PlansService.create(values);
     if (result.status === 200) {
       message.success(id ? "Dəyişikliklər saxlanıldı" : "Tarif yaradıldı");
-      closeModal("/plans", { reFetchPlansTable: "1" });
+      navigate(localURLMaker('/plans', {}, { reFetchPlansTable: '1' }));
     } else if (result.status === 422) {
       const errors: Record<string, string> = {};
       const map: Record<string, string> = { country_id: "countryId", from_weight: "weightFrom", to_weight: "weightTo", old_price: "oldPrice", descr: "description", tariff_category_id: "categoryId" };
@@ -50,7 +51,7 @@ export const usePlanForm = () => {
       message.error((result.data as string) || "Xəta baş verdi");
     }
     helpers.setSubmitting(false);
-  }, [id, closeModal]);
+  }, [id, navigate]);
 
   return { initialValues, onSubmit, id, isLoading: !!id && (detail.isLoading || !detail.data) };
 };
