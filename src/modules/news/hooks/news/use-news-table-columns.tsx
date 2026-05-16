@@ -1,15 +1,13 @@
-import { useCallback, useContext, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { Column } from "react-table";
 import { Dropdown, Modal } from "antd";
 import * as Icons from "@ant-design/icons";
 import { nextTableColumns } from "@shared/modules/next-table/helpers/next-table-columns";
 import { useBackgroundNavigate } from "@shared/hooks";
-import { NewsTableContext } from "../../context";
 import { NewsService } from "../../services";
 import { INews } from "../../interfaces";
 
-export const useNewsTableColumns = (): Column<INews>[] => {
-  const { handleFetch } = useContext(NewsTableContext);
+export const useNewsTableColumns = (handleFetch: () => void): Column<INews>[] => {
   const navigate = useBackgroundNavigate();
 
   const handleDelete = useCallback((id: number) => {

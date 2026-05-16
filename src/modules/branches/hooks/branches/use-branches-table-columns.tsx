@@ -1,4 +1,4 @@
-import { useContext, useMemo } from "react";
+import { useMemo } from "react";
 import { Column } from "react-table";
 import { Button, Dropdown, MenuProps, Modal, Tag, message } from "antd";
 import * as Icons from "@ant-design/icons";
@@ -7,13 +7,11 @@ import { StopPropagation } from "@shared/components/stop-propagation";
 import { nextTableColumns } from "@shared/modules/next-table/helpers/next-table-columns";
 import { useBackgroundNavigate } from "@shared/hooks";
 
-import { BranchesTableContext } from "../../context";
 import { BranchesService } from "../../services";
 import { IBranchListItem } from "../../interfaces";
 
-export const useBranchesTableColumns = (): Column<IBranchListItem>[] => {
+export const useBranchesTableColumns = (handleFetch: () => void): Column<IBranchListItem>[] => {
   const navigate = useBackgroundNavigate();
-  const { handleFetch } = useContext(BranchesTableContext);
 
   const actionsColumn = useMemo<Column<IBranchListItem>>(
     () => ({

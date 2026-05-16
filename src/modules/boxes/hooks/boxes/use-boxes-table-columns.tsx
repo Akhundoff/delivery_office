@@ -1,17 +1,15 @@
-import { useContext, useMemo } from "react";
+import { useMemo } from "react";
 import { Column } from "react-table";
 import { Button, Dropdown, MenuProps, Modal, message } from "antd";
 import * as Icons from "@ant-design/icons";
 import { StopPropagation } from "@shared/components/stop-propagation";
 import { nextTableColumns } from "@shared/modules/next-table/helpers/next-table-columns";
 import { useBackgroundNavigate } from "@shared/hooks";
-import { BoxesTableContext } from "../../context";
 import { BoxesService } from "../../services";
 import { IBox } from "../../interfaces";
 
-export const useBoxesTableColumns = (): Column<IBox>[] => {
+export const useBoxesTableColumns = (handleFetch: () => void): Column<IBox>[] => {
   const navigate = useBackgroundNavigate();
-  const { handleFetch } = useContext(BoxesTableContext);
 
   const actionsColumn = useMemo<Column<IBox>>(
     () => ({

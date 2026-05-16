@@ -1,4 +1,4 @@
-import { useContext, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Column } from 'react-table';
 import { Button, Dropdown, MenuProps, Modal, Select, Tag, message } from 'antd';
 import * as Icons from '@ant-design/icons';
@@ -14,12 +14,10 @@ import { useBranches } from '@modules/branches';
 import { IDeclaration } from '../../interfaces';
 import { declarationQueryKeys } from '../../utils';
 import { DeclarationsService } from '../../services';
-import { DeclarationsTableContext } from '../../context';
 
-export const useDeclarationsTableColumns = (): Column<IDeclaration>[] => {
+export const useDeclarationsTableColumns = (handleFetch: () => void): Column<IDeclaration>[] => {
     const navigate = useBackgroundNavigate();
     const branches = useBranches();
-    const { handleFetch } = useContext(DeclarationsTableContext);
 
     const actionsColumn = useMemo<Column<IDeclaration>>(
         () => ({

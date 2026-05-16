@@ -1,16 +1,14 @@
-import { useCallback, useContext } from "react";
+import { useCallback } from "react";
 import { useMemo } from "react";
 import { Column } from "react-table";
 import { Dropdown, Modal } from "antd";
 import * as Icons from "@ant-design/icons";
 import { nextTableColumns } from "@shared/modules/next-table/helpers/next-table-columns";
 import { useBackgroundNavigate } from "@shared/hooks";
-import { FaqTableContext } from "../../context";
 import { FaqService } from "../../services";
 import { IFaq } from "../../interfaces";
 
-export const useFaqTableColumns = (): Column<IFaq>[] => {
-  const { handleFetch } = useContext(FaqTableContext);
+export const useFaqTableColumns = (handleFetch: () => void): Column<IFaq>[] => {
   const navigate = useBackgroundNavigate();
 
   const handleDelete = useCallback((id: number) => {

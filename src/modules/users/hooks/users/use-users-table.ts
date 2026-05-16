@@ -1,20 +1,12 @@
 import { useCallback, useContext, useEffect } from "react";
 import { useUsersTableColumns } from "./use-users-table-columns";
-import { UsersService } from "../../services";
-import {
-  nextTableFetchDataFailedAction,
-  nextTableFetchDataStartedAction,
-  nextTableFetchDataSucceedAction,
-} from "@shared/modules/next-table/context/actions";
-import { NextTableFetchParams } from "@shared/modules/next-table/types";
-import { tableQueryMaker } from "@shared/modules/next-table/utils";
 import { useBackgroundNavigate, useSearchParams } from "@shared/hooks";
 import { UsersTableContext } from "../../context";
 
 export const useUsersTable = () => {
-  const columns = useUsersTableColumns();
-  const navigate = useBackgroundNavigate();
   const { handleFetch } = useContext(UsersTableContext);
+  const columns = useUsersTableColumns(handleFetch);
+  const navigate = useBackgroundNavigate();
   const { searchParams, remove } = useSearchParams<{ reFetchUsersTable?: string }>();
 
   useEffect(() => {
@@ -26,24 +18,6 @@ export const useUsersTable = () => {
     })();
   }, [handleFetch, remove, searchParams.reFetchUsersTable]);
 
-  const onFetch = useCallback(
-    (params: NextTableFetchParams) => async (dispatch: any) => {
-      dispatch(nextTableFetchDataStartedAction());
-      const result = await UsersService.getUsers(tableQueryMaker(params));
-      if (result.status === 200) {
-        dispatch(
-          nextTableFetchDataSucceedAction({
-            data: result.data.data,
-            total: result.data.total,
-          }),
-        );
-      } else {
-        dispatch(nextTableFetchDataFailedAction("Xəta baş verdi."));
-      }
-    },
-    [],
-  );
-
   const getRowProps = useCallback(
     (id: any) => ({
       onDoubleClick: () => navigate(`/users/${id}`, { withBackground: false }),
@@ -52,5 +26,5 @@ export const useUsersTable = () => {
     [navigate],
   );
 
-  return { columns, onFetch, getRowProps };
+  return { columns, getRowProps };
 };

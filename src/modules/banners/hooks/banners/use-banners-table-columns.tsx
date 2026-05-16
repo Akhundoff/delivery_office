@@ -1,16 +1,14 @@
-import { useCallback, useContext, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { Column } from "react-table";
 import { Dropdown, Modal, Tag } from "antd";
 import * as Icons from "@ant-design/icons";
 import { nextTableColumns } from "@shared/modules/next-table/helpers/next-table-columns";
 import { useBackgroundNavigate } from "@shared/hooks";
-import { BannersTableContext } from "../../context";
 import { BannersService } from "../../services";
 import { bannerTypes } from "../../constants/banner-types";
 import { IBanner } from "../../interfaces";
 
-export const useBannersTableColumns = (): Column<IBanner>[] => {
-  const { handleFetch } = useContext(BannersTableContext);
+export const useBannersTableColumns = (handleFetch: () => void): Column<IBanner>[] => {
   const navigate = useBackgroundNavigate();
 
   const handleDelete = useCallback((id: number) => {

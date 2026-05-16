@@ -1,10 +1,9 @@
-import { useCallback, useContext, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { Column } from "react-table";
 import { Dropdown, Modal, Tag } from "antd";
 import * as Icons from "@ant-design/icons";
 import { nextTableColumns } from "@shared/modules/next-table/helpers/next-table-columns";
 import { useBackgroundNavigate } from "@shared/hooks";
-import { PopupsTableContext } from "../../context";
 import { PopupsService } from "../../services";
 import { IPopup, PopupTarget, PopupType } from "../../interfaces";
 
@@ -20,8 +19,7 @@ const typeColor: Record<PopupType, string> = {
   [PopupType.WARNING]: "orange",
 };
 
-export const usePopupsTableColumns = (): Column<IPopup>[] => {
-  const { handleFetch } = useContext(PopupsTableContext);
+export const usePopupsTableColumns = (handleFetch: () => void): Column<IPopup>[] => {
   const navigate = useBackgroundNavigate();
 
   const handleDelete = useCallback((id: number) => {

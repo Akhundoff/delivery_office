@@ -2,15 +2,13 @@ import { FC } from "react";
 import { NextTableProvider } from "@shared/modules/next-table/context/provider";
 import { PageContent } from "@shared/styled/page-content";
 import { StatusesTableContext } from "../context";
-import { useStatusesTable } from "../hooks";
+import { statusesTableFetchUseCase } from "../use-cases/table-fetch";
 import { StatusesTable, StatusesActionBar } from "../containers";
 
 export const StatusesPage: FC = () => {
-  const { onFetch } = useStatusesTable();
-
   return (
     <PageContent $contain={true}>
-      <NextTableProvider context={StatusesTableContext} onFetch={onFetch} name="statuses-table">
+      <NextTableProvider context={StatusesTableContext} onFetch={statusesTableFetchUseCase} name="statuses-table">
         <StatusesActionBar />
         <StatusesTable />
       </NextTableProvider>

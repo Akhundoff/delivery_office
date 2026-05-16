@@ -1,4 +1,4 @@
-import { useCallback, useContext, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Column } from 'react-table';
 import { Button, Dropdown, message, Modal } from 'antd';
@@ -8,10 +8,8 @@ import { nextTableColumns } from '@shared/modules/next-table/helpers/next-table-
 import { StopPropagation } from '@shared/components/stop-propagation';
 import { ITicketTemplate } from '../../interfaces';
 import { TicketTemplatesService } from '../../services';
-import { TicketTemplatesTableContext } from '../../context';
 
-export const useTicketTemplatesTableColumns = (): Column<ITicketTemplate>[] => {
-    const { handleFetch } = useContext(TicketTemplatesTableContext);
+export const useTicketTemplatesTableColumns = (handleFetch: () => void): Column<ITicketTemplate>[] => {
     const navigate = useNavigate();
 
     const handleRemove = useCallback((id: number) => {

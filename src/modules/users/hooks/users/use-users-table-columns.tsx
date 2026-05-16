@@ -1,4 +1,4 @@
-import { useContext, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Column } from 'react-table';
 import { Button, Dropdown, MenuProps, Modal, Select, message } from 'antd';
 import * as Icons from '@ant-design/icons';
@@ -9,14 +9,12 @@ import { nextTableColumns } from '@shared/modules/next-table/helpers/next-table-
 import { filterOption } from '@shared/modules/antd/helpers/filter-option';
 import { useBackgroundNavigate } from '@shared/hooks';
 
-import { UsersTableContext } from '../../context';
 import { UsersService } from '../../services';
 import { IUser } from '../../interfaces';
 import { userQueryKeys } from '../../utils';
 
-export const useUsersTableColumns = (): Column<IUser>[] => {
+export const useUsersTableColumns = (handleFetch: () => void): Column<IUser>[] => {
     const navigate = useBackgroundNavigate();
-    const { handleFetch } = useContext(UsersTableContext);
 
     const actionsColumn = useMemo<Column<IUser>>(
         () => ({

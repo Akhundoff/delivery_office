@@ -1,17 +1,15 @@
-import { useContext, useMemo } from "react";
+import { useMemo } from "react";
 import { Column } from "react-table";
 import { Button, Dropdown, MenuProps, Modal, message } from "antd";
 import * as Icons from "@ant-design/icons";
 import { StopPropagation } from "@shared/components/stop-propagation";
 import { nextTableColumns } from "@shared/modules/next-table/helpers/next-table-columns";
 import { useBackgroundNavigate } from "@shared/hooks";
-import { ShopNamesTableContext } from "../../context";
 import { ShopNamesService } from "../../services";
 import { IShopName } from "../../interfaces";
 
-export const useShopNamesTableColumns = (): Column<IShopName>[] => {
+export const useShopNamesTableColumns = (handleFetch: () => void): Column<IShopName>[] => {
   const navigate = useBackgroundNavigate();
-  const { handleFetch } = useContext(ShopNamesTableContext);
 
   const actionsColumn = useMemo<Column<IShopName>>(
     () => ({
