@@ -44,18 +44,20 @@ export const useFlightForm = () => {
 
   const onSubmit = useCallback(
     async (values: CreateFlightDto, helpers: FormikHelpers<CreateFlightDto>) => {
-      const result = await FlightsService.create(values);
+      try {
+        const result = await FlightsService.create(values);
 
-      if (result.status === 200) {
-        message.success(id ? 'Dəyişikliklər saxlanıldı.' : 'Uçuş yaradıldı.');
-        navigate(localURLMaker('/flights', {}, { reFetchFlightsTable: '1' }));
-      } else if (result.status === 422) {
-        helpers.setErrors(result.data as any);
-      } else {
-        message.error((result.data as string) || 'Xəta baş verdi.');
+        if (result.status === 200) {
+          message.success(id ? 'Dəyişikliklər saxlanıldı.' : 'Uçuş yaradıldı.');
+          navigate(localURLMaker('/flights', {}, { reFetchFlightsTable: '1' }));
+        } else if (result.status === 422) {
+          helpers.setErrors(result.data as any);
+        } else {
+          message.error((result.data as string) || 'Xəta baş verdi.');
+        }
+      } finally {
+        helpers.setSubmitting(false);
       }
-
-      helpers.setSubmitting(false);
     },
     [id, navigate],
   );
