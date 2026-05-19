@@ -1,3 +1,3 @@
 export * from './use-flights-table-columns';
 export * from './use-flights-table';
-// use-flight-form will be added in Task 7
+export * from './use-flight-form';
