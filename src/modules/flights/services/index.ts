@@ -51,6 +51,25 @@ export const FlightsService = {
     }
   },
 
+  update: async (id: string, dto: CreateFlightDto): Promise<ApiResult<200, null> | ApiResult<422, Record<string, string>> | ApiResult<400 | 500, string>> => {
+    const url = urlMaker('/api/admin/flights/create');
+    const body = new FormData();
+    const mapped = CreateFlightDtoMapper.toPersistence(dto);
+    body.append('flight_id', id);
+    Object.entries(mapped).forEach(([k, v]) => body.append(k, v === null || v === undefined ? '' : String(v)));
+    try {
+      const response = await caller(url, { method: 'POST', body });
+      if (response.ok) return new ApiResult(200, null, null);
+      const result = await response.json();
+      if (response.status === 400 && result.errors) {
+        return new ApiResult(422, CreateFlightDtoMapper.errsToDomain(result.errors) as Record<string, string>, null);
+      }
+      return new ApiResult(400, 'Əməliyyat aparıla bilmədi.', null);
+    } catch {
+      return new ApiResult(500, 'Şəbəkə ilə əlaqə qurula bilmədi.', null);
+    }
+  },
+
   close: async (dto: CloseFlightDto): Promise<ApiResult<200, null> | ApiResult<422, Record<string, string>> | ApiResult<400 | 500, string>> => {
     const url = urlMaker('/api/admin/flights/close', { close: true });
     const body = new FormData();
