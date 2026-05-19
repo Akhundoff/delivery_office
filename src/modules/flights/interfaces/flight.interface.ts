@@ -1,3 +1,5 @@
+import { Dayjs } from 'dayjs';
+
 export type IFlight = {
   id: number;
   name: string;
@@ -76,8 +78,8 @@ export type IFlightByIdPersistence = {
 
 export type CreateFlightDto = {
   name: string;
-  startedAt: import('dayjs').Dayjs;
-  endedAt: import('dayjs').Dayjs | null;
+  startedAt: Dayjs;
+  endedAt: Dayjs | null;
   statusId: string;
   countryId: number | null;
 };
