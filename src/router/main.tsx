@@ -9,6 +9,7 @@ const HomeRouter = lazy(() => import('../modules/home/router'));
 // Modal Routers
 const UsersModalRouter = lazy(() => import('../modules/users/router/modal.router'));
 const DeclarationsModalRouter = lazy(() => import('../modules/declarations/router/modal.router'));
+const FlightsModalRouter = lazy(() => import('../modules/flights/router/modal.router'));
 const CargoesModalRouter = lazy(() => import('../modules/cargoes/router/modal.router'));
 const BoxesModalRouter = lazy(() => import('../modules/boxes/router/modal.router'));
 const ShopNamesModalRouter = lazy(() => import('../modules/shop-names/router/modal.router'));
@@ -56,6 +57,7 @@ export const MainRouter: FC = () => {
             <Routes>
                 <Route path='/users/*' element={<UsersModalRouter />} />
                 <Route path='/declarations/*' element={<DeclarationsModalRouter />} />
+                <Route path='/flights/*' element={<FlightsModalRouter />} />
                 <Route path='/cargoes/*' element={<CargoesModalRouter />} />
                 <Route path='/boxes/*' element={<BoxesModalRouter />} />
                 <Route path='/shop-names/*' element={<ShopNamesModalRouter />} />

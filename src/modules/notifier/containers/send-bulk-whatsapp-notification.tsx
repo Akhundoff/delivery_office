@@ -11,9 +11,8 @@ import { TextField } from '@shared/modules/form/fields/text';
 import { PageContent } from '@shared/styled/page-content';
 import { useBranches } from '@modules/branches';
 import { ISendBulkWhatsappNotificationDto } from '../interfaces';
-import { BulkWhatsappNotificationService, NotificationTemplatesService } from '../services';
-import { useQuery } from 'react-query';
-import { caller, urlMaker } from '@shared/utils';
+import { BulkWhatsappNotificationService } from '../services';
+import { useSendBulkWhatsappNotification } from '../hooks';
 
 const initialValues: ISendBulkWhatsappNotificationDto = {
     type: 'allUsers',
@@ -34,34 +33,13 @@ const initialValues: ISendBulkWhatsappNotificationDto = {
 const FormikComponent: FC<FormikProps<ISendBulkWhatsappNotificationDto>> = ({ values, submitForm, isSubmitting }) => {
     const navigate = useNavigate();
     const branches = useBranches();
-
-    const templates = useQuery(['notifier', 'templates', 'whatsapp'], () =>
-        NotificationTemplatesService.getList({ template_type_id: 4, per_page: 200 }),
-    );
-
-    const orderStatusQuery = useQuery(
-        ['statuses', 'model', '1'],
-        () => caller(urlMaker('/api/admin/states/getlistbymodelid', { model_id: 1 })).then((r) => r.json()),
-        { enabled: values.type === 'orderStatus' },
-    );
-
-    const declarationStatusQuery = useQuery(
-        ['statuses', 'model', '2'],
-        () => caller(urlMaker('/api/admin/states/getlistbymodelid', { model_id: 2 })).then((r) => r.json()),
-        { enabled: values.type === 'declarationStatus' },
-    );
-
-    const courierStatusQuery = useQuery(
-        ['statuses', 'model', '3'],
-        () => caller(urlMaker('/api/admin/states/getlistbymodelid', { model_id: 3 })).then((r) => r.json()),
-        { enabled: values.type === 'courierStatus' },
-    );
-
-    const usersQuery = useQuery(
-        ['notifier', 'whatsapp', 'users', values],
-        () => BulkWhatsappNotificationService.getUsers(values),
-        { enabled: !!values.type },
-    );
+    const {
+        templates, templatesLoading,
+        orderStatuses, orderStatusesLoading,
+        declarationStatuses, declarationStatusesLoading,
+        courierStatuses, courierStatusesLoading,
+        users, usersLoading,
+    } = useSendBulkWhatsappNotification(values);
 
     const title = (
         <Space>
@@ -126,11 +104,11 @@ const FormikComponent: FC<FormikProps<ISendBulkWhatsappNotificationDto>> = ({ va
                                     input={{
                                         placeholder: 'Bağlama statusunu seçin...',
                                         mode: 'multiple',
-                                        disabled: declarationStatusQuery.isLoading,
-                                        loading: declarationStatusQuery.isLoading,
+                                        disabled: declarationStatusesLoading,
+                                        loading: declarationStatusesLoading,
                                     }}
                                 >
-                                    {(declarationStatusQuery.data?.data || []).map((s: any) => (
+                                    {declarationStatuses.map((s) => (
                                         <Select.Option key={s.id} value={s.id.toString()}>
                                             {s.name}
                                         </Select.Option>
@@ -167,11 +145,11 @@ const FormikComponent: FC<FormikProps<ISendBulkWhatsappNotificationDto>> = ({ va
                                 input={{
                                     placeholder: 'Sifariş statusu seçin...',
                                     mode: 'multiple',
-                                    disabled: orderStatusQuery.isLoading,
-                                    loading: orderStatusQuery.isLoading,
+                                    disabled: orderStatusesLoading,
+                                    loading: orderStatusesLoading,
                                 }}
                             >
-                                {(orderStatusQuery.data?.data || []).map((s: any) => (
+                                {orderStatuses.map((s) => (
                                     <Select.Option key={s.id} value={s.id.toString()}>
                                         {s.name}
                                     </Select.Option>
@@ -188,11 +166,11 @@ const FormikComponent: FC<FormikProps<ISendBulkWhatsappNotificationDto>> = ({ va
                                 input={{
                                     placeholder: 'Kuryer statusunu seçin...',
                                     mode: 'multiple',
-                                    disabled: courierStatusQuery.isLoading,
-                                    loading: courierStatusQuery.isLoading,
+                                    disabled: courierStatusesLoading,
+                                    loading: courierStatusesLoading,
                                 }}
                             >
-                                {(courierStatusQuery.data?.data || []).map((s: any) => (
+                                {courierStatuses.map((s) => (
                                     <Select.Option key={s.id} value={s.id.toString()}>
                                         {s.name}
                                     </Select.Option>
@@ -215,18 +193,13 @@ const FormikComponent: FC<FormikProps<ISendBulkWhatsappNotificationDto>> = ({ va
                         <div style={{ fontWeight: 600, marginBottom: 8 }}>Şablon</div>
                         <SelectField
                             name='templateId'
-                            input={{
-                                placeholder: 'Şablon seçin...',
-                                disabled: templates.isLoading,
-                                loading: templates.isLoading,
-                            }}
+                            input={{ placeholder: 'Şablon seçin...', disabled: templatesLoading, loading: templatesLoading }}
                         >
-                            {templates.data?.status === 200 &&
-                                templates.data.data.data.map((t) => (
-                                    <Select.Option key={t.id} value={t.id.toString()}>
-                                        {t.name}
-                                    </Select.Option>
-                                ))}
+                            {templates.map((t) => (
+                                <Select.Option key={t.id} value={t.id.toString()}>
+                                    {t.name}
+                                </Select.Option>
+                            ))}
                         </SelectField>
                         <NavLink to='/notifier/templates/create'>
                             <Button style={{ marginTop: 8 }} icon={<Icons.PlusCircleOutlined />} block>
@@ -251,16 +224,16 @@ const FormikComponent: FC<FormikProps<ISendBulkWhatsappNotificationDto>> = ({ va
                 </Col>
 
                 <Col xs={24} lg={12}>
-                    {usersQuery.data?.status === 200 && (
+                    {users && (
                         <>
-                            <Table rowKey='id' size='small' bordered dataSource={usersQuery.data.data.data} loading={usersQuery.isLoading} pagination={false}>
+                            <Table rowKey='id' size='small' bordered dataSource={users.data} loading={usersLoading} pagination={false}>
                                 <Table.Column width={60} key='id' dataIndex='id' title='Kod' />
                                 <Table.Column key='firstname' dataIndex='firstname' title='Ad' />
                                 <Table.Column key='lastname' dataIndex='lastname' title='Soyad' />
                                 <Table.Column key='phoneNumber' dataIndex='phoneNumber' title='Telefon' />
                             </Table>
                             <Descriptions size='small' column={1} style={{ marginTop: 12 }}>
-                                <Descriptions.Item label='Göndəriləcək mesaj sayı'>{usersQuery.data.data.total || 0}</Descriptions.Item>
+                                <Descriptions.Item label='Göndəriləcək mesaj sayı'>{users.total || 0}</Descriptions.Item>
                             </Descriptions>
                         </>
                     )}

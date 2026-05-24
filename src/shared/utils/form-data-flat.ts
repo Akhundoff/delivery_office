@@ -17,7 +17,7 @@ export const formDataFlat = <Output extends object>(object: Record<string, any>)
     } else if (typeof value === 'boolean') {
       finalEntry[key] = Number(value).toString();
     } else {
-      finalEntry[key] = value;
+      finalEntry[key] = value as string;
     }
     return { ...acc, ...finalEntry };
   }, {}) as Output;

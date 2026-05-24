@@ -6,6 +6,7 @@ import { SuspenseSpin } from '@shared/styled/spin';
 
 const UsersRouter = lazy(() => import('../../users/router/page.router'));
 const DeclarationsRouter = lazy(() => import('../../declarations/router/page.router'));
+const FlightsRouter = lazy(() => import('../../flights/router/page.router'));
 const SystemSettingsRouter = lazy(() => import('../../system-settings/router/page.router'));
 const CouponsRouter = lazy(() => import('../../coupons/router/page.router'));
 const RefundsRouter = lazy(() => import('../../refunds/router/page.router'));
@@ -46,6 +47,7 @@ export const HomeRouter: FC = () => {
                     <Route path='/' element={<HomePage />} />
                     <Route path='/users/*' element={<UsersRouter />} />
                     <Route path='/declarations/*' element={<DeclarationsRouter />} />
+                    <Route path='/flights/*' element={<FlightsRouter />} />
                     <Route path='/settings/*' element={<SystemSettingsRouter />} />
                     <Route path='/coupons/*' element={<CouponsRouter />} />
                     <Route path='/refunds/*' element={<RefundsRouter />} />

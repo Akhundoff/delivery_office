@@ -1,19 +1,24 @@
-import { FC, useCallback } from 'react';
+import { FC, useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Button, Card, Descriptions, Modal, Space, Spin, Tooltip, message } from 'antd';
 import * as Icons from '@ant-design/icons';
+import { INotificationTemplate } from '../interfaces';
 import { NotificationTemplatesService } from '../services';
-import { useQuery } from 'react-query';
 
 export const NotificationTemplateDetails: FC = () => {
     const navigate = useNavigate();
     const { id } = useParams<{ id: string }>();
+    const [tpl, setTpl] = useState<INotificationTemplate | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
 
-    const { data, isLoading } = useQuery(
-        ['notifier', 'template', id],
-        () => NotificationTemplatesService.getById(id!),
-        { enabled: !!id },
-    );
+    useEffect(() => {
+        if (!id) return;
+        setIsLoading(true);
+        NotificationTemplatesService.getById(id).then((r) => {
+            if (r.status === 200) setTpl(r.data);
+            setIsLoading(false);
+        });
+    }, [id]);
 
     const onClose = useCallback(() => navigate(-1), [navigate]);
 
@@ -36,8 +41,6 @@ export const NotificationTemplateDetails: FC = () => {
             },
         });
     }, [id, navigate]);
-
-    const tpl = data?.status === 200 ? data.data : null;
 
     const extra = (
         <Space>

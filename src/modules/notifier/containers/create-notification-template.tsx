@@ -9,9 +9,7 @@ import { CheckboxField } from '@shared/modules/form/fields/checkbox';
 import { RichTextField } from '@shared/modules/form/fields/rich-text';
 import { ICreateNotificationTemplateDto } from '../interfaces';
 import { NotificationTemplatesService } from '../services';
-import { ModelsService } from '@modules/models/services';
-import { useQuery } from 'react-query';
-import { caller, urlMaker } from '@shared/utils';
+import { useCreateNotificationTemplate } from '../hooks';
 
 const emptyValues: ICreateNotificationTemplateDto = {
     name: '',
@@ -25,41 +23,34 @@ const emptyValues: ICreateNotificationTemplateDto = {
     htmlTemplateId: '',
 };
 
-const FormikComponent: FC<FormikProps<ICreateNotificationTemplateDto> & { onClose: () => void }> = ({
+const FormikComponent: FC<FormikProps<ICreateNotificationTemplateDto> & { id?: string; onClose: () => void }> = ({
     values,
     submitForm,
     isSubmitting,
     setFieldValue,
+    id,
     onClose,
 }) => {
-    const modelsQuery = useQuery(['models', 'list'], () => ModelsService.getList({ per_page: 200 }));
-
-    const statusQuery = useQuery(
-        ['statuses', 'model', values.modelId],
-        () => caller(urlMaker('/api/admin/states/getlistbymodelid', { model_id: values.modelId })).then((r) => r.json()),
-        { enabled: !!values.modelId },
-    );
+    const { statuses, statusesLoading, models, modelsLoading } = useCreateNotificationTemplate(id, values.modelId);
 
     const modelsOptions = useMemo(
         () =>
-            modelsQuery.data?.status === 200
-                ? modelsQuery.data.data.data.map((m) => (
-                      <Select.Option key={m.id} value={m.id.toString()}>
-                          {m.name}
-                      </Select.Option>
-                  ))
-                : [],
-        [modelsQuery.data],
+            (models || []).map((m) => (
+                <Select.Option key={m.id} value={m.id.toString()}>
+                    {m.name}
+                </Select.Option>
+            )),
+        [models],
     );
 
     const statusOptions = useMemo(
         () =>
-            (statusQuery.data?.data || []).map((s: any) => (
+            statuses.map((s) => (
                 <Select.Option key={s.id} value={s.id.toString()}>
                     {s.name}
                 </Select.Option>
             )),
-        [statusQuery.data],
+        [statuses],
     );
 
     const onTypeIdChange = useCallback(
@@ -123,8 +114,8 @@ const FormikComponent: FC<FormikProps<ICreateNotificationTemplateDto> & { onClos
                             input={{
                                 placeholder: 'Model seçin...',
                                 onChange: onModelIdChange,
-                                loading: modelsQuery.isLoading,
-                                disabled: modelsQuery.isLoading,
+                                loading: modelsLoading,
+                                disabled: modelsLoading,
                             }}
                         >
                             {modelsOptions}
@@ -136,8 +127,8 @@ const FormikComponent: FC<FormikProps<ICreateNotificationTemplateDto> & { onClos
                             item={{ label: 'Status' }}
                             input={{
                                 placeholder: 'Status seçin...',
-                                loading: statusQuery.isLoading,
-                                disabled: statusQuery.isLoading || !values.modelId,
+                                loading: statusesLoading,
+                                disabled: statusesLoading || !values.modelId,
                             }}
                         >
                             {statusOptions}
@@ -176,9 +167,7 @@ const FormikComponent: FC<FormikProps<ICreateNotificationTemplateDto> & { onClos
 
                 {values.typeId === '2' && (
                     <Row gutter={[24, 24]} style={{ marginTop: 16 }}>
-                        <Col lg={24}>
-                            <h3 style={{ marginBottom: 0 }}>Mail dəyişənləri:</h3>
-                        </Col>
+                        <Col lg={24}><h3 style={{ marginBottom: 0 }}>Mail dəyişənləri:</h3></Col>
                         <Col lg={12}>
                             <table style={{ width: '100%' }}>
                                 <tbody>
@@ -209,9 +198,7 @@ const FormikComponent: FC<FormikProps<ICreateNotificationTemplateDto> & { onClos
 
                 {values.typeId === '4' && (
                     <Row gutter={[24, 24]} style={{ marginTop: 16 }}>
-                        <Col lg={24}>
-                            <h3 style={{ marginBottom: 0 }}>Whatsapp dəyişənləri:</h3>
-                        </Col>
+                        <Col lg={24}><h3 style={{ marginBottom: 0 }}>Whatsapp dəyişənləri:</h3></Col>
                         <Col lg={12}>
                             <table style={{ width: '100%' }}>
                                 <tbody>
@@ -243,9 +230,7 @@ const FormikComponent: FC<FormikProps<ICreateNotificationTemplateDto> & { onClos
 
                 {values.typeId === '3' && (
                     <Row gutter={[24, 24]} style={{ marginTop: 16 }}>
-                        <Col lg={24}>
-                            <h3 style={{ marginBottom: 0 }}>APP Bildiriş dəyişənləri:</h3>
-                        </Col>
+                        <Col lg={24}><h3 style={{ marginBottom: 0 }}>APP Bildiriş dəyişənləri:</h3></Col>
                         <Col lg={12}>
                             <table style={{ width: '100%' }}>
                                 <tbody>
@@ -281,14 +266,9 @@ const FormikComponent: FC<FormikProps<ICreateNotificationTemplateDto> & { onClos
 export const CreateNotificationTemplate: FC = () => {
     const navigate = useNavigate();
     const { id } = useParams<{ id?: string }>();
+    const { template, templateLoading } = useCreateNotificationTemplate(id);
 
     const onClose = useCallback(() => navigate(-1), [navigate]);
-
-    const templateQuery = useQuery(
-        ['notifier', 'template', id],
-        () => NotificationTemplatesService.getById(id!),
-        { enabled: !!id },
-    );
 
     const handleSubmit = useCallback(
         async (values: ICreateNotificationTemplateDto) => {
@@ -303,21 +283,20 @@ export const CreateNotificationTemplate: FC = () => {
         [id, navigate],
     );
 
-    if (id && templateQuery.isLoading) return null;
+    if (id && templateLoading) return null;
 
-    const tpl = templateQuery.data?.status === 200 ? templateQuery.data.data : null;
-    const initialValues: ICreateNotificationTemplateDto = tpl
+    const initialValues: ICreateNotificationTemplateDto = template
         ? {
-              id: tpl.id,
-              name: tpl.name,
-              title: tpl.title,
-              body: tpl.body,
-              typeId: tpl.type.id.toString(),
-              modelId: tpl.model.id.toString(),
-              statusId: tpl.status?.id.toString() ?? '',
-              isActive: tpl.isActive,
-              delay: tpl.delay.toString(),
-              htmlTemplateId: tpl.htmlTemplateId ?? '',
+              id: template.id,
+              name: template.name,
+              title: template.title,
+              body: template.body,
+              typeId: template.type.id.toString(),
+              modelId: template.model.id.toString(),
+              statusId: template.status?.id.toString() ?? '',
+              isActive: template.isActive,
+              delay: template.delay.toString(),
+              htmlTemplateId: template.htmlTemplateId ?? '',
           }
         : emptyValues;
 
@@ -326,7 +305,7 @@ export const CreateNotificationTemplate: FC = () => {
             initialValues={initialValues}
             enableReinitialize
             onSubmit={handleSubmit}
-            component={(props) => <FormikComponent {...props} onClose={onClose} />}
+            component={(props) => <FormikComponent {...props} id={id} onClose={onClose} />}
         />
     );
 };

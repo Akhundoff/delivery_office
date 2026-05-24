@@ -1,4 +1,4 @@
-import { FC, useCallback, useState } from 'react';
+import { FC, useCallback } from 'react';
 import { Formik, FormikProps } from 'formik';
 import { Button, Col, Descriptions, Radio, Row, Select, Space, Table, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
@@ -9,8 +9,8 @@ import { DateField } from '@shared/modules/form/fields/date';
 import { PageContent } from '@shared/styled/page-content';
 import { useBranches } from '@modules/branches';
 import { ISendBulkMobileNotificationDto } from '../interfaces';
-import { BulkMobileNotificationService, NotificationTemplatesService } from '../services';
-import { useQuery } from 'react-query';
+import { BulkMobileNotificationService } from '../services';
+import { useSendBulkMobileNotification } from '../hooks';
 
 const initialValues: ISendBulkMobileNotificationDto = {
     type: 'allUsers',
@@ -30,16 +30,7 @@ const initialValues: ISendBulkMobileNotificationDto = {
 const FormikComponent: FC<FormikProps<ISendBulkMobileNotificationDto>> = ({ values, submitForm, isSubmitting }) => {
     const navigate = useNavigate();
     const branches = useBranches();
-
-    const templates = useQuery(['notifier', 'templates', 'mobile'], () =>
-        NotificationTemplatesService.getList({ template_type_id: 3, per_page: 200 }),
-    );
-
-    const usersQuery = useQuery(
-        ['notifier', 'mobile', 'users', values],
-        () => BulkMobileNotificationService.getUsers(values),
-        { enabled: !!values.type },
-    );
+    const { templates, templatesLoading, users, usersLoading } = useSendBulkMobileNotification(values);
 
     const title = (
         <Space>
@@ -84,18 +75,13 @@ const FormikComponent: FC<FormikProps<ISendBulkMobileNotificationDto>> = ({ valu
                         <div style={{ fontWeight: 600, marginBottom: 8 }}>Şablon</div>
                         <SelectField
                             name='templateId'
-                            input={{
-                                placeholder: 'Şablon seçin...',
-                                disabled: templates.isLoading,
-                                loading: templates.isLoading,
-                            }}
+                            input={{ placeholder: 'Şablon seçin...', disabled: templatesLoading, loading: templatesLoading }}
                         >
-                            {templates.data?.status === 200 &&
-                                templates.data.data.data.map((t) => (
-                                    <Select.Option key={t.id} value={t.id.toString()}>
-                                        {t.name}
-                                    </Select.Option>
-                                ))}
+                            {templates.map((t) => (
+                                <Select.Option key={t.id} value={t.id.toString()}>
+                                    {t.name}
+                                </Select.Option>
+                            ))}
                         </SelectField>
                     </div>
 
@@ -109,22 +95,15 @@ const FormikComponent: FC<FormikProps<ISendBulkMobileNotificationDto>> = ({ valu
                     </Button>
                 </Col>
                 <Col xs={24} lg={12}>
-                    {usersQuery.data?.status === 200 && (
+                    {users && (
                         <>
-                            <Table
-                                rowKey='id'
-                                size='small'
-                                bordered
-                                dataSource={usersQuery.data.data.data}
-                                loading={usersQuery.isLoading}
-                                pagination={false}
-                            >
+                            <Table rowKey='id' size='small' bordered dataSource={users.data} loading={usersLoading} pagination={false}>
                                 <Table.Column width={60} key='id' dataIndex='id' title='Kod' />
                                 <Table.Column key='firstname' dataIndex='firstname' title='Ad' />
                                 <Table.Column key='lastname' dataIndex='lastname' title='Soyad' />
                             </Table>
                             <Descriptions size='small' column={1} style={{ marginTop: 12 }}>
-                                <Descriptions.Item label='Göndəriləcək bildiriş sayı'>{usersQuery.data.data.total}</Descriptions.Item>
+                                <Descriptions.Item label='Göndəriləcək bildiriş sayı'>{users.total}</Descriptions.Item>
                             </Descriptions>
                         </>
                     )}

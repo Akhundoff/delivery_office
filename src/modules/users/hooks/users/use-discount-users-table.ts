@@ -1,11 +1,9 @@
-import { useCallback, useContext } from "react";
+import { useCallback } from "react";
 import { useUsersTableColumns } from "./use-users-table-columns";
-import { DiscountUsersTableContext } from "../../context";
 import { useBackgroundNavigate } from "@shared/hooks";
 
 export const useDiscountUsersTable = () => {
-  const { handleFetch } = useContext(DiscountUsersTableContext);
-  const columns = useUsersTableColumns(handleFetch);
+  const columns = useUsersTableColumns();
   const navigate = useBackgroundNavigate();
 
   const getRowProps = useCallback(

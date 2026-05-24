@@ -11,9 +11,8 @@ import { TextField } from '@shared/modules/form/fields/text';
 import { PageContent } from '@shared/styled/page-content';
 import { useBranches } from '@modules/branches';
 import { ISendBulkSmsNotificationDto } from '../interfaces';
-import { BulkSmsNotificationService, SmsBalanceService } from '../services';
-import { useQuery } from 'react-query';
-import { caller, urlMaker } from '@shared/utils';
+import { BulkSmsNotificationService } from '../services';
+import { useSendBulkSmsNotification } from '../hooks';
 
 const initialValues: ISendBulkSmsNotificationDto = {
     type: 'allUsers',
@@ -33,32 +32,12 @@ const initialValues: ISendBulkSmsNotificationDto = {
 const FormikComponent: FC<FormikProps<ISendBulkSmsNotificationDto>> = ({ values, submitForm, isSubmitting }) => {
     const navigate = useNavigate();
     const branches = useBranches();
-
-    const orderStatusQuery = useQuery(
-        ['statuses', 'model', '1'],
-        () => caller(urlMaker('/api/admin/states/getlistbymodelid', { model_id: 1 })).then((r) => r.json()),
-        { enabled: values.type === 'orderStatus' },
-    );
-
-    const declarationStatusQuery = useQuery(
-        ['statuses', 'model', '2'],
-        () => caller(urlMaker('/api/admin/states/getlistbymodelid', { model_id: 2 })).then((r) => r.json()),
-        { enabled: values.type === 'declarationStatus' },
-    );
-
-    const courierStatusQuery = useQuery(
-        ['statuses', 'model', '3'],
-        () => caller(urlMaker('/api/admin/states/getlistbymodelid', { model_id: 3 })).then((r) => r.json()),
-        { enabled: values.type === 'courierStatus' },
-    );
-
-    const smsBalance = useQuery(['sms', 'balance'], () => SmsBalanceService.getBalance());
-
-    const usersQuery = useQuery(
-        ['notifier', 'sms', 'users', values],
-        () => BulkSmsNotificationService.getUsers(values),
-        { enabled: !!values.type },
-    );
+    const {
+        orderStatuses, orderStatusesLoading,
+        declarationStatuses, declarationStatusesLoading,
+        courierStatuses, courierStatusesLoading,
+        smsBalance, users, usersLoading,
+    } = useSendBulkSmsNotification(values);
 
     const title = (
         <Space>
@@ -67,7 +46,7 @@ const FormikComponent: FC<FormikProps<ISendBulkSmsNotificationDto>> = ({ values,
         </Space>
     );
 
-    const balance = smsBalance.data?.status === 200 ? smsBalance.data.data : undefined;
+    const balance = smsBalance;
 
     return (
         <PageContent title={title}>
@@ -125,11 +104,11 @@ const FormikComponent: FC<FormikProps<ISendBulkSmsNotificationDto>> = ({ values,
                                     input={{
                                         placeholder: 'Bağlama statusunu seçin...',
                                         mode: 'multiple',
-                                        disabled: declarationStatusQuery.isLoading,
-                                        loading: declarationStatusQuery.isLoading,
+                                        disabled: declarationStatusesLoading,
+                                        loading: declarationStatusesLoading,
                                     }}
                                 >
-                                    {(declarationStatusQuery.data?.data || []).map((s: any) => (
+                                    {declarationStatuses.map((s) => (
                                         <Select.Option key={s.id} value={s.id.toString()}>
                                             {s.name}
                                         </Select.Option>
@@ -166,11 +145,11 @@ const FormikComponent: FC<FormikProps<ISendBulkSmsNotificationDto>> = ({ values,
                                 input={{
                                     placeholder: 'Sifariş statusu seçin...',
                                     mode: 'multiple',
-                                    disabled: orderStatusQuery.isLoading,
-                                    loading: orderStatusQuery.isLoading,
+                                    disabled: orderStatusesLoading,
+                                    loading: orderStatusesLoading,
                                 }}
                             >
-                                {(orderStatusQuery.data?.data || []).map((s: any) => (
+                                {orderStatuses.map((s) => (
                                     <Select.Option key={s.id} value={s.id.toString()}>
                                         {s.name}
                                     </Select.Option>
@@ -187,11 +166,11 @@ const FormikComponent: FC<FormikProps<ISendBulkSmsNotificationDto>> = ({ values,
                                 input={{
                                     placeholder: 'Kuryer statusunu seçin...',
                                     mode: 'multiple',
-                                    disabled: courierStatusQuery.isLoading,
-                                    loading: courierStatusQuery.isLoading,
+                                    disabled: courierStatusesLoading,
+                                    loading: courierStatusesLoading,
                                 }}
                             >
-                                {(courierStatusQuery.data?.data || []).map((s: any) => (
+                                {courierStatuses.map((s) => (
                                     <Select.Option key={s.id} value={s.id.toString()}>
                                         {s.name}
                                     </Select.Option>
@@ -226,9 +205,9 @@ const FormikComponent: FC<FormikProps<ISendBulkSmsNotificationDto>> = ({ values,
                 </Col>
 
                 <Col xs={24} lg={12}>
-                    {usersQuery.data?.status === 200 && (
+                    {users && (
                         <>
-                            <Table rowKey='id' size='small' bordered dataSource={usersQuery.data.data.data} loading={usersQuery.isLoading} pagination={false}>
+                            <Table rowKey='id' size='small' bordered dataSource={users.data} loading={usersLoading} pagination={false}>
                                 <Table.Column width={60} key='id' dataIndex='id' title='Kod' />
                                 <Table.Column key='firstname' dataIndex='firstname' title='Ad' />
                                 <Table.Column key='lastname' dataIndex='lastname' title='Soyad' />
@@ -246,15 +225,15 @@ const FormikComponent: FC<FormikProps<ISendBulkSmsNotificationDto>> = ({ values,
                             )}
 
                             <Descriptions size='small' column={1} style={{ marginTop: 12 }}>
-                                <Descriptions.Item label='Göndəriləcək sms sayı'>{usersQuery.data.data.total || 0}</Descriptions.Item>
+                                <Descriptions.Item label='Göndəriləcək sms sayı'>{users.total || 0}</Descriptions.Item>
                                 {balance !== undefined && (
                                     <>
                                         <Descriptions.Item label='SMS balansı'>{balance}</Descriptions.Item>
-                                        <Descriptions.Item label='Qalıq balans'>{Math.max(0, balance - usersQuery.data.data.total)}</Descriptions.Item>
+                                        <Descriptions.Item label='Qalıq balans'>{Math.max(0, balance - users.total)}</Descriptions.Item>
                                     </>
                                 )}
                             </Descriptions>
-                            {balance !== undefined && balance - usersQuery.data.data.total < 0 && (
+                            {balance !== undefined && balance - users.total < 0 && (
                                 <Typography.Text type='danger'>Diqqət: Sms balansınız yetərsizdir. Bütün mesajlar göndərilməyəcək.</Typography.Text>
                             )}
                         </>
