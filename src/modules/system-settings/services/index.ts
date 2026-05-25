@@ -1,4 +1,4 @@
-import { ApiResult, caller, urlMaker } from "@shared/utils";
+import { ApiResult, appendToFormData, caller, urlMaker } from "@shared/utils";
 
 export type ISettingsGroup = Record<string, any>;
 
@@ -25,10 +25,7 @@ export const SystemSettingsService = {
   ): Promise<ApiResult<200, null> | ApiResult<400 | 422, any>> => {
     const url = urlMaker("/api/admin/settings/data");
     const body = new FormData();
-    body.append("group_id", groupId);
-    Object.entries(values).forEach(([k, v]) => {
-      if (v !== null && v !== undefined) body.append(k, v);
-    });
+    appendToFormData({ group_id: groupId, ...values }, body);
     try {
       const response = await caller(url, { method: "POST", body });
       if (response.ok) return new ApiResult(200, null, null);
