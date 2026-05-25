@@ -1,10 +1,11 @@
 import { FC, useCallback } from 'react';
-import { Alert, Button, Col, Input, Row, Select, Space, Switch, Table, Typography, Spin, Result } from 'antd';
+import { Alert, Button, Col, Input, Row, Select, Space, Switch, Table, Spin, Result } from 'antd';
 import * as Icons from '@ant-design/icons';
 import * as Colors from '@ant-design/colors';
 import { PageContent } from '@shared/styled/page-content';
 import { usePartnerBoxAcceptance } from '../hooks';
 import { BoxSelectionModal } from '../components/box-selection-modal';
+import { BarcodeScan } from '../components/barcode-scan';
 
 export const PartnerBoxAcceptancePage: FC = () => {
   const {
@@ -68,9 +69,7 @@ export const PartnerBoxAcceptancePage: FC = () => {
         <Row gutter={[16, 16]}>
           <Col xs={{ span: 24, order: 2 }} lg={{ span: 12, order: 1 }}>
             <div style={{ maxWidth: 400, padding: '48px 0', margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-              {lastBarcode && (
-                <Typography.Title level={4} style={{ fontFamily: 'monospace', letterSpacing: 2 }}>{lastBarcode.barcode}</Typography.Title>
-              )}
+              <BarcodeScan barcode={lastBarcode?.barcode} />
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <div>{barcodeType ? 'Trendyol' : 'Findex'}<Switch checked={barcodeType} onChange={onBarcodeTypeSwitch} style={{ marginLeft: 8 }} /></div>
               </div>
