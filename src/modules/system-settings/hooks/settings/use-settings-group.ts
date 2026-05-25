@@ -4,7 +4,12 @@ import { FormikErrors, FormikHelpers } from "formik";
 import { message } from "antd";
 import { SystemSettingsService } from "../../services";
 
-export const useSettingsGroup = <T extends Record<string, any>>(groupId: string, defaultValues: T) => {
+export const useSettingsGroup = <T extends Record<string, any>>(
+  groupId: string,
+  defaultValues: T,
+  fromApi?: (raw: Record<string, any>) => Partial<T>,
+  toApi?: (values: T) => Record<string, any>,
+) => {
   const query = useQuery(
     ["settings", groupId],
     async () => {
@@ -17,12 +22,14 @@ export const useSettingsGroup = <T extends Record<string, any>>(groupId: string,
 
   const initialValues = useMemo<T>(() => {
     if (!query.data) return defaultValues;
-    return { ...defaultValues, ...query.data } as T;
-  }, [query.data, defaultValues]);
+    const mapped = fromApi ? fromApi(query.data) : query.data;
+    return { ...defaultValues, ...mapped } as T;
+  }, [query.data, defaultValues, fromApi]);
 
   const onSubmit = useCallback(
     async (values: T, helpers: FormikHelpers<T>) => {
-      const result = await SystemSettingsService.updateGroup(groupId, values);
+      const payload = toApi ? toApi(values) : values;
+      const result = await SystemSettingsService.updateGroup(groupId, payload);
       if (result.status === 200) {
         message.success("Dəyişikliklər saxlanıldı");
       } else if (result.status === 422) {
@@ -32,7 +39,7 @@ export const useSettingsGroup = <T extends Record<string, any>>(groupId: string,
       }
       helpers.setSubmitting(false);
     },
-    [groupId],
+    [groupId, toApi],
   );
 
   return { initialValues, onSubmit, isLoading: query.isLoading };
