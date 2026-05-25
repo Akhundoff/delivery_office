@@ -39,6 +39,7 @@ export const useShopsTableColumns = (): Column<IShop>[] => {
           <Dropdown
             menu={{
               items: [
+                { key: "details", label: "Detay", icon: <Icons.EyeOutlined />, onClick: () => navigate(`/shops/${row.original.id}/details`, { withBackground: true }) },
                 { key: "edit", label: "Düzəlt", icon: <Icons.EditOutlined />, onClick: () => navigate(`/shops/${row.original.id}/update`, { withBackground: true }) },
                 { key: "delete", label: "Sil", icon: <Icons.DeleteOutlined />, danger: true, onClick: () => handleDelete(row.original.id) },
               ],
