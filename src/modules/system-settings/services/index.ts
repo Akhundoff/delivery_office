@@ -27,11 +27,7 @@ export const SystemSettingsService = {
     const body = new FormData();
     body.append("group_id", groupId);
     Object.entries(values).forEach(([k, v]) => {
-      if (v instanceof File || v instanceof Blob) {
-        body.append(k, v);
-      } else {
-        body.append(k, v === true ? "1" : v === false ? "0" : String(v ?? ""));
-      }
+      if (v !== null && v !== undefined) body.append(k, v);
     });
     try {
       const response = await caller(url, { method: "POST", body });
