@@ -1,5 +1,5 @@
 import { FC, useCallback } from 'react';
-import { Alert, Button, Col, Input, Row, Select, Space, Switch, Table, Spin, Result } from 'antd';
+import { Alert, Button, Col, Input, Row, Select, Space, Switch, Table, Spin, Result, Typography } from 'antd';
 import * as Icons from '@ant-design/icons';
 import * as Colors from '@ant-design/colors';
 import { PageContent } from '@shared/styled/page-content';
@@ -68,24 +68,34 @@ export const PartnerBoxAcceptancePage: FC = () => {
         )}
         <Row gutter={[16, 16]}>
           <Col xs={{ span: 24, order: 2 }} lg={{ span: 12, order: 1 }}>
-            <div style={{ maxWidth: 400, padding: '48px 0', margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+            <div style={{ maxWidth: 400, padding: '48px 0', margin: '0 auto', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <BarcodeScan barcode={lastBarcode?.barcode} />
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div>{barcodeType ? 'Trendyol' : 'Findex'}<Switch checked={barcodeType} onChange={onBarcodeTypeSwitch} style={{ marginLeft: 8 }} /></div>
+              <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1rem' }}>
+                <div>
+                  {!!barcodeType ? 'Trendyol' : 'Findex'}
+                  <Switch checked={!!barcodeType} onChange={onBarcodeTypeSwitch} />
+                </div>
+                <Input.Search
+                  ref={barcodeInputRef}
+                  disabled={disabled}
+                  onSearch={onBarcodeSearch}
+                  autoFocus={true}
+                  style={{ marginTop: 24 }}
+                  placeholder={!!barcodeType ? 'United barkodunu oxutdurun' : 'Findex izləmə kodunu daxil edin...'}
+                />
               </div>
-              <Input.Search
-                ref={barcodeInputRef}
-                disabled={disabled}
-                onSearch={onBarcodeSearch}
-                autoFocus={true}
-                style={{ marginTop: 8 }}
-                placeholder={barcodeType ? 'United barkodunu oxutdurun' : 'Findex izləmə kodunu daxil edin...'}
-                enterButton
-              />
-              <Typography.Text type='secondary' style={{ fontSize: 12, textAlign: 'center' }}>
-                TEMU bağlamaları bəyansız olarsa yeşiyə əlavə edilmir.
-              </Typography.Text>
+              {!!lastBarcode && (
+                <Typography.Text strong={true} style={{ marginTop: 4 }}>
+                  {lastBarcode?.barcode}
+                </Typography.Text>
+              )}
             </div>
+            <Col>
+              <Typography.Text strong>Qeyd: </Typography.Text>
+              <Typography.Text type='secondary'>
+                TEMU bağlamaları bəyansız olarsa yeşiyə əlavə edilmir. Bu bağlamalar ayrıca toplanmalı və müştəri bəyan etdikdən sonra müştəriyə təhvil verilə bilər.
+              </Typography.Text>
+            </Col>
           </Col>
           <Col xs={{ span: 24, order: 1 }} lg={{ span: 12, order: 2 }}>
             <Table onRow={onRow} title={title} rowKey='id' dataSource={tableData} size='small' bordered={true}>
