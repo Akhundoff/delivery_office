@@ -50,4 +50,34 @@ export const LogsService = {
       return new ApiResult(400, "Şəbəkə xətası.", null);
     }
   },
+
+  exportAsExcel: async (query: Record<string, any> = {}): Promise<ApiResult<200, Blob> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/logs/export', query);
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const blob = await response.blob();
+        return new ApiResult(200, blob, null);
+      }
+      return new ApiResult(400, 'Xəta baş verdi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  exportDeclarationChanges: async (startDate: string, endDate: string): Promise<ApiResult<200, Blob> | ApiResult<400, string>> => {
+    const body = new FormData();
+    body.append('start_date', startDate);
+    body.append('end_date', endDate);
+    try {
+      const response = await caller('/api/admin/changedUserExport', { method: 'POST', body });
+      if (response.ok) {
+        const blob = await response.blob();
+        return new ApiResult(200, blob, null);
+      }
+      return new ApiResult(400, 'Xəta baş verdi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
 };
