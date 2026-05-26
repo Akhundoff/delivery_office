@@ -28,6 +28,8 @@ const PopupsModalRouter = lazy(() => import('../modules/popups/router/modal.rout
 const LogsModalRouter = lazy(() => import('../modules/logs/router/modal.router'));
 const CustomsModalRouter = lazy(() => import('../modules/customs/router/modal.router'));
 const UnitedQueuesModalRouter = lazy(() => import('../modules/united-queues/router/modal.router'));
+const PartnerBoxesModalRouter = lazy(() => import('../modules/partner-boxes/router/modal.router'));
+const CouponsModalRouter = lazy(() => import('../modules/coupons/router/modal.router'));
 
 export const MainRouter: FC = () => {
     const location = useLocation();
@@ -58,6 +60,7 @@ export const MainRouter: FC = () => {
                 <Route path='/users/*' element={<UsersModalRouter />} />
                 <Route path='/declarations/*' element={<DeclarationsModalRouter />} />
                 <Route path='/flights/*' element={<FlightsModalRouter />} />
+                <Route path='/coupons/*' element={<CouponsModalRouter />} />
                 <Route path='/cargoes/*' element={<CargoesModalRouter />} />
                 <Route path='/boxes/*' element={<BoxesModalRouter />} />
                 <Route path='/shop-names/*' element={<ShopNamesModalRouter />} />
@@ -76,6 +79,7 @@ export const MainRouter: FC = () => {
                 <Route path='/logs/*' element={<LogsModalRouter />} />
                 <Route path='/customs/*' element={<CustomsModalRouter />} />
                 <Route path='/united-queues/*' element={<UnitedQueuesModalRouter />} />
+                <Route path='/partner-boxes/*' element={<PartnerBoxesModalRouter />} />
             </Routes>
         </Suspense>
     );
