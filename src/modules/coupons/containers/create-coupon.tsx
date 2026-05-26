@@ -8,7 +8,7 @@ import { useCloseModal } from '@shared/hooks';
 import { ICouponFormValues, CouponType } from '../interfaces';
 import { useCouponForm } from '../hooks';
 
-const CreateCouponForm: FC<FormikProps<ICouponFormValues> & { id?: string }> = ({ handleSubmit, isSubmitting, values, id }) => {
+const CreateCouponForm: FC<FormikProps<ICouponFormValues> & { id?: string }> = ({ handleSubmit, isSubmitting, values, setFieldValue, id }) => {
   const [closeModal] = useCloseModal();
 
   return (
@@ -33,7 +33,19 @@ const CreateCouponForm: FC<FormikProps<ICouponFormValues> & { id?: string }> = (
         </Row>
         <Row gutter={16}>
           <Col span={12}>
-            <SelectField name="couponType" item={{ label: 'Kupon tipi' }} input={{ placeholder: 'Kupon tipini seçin...' }}>
+            <SelectField
+              name="couponType"
+              item={{ label: 'Kupon tipi' }}
+              input={{
+                placeholder: 'Kupon tipini seçin...',
+                onChange: (val: string) => {
+                  setFieldValue('couponType', val);
+                  if (String(val) !== String(CouponType.BALANCE)) {
+                    setFieldValue('currency', '');
+                  }
+                },
+              }}
+            >
               <Select.Option value={String(CouponType.BALANCE)}>Balans artımı</Select.Option>
               <Select.Option value={String(CouponType.ORDER_SERVICE_PERCENT)}>Sifariş xidmətində əlavə faiz</Select.Option>
               <Select.Option value={String(CouponType.DELIVERY_DISCOUNT)}>Çatdırılma xidmətinə endirim</Select.Option>
@@ -55,7 +67,7 @@ const CreateCouponForm: FC<FormikProps<ICouponFormValues> & { id?: string }> = (
             <TextField name="count" item={{ label: 'İstifadə limiti' }} input={{ placeholder: '0' }} />
           </Col>
           <Col span={12}>
-            <TextField name="stateId" item={{ label: 'Status ID' }} input={{ placeholder: 'Status ID daxil edin...' }} />
+            <TextField name="stateId" item={{ label: 'Status' }} input={{ placeholder: 'Status ID daxil edin...' }} />
           </Col>
         </Row>
         <TextAreaField name="description" item={{ label: 'Açıqlama' }} input={{ placeholder: 'Açıqlama daxil edin...' }} />
