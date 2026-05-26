@@ -1,12 +1,14 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Menu } from 'antd';
 import * as Icons from '@ant-design/icons';
 import { NavLink } from 'react-router-dom';
 import { StyledSider, SiderOverlay, Brand } from '../styled';
 import { useSidebar } from '../hooks';
+import { MeContext } from '@modules/me/context/context';
 
 export const AppSidebar = () => {
     const { isOpen, activeKey, toggleSidebar } = useSidebar();
+    const { can } = useContext(MeContext);
 
     return (
         <React.Fragment>
@@ -28,6 +30,10 @@ export const AppSidebar = () => {
                             Bağlamalar
                             <NavLink to='/declarations' />
                         </Menu.Item>
+                        <Menu.Item key='/flights' icon={<Icons.RocketOutlined />}>
+                            Uçuşlar
+                            <NavLink to='/flights' />
+                        </Menu.Item>
                     </Menu.ItemGroup>
                     <Menu.ItemGroup title='Bəyannamələr'>
                         <Menu.Item key='/customs/declarations' icon={<Icons.ExceptionOutlined />}>
@@ -41,6 +47,10 @@ export const AppSidebar = () => {
                         <Menu.Item key='/customs/posts' icon={<Icons.AuditOutlined />}>
                             DGK Bağlamalar
                             <NavLink to='/customs/posts' />
+                        </Menu.Item>
+                        <Menu.Item key='/customs/tasks' icon={<Icons.AuditOutlined />}>
+                            Gömrük tapşırıqları
+                            <NavLink to='/customs/tasks' />
                         </Menu.Item>
                         <Menu.Item key='/declarations/post' icon={<Icons.FileTextOutlined />}>
                             Bəyan sonrası bağlamalar
@@ -195,6 +205,22 @@ export const AppSidebar = () => {
                             Statuslar
                             <NavLink to='/status' />
                         </Menu.Item>
+                    </Menu.ItemGroup>
+                    <Menu.ItemGroup title='Filial bölmələri'>
+                        <Menu.Item key='/partner-boxes' icon={<Icons.InboxOutlined />}>
+                            Yeşiklər
+                            <NavLink to='/partner-boxes' />
+                        </Menu.Item>
+                        <Menu.Item key='/partner/acceptance/box' icon={<Icons.FileTextOutlined />}>
+                            Bağlama qəbulu
+                            <NavLink to='/partner/acceptance/box' />
+                        </Menu.Item>
+                        {can('branch_manager') && (
+                            <Menu.Item key='/statistics/branches-partner' icon={<Icons.LineChartOutlined />}>
+                                Yerli anbar statistikası
+                                <NavLink to='/statistics/branches-partner' />
+                            </Menu.Item>
+                        )}
                     </Menu.ItemGroup>
                 </Menu>
             </StyledSider>

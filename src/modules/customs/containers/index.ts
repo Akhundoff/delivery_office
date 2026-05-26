@@ -4,3 +4,6 @@ export { CustomsDeclarationsTable } from './customs-declarations-table';
 export { CustomsDeclarationsActionBar } from './customs-declarations-action-bar';
 export { CustomsPostsTable } from './customs-posts-table';
 export { CustomsPostsActionBar } from './customs-posts-action-bar';
+export { CustomsTasksTable } from './customs-tasks-table';
+export { CustomsTasksActionBar } from './customs-tasks-action-bar';
+export { CustomsTaskDetail } from './customs-task-detail';
