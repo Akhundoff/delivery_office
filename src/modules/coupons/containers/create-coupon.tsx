@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 import { Col, Form, Modal, Row, Select, Spin } from 'antd';
 import { Formik, FormikProps } from 'formik';
 
@@ -10,6 +10,12 @@ import { useCouponForm } from '../hooks';
 
 const CreateCouponForm: FC<FormikProps<ICouponFormValues> & { id?: string }> = ({ handleSubmit, isSubmitting, values, setFieldValue, id }) => {
   const [closeModal] = useCloseModal();
+
+  useEffect(() => {
+    if (String(values.couponType) !== String(CouponType.BALANCE)) {
+      setFieldValue('currency', '');
+    }
+  }, [values.couponType, setFieldValue]);
 
   return (
     <Modal
@@ -33,19 +39,7 @@ const CreateCouponForm: FC<FormikProps<ICouponFormValues> & { id?: string }> = (
         </Row>
         <Row gutter={16}>
           <Col span={12}>
-            <SelectField
-              name="couponType"
-              item={{ label: 'Kupon tipi' }}
-              input={{
-                placeholder: 'Kupon tipini seçin...',
-                onChange: (val: string) => {
-                  setFieldValue('couponType', val);
-                  if (String(val) !== String(CouponType.BALANCE)) {
-                    setFieldValue('currency', '');
-                  }
-                },
-              }}
-            >
+            <SelectField name="couponType" item={{ label: 'Kupon tipi' }} input={{ placeholder: 'Kupon tipini seçin...' }}>
               <Select.Option value={String(CouponType.BALANCE)}>Balans artımı</Select.Option>
               <Select.Option value={String(CouponType.ORDER_SERVICE_PERCENT)}>Sifariş xidmətində əlavə faiz</Select.Option>
               <Select.Option value={String(CouponType.DELIVERY_DISCOUNT)}>Çatdırılma xidmətinə endirim</Select.Option>
