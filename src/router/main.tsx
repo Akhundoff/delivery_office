@@ -31,6 +31,7 @@ const UnitedQueuesModalRouter = lazy(() => import('../modules/united-queues/rout
 const PartnerBoxesModalRouter = lazy(() => import('../modules/partner-boxes/router/modal.router'));
 const CouponsModalRouter = lazy(() => import('../modules/coupons/router/modal.router'));
 const RefundsModalRouter = lazy(() => import('../modules/refunds/router/modal.router'));
+const StatusesModalRouter = lazy(() => import('../modules/statuses/router/modal.router'));
 
 export const MainRouter: FC = () => {
     const location = useLocation();
@@ -82,6 +83,7 @@ export const MainRouter: FC = () => {
                 <Route path='/partner-boxes/*' element={<PartnerBoxesModalRouter />} />
                 <Route path='/coupons/*' element={<CouponsModalRouter />} />
                 <Route path='/refunds/*' element={<RefundsModalRouter />} />
+                <Route path='/status/*' element={<StatusesModalRouter />} />
             </Routes>
         </Suspense>
     );
