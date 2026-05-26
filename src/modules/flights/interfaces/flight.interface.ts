@@ -86,6 +86,17 @@ export type CreateFlightDto = {
 
 export type CloseFlightDto = {
   id: string;
+  type: 'with-dispatch' | 'without-dispatch' | 'all';
   airWaybillNumber: string;
   packagingLimit: string;
+};
+
+export type UpdateAirWaybillDto = {
+  id: number | string;
+  airWaybill: string;
+};
+
+export type UpdateCurrentMonthDto = {
+  id: string;
+  currentMonth: import('dayjs').Dayjs | null;
 };

@@ -3,3 +3,5 @@ import { createNextTableContext } from '@shared/modules/next-table/context/conte
 export const DeclarationsTableContext = createNextTableContext();
 export const DeletedDeclarationsTableContext = createNextTableContext();
 export const PostDeclarationsTableContext = createNextTableContext();
+export const UnknownDeclarationsTableContext = createNextTableContext();
+export const PartnerDeclarationsTableContext = createNextTableContext();

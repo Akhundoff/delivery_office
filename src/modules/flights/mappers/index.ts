@@ -67,9 +67,11 @@ export class CreateFlightDtoMapper {
 
 export class CloseFlightDtoMapper {
   public static toPersistence(dto: CloseFlightDto): Record<string, any> {
+    const depesh = dto.type === 'with-dispatch' ? 1 : dto.type === 'without-dispatch' ? 0 : 2;
     return {
       flight_id: dto.id,
       airWaybill: dto.airWaybillNumber,
+      depesh,
       limit: dto.packagingLimit,
     };
   }

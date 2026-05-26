@@ -6,6 +6,8 @@ import {
   IDetailedUserPersistence,
   CreateUserDto,
   CreateDiscountDto,
+  IOperationGroup,
+  IUserPermissions,
 } from "../interfaces";
 import { UserMapper, DetailedUserMapper } from "../mappers";
 import dayjs from "dayjs";
@@ -212,6 +214,62 @@ export const UsersService = {
       return new ApiResult(400, "Məlumatlar əldə edilə bilmədi", null);
     } catch {
       return new ApiResult(500, "Şəbəkə ilə əlaqə qurula bilmədi", null);
+    }
+  },
+
+  getOperations: async (): Promise<ApiResult<200, IOperationGroup[]> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/operations');
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        const items: any[] = result.data || [];
+        const modelIds = [...new Set(items.map((i: any) => i.model_id))];
+        const groups: IOperationGroup[] = modelIds.map((modelId) => {
+          const group = items.find((i) => i.model_id === modelId);
+          const operations = items
+            .filter((i) => i.model_id === modelId)
+            .map((i) => ({ id: i.id, name: i.name, codeName: i.code_name }));
+          return { id: modelId as number, name: group.model_name, operations };
+        }).reverse();
+        return new ApiResult(200, groups, null);
+      }
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  getUserPermissions: async (userId: string | number): Promise<ApiResult<200, IUserPermissions> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/permissions', { user_id: userId });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        const permissionIds: number[] = (result.data || []).map((item: any) => item.operation_id);
+        return new ApiResult(200, { permissionIds, companyId: result.company_id ?? 0 }, null);
+      }
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  updateUserPermissions: async (userId: string | number, operationIds: number[], cashboxId?: number, adminBranchId?: number): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/permissions/edit');
+    const body = new FormData();
+    body.append('user_id', String(userId));
+    operationIds.forEach((id) => body.append('operation_id[]', String(id)));
+    if (cashboxId) body.append('cashbox_id', String(cashboxId));
+    if (adminBranchId) body.append('admin_branch_id', String(adminBranchId));
+    try {
+      const response = await caller(url, { method: 'POST', body });
+      if (response.ok) return new ApiResult(200, null, null);
+      const result = await response.json();
+      const msg = result.errors ? (Object.values(result.errors) as string[][]).flat().join('. ') : 'Xəta baş verdi.';
+      return new ApiResult(400, msg, null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
     }
   },
 };

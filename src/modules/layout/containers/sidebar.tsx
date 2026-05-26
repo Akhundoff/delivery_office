@@ -56,6 +56,14 @@ export const AppSidebar = () => {
                             Bəyan sonrası bağlamalar
                             <NavLink to='/declarations/post' />
                         </Menu.Item>
+                        <Menu.Item key='/declarations/unknowns' icon={<Icons.QuestionCircleOutlined />}>
+                            Naməlum bəyannamələr
+                            <NavLink to='/declarations/unknowns' />
+                        </Menu.Item>
+                        <Menu.Item key='/declarations/partners' icon={<Icons.TeamOutlined />}>
+                            Partnyor bəyannamələri
+                            <NavLink to='/declarations/partners' />
+                        </Menu.Item>
                     </Menu.ItemGroup>
                     <Menu.ItemGroup title='Növbələr'>
                         <Menu.Item key='/customs/dns-queues' icon={<Icons.OrderedListOutlined />}>

@@ -5,3 +5,4 @@ export { UserDetails } from "./user-details";
 export { DiscountUsersTable } from "./discount-users-table";
 export { DiscountUsersActionBar } from "./discount-users-action-bar";
 export { CreateDiscount } from "./create-discount";
+export { UpdateUserPermissionsModal } from "./update-user-permissions-modal";

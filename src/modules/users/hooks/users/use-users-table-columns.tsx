@@ -35,6 +35,12 @@ export const useUsersTableColumns = (): Column<IUser>[] => {
                         icon: <Icons.EditOutlined />,
                         onClick: () => navigate(`/users/${original.id}/update`, { withBackground: true }),
                     },
+                    {
+                        key: 'permissions',
+                        label: 'İcazələr',
+                        icon: <Icons.SafetyOutlined />,
+                        onClick: () => navigate(`/users/${original.id}/permissions`, { withBackground: true }),
+                    },
                     { type: 'divider' },
                     {
                         key: 'delete',

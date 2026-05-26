@@ -6,3 +6,10 @@ export { DeletedDeclarationsActionBar } from './deleted-declarations-action-bar'
 export { DeletedDeclarationsTable } from './deleted-declarations-table';
 export { PostDeclarationsTable } from './post-declarations-table';
 export { PostDeclarationsActionBar } from './post-declarations-action-bar';
+export { UnknownDeclarationsTable } from './unknown-declarations-table';
+export { UnknownDeclarationsActionBar } from './unknown-declarations-action-bar';
+export { UnknownDeclarationDetail } from './unknown-declaration-detail';
+export { PartnerDeclarationsTable } from './partner-declarations-table';
+export { PartnerDeclarationsActionBar } from './partner-declarations-action-bar';
+export { PayDeclarationModal } from './pay-declaration-modal';
+export { BulkHandoverModal } from './bulk-handover-modal';
