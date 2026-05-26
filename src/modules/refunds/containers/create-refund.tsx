@@ -45,7 +45,7 @@ const CreateRefundForm: FC<FormikProps<IRefundFormValues> & { id?: string }> = (
                     </Col>
                     <Col span={12}>
                         <SelectField name='direction' item={{ label: 'İstiqamət' }} input={{ placeholder: 'İstiqamət seçin...' }}>
-                            <Select.Option value='Azerbaijan'>Azərbaycan</Select.Option>
+                            <Select.Option value='Azərbaycan'>Azərbaycan</Select.Option>
                             <Select.Option value='Türkiyə'>Türkiyə</Select.Option>
                         </SelectField>
                     </Col>
