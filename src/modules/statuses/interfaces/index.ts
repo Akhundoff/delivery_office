@@ -8,3 +8,11 @@ export type IStatus = {
   description: string;
   freely: boolean;
 };
+
+export type IStatusFormValues = {
+    name: string;
+    nameEn: string;
+    modelId: string;
+    parentId: string;
+    description: string;
+};
