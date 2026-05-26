@@ -1,7 +1,27 @@
 import { ApiResult, caller, urlMaker } from '@shared/utils';
-import { IDnsQueue, ICustomsDeclaration, ICustomsDeclarationPersistence, ICustomsPost, ICustomsPostPersistence } from '../interfaces';
+import { IDnsQueue, ICustomsDeclaration, ICustomsDeclarationPersistence, ICustomsPost, ICustomsPostPersistence, ICustomsTask, ICustomsTaskPersistence } from '../interfaces';
 
 type ListResponse = { data: IDnsQueue[]; total: number };
+
+const customsTaskToDomain = (p: ICustomsTaskPersistence): ICustomsTask => ({
+  id: p.id,
+  action: p.action,
+  status: { id: p.state_id, name: p.state_name },
+  createdAt: p.created_at,
+  branch: { id: p.branch_id, name: p.branch_name },
+  declaration: {
+    id: p.declaration_id,
+    trackCode: p.track_code,
+    globalTrackCode: p.global_track_code,
+    weight: p.weight ? parseFloat(p.weight) : null,
+    quantity: p.quantity,
+    user: { id: p.user_id, name: p.user_name },
+    status: { id: p.declaration_state_id, name: p.declaration_state_name },
+    productType: { id: p.product_type_id, name: p.product_type_name },
+    country: p.country_id ? { id: p.country_id, name: p.country_name } : null,
+    updatedBy: p.changer_id && p.changer_name ? { id: p.changer_id, name: p.changer_name } : null,
+  },
+});
 
 const customsDeclarationToDomain = (p: ICustomsDeclarationPersistence): ICustomsDeclaration => ({
   id: p.id,
@@ -78,6 +98,37 @@ export const CustomsPostsService = {
         return new ApiResult(200, { data, total: result.total ?? data.length }, null);
       }
       return new ApiResult(400, 'Xəta baş verdi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+};
+
+export const CustomsTasksService = {
+  getList: async (query: Record<string, any> = {}): Promise<ApiResult<200, { data: ICustomsTask[]; total: number }> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/customs_tasks', { page: 1, per_page: 20, ...query });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        const data = (result.data || []).map(customsTaskToDomain);
+        return new ApiResult(200, { data, total: result.total ?? data.length }, null);
+      }
+      return new ApiResult(400, 'Xəta baş verdi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  getById: async (id: string | number): Promise<ApiResult<200, ICustomsTask> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/customs_tasks/info', { customs_task_id: id });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, customsTaskToDomain(result.data as ICustomsTaskPersistence), null);
+      }
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi.', null);
     } catch {
       return new ApiResult(400, 'Şəbəkə xətası.', null);
     }

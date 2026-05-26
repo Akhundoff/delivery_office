@@ -3,3 +3,4 @@ import { createNextTableContext } from '@shared/modules/next-table/context/conte
 export const DnsQueuesTableContext = createNextTableContext();
 export const CustomsDeclarationsTableContext = createNextTableContext();
 export const CustomsPostsTableContext = createNextTableContext();
+export const CustomsTasksTableContext = createNextTableContext();

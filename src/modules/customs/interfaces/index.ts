@@ -1,3 +1,5 @@
+export * from './customs-task.interface';
+
 export type IDnsQueue = {
   id: number;
   action: string;
