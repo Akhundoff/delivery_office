@@ -38,6 +38,10 @@ const UnitedQueuesRouter = lazy(() => import('../../united-queues/router/page.ro
 const AzerpostQueuesRouter = lazy(() => import('../../azerpost-queues/router/page.router'));
 const NotifierRouter = lazy(() => import('../../notifier/router/page.router'));
 const TicketTemplatesRouter = lazy(() => import('../../ticket-templates/router/page.router'));
+const PartnerBoxesRouter = lazy(() => import('../../partner-boxes/router/page.router'));
+const PartnerBoxAcceptanceRouter = lazy(() => import('../../partner-box-acceptance/router/page.router'));
+const PartnerStatisticsRouter = lazy(() => import('../../partner-statistics/router/page.router'));
+const TelegramBotUsersRouter = lazy(() => import('../../telegram-bot-users/router/page.router'));
 
 export const HomeRouter: FC = () => {
     return (
@@ -79,6 +83,10 @@ export const HomeRouter: FC = () => {
                     <Route path='/azerpost-queues/*' element={<AzerpostQueuesRouter />} />
                     <Route path='/notifier/*' element={<NotifierRouter />} />
                     <Route path='/ticket-templates/*' element={<TicketTemplatesRouter />} />
+                    <Route path='/partner-boxes/*' element={<PartnerBoxesRouter />} />
+                    <Route path='/partner/acceptance/box/*' element={<PartnerBoxAcceptanceRouter />} />
+                    <Route path='/statistics/branches-partner/*' element={<PartnerStatisticsRouter />} />
+                    <Route path='/telegram-bot-users/*' element={<TelegramBotUsersRouter />} />
                     <Route path='*' element={<Navigate to='/' replace />} />
                 </Routes>
             </Suspense>
