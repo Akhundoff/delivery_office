@@ -60,7 +60,6 @@ export const MainRouter: FC = () => {
                 <Route path='/users/*' element={<UsersModalRouter />} />
                 <Route path='/declarations/*' element={<DeclarationsModalRouter />} />
                 <Route path='/flights/*' element={<FlightsModalRouter />} />
-                <Route path='/coupons/*' element={<CouponsModalRouter />} />
                 <Route path='/cargoes/*' element={<CargoesModalRouter />} />
                 <Route path='/boxes/*' element={<BoxesModalRouter />} />
                 <Route path='/shop-names/*' element={<ShopNamesModalRouter />} />
@@ -80,6 +79,7 @@ export const MainRouter: FC = () => {
                 <Route path='/customs/*' element={<CustomsModalRouter />} />
                 <Route path='/united-queues/*' element={<UnitedQueuesModalRouter />} />
                 <Route path='/partner-boxes/*' element={<PartnerBoxesModalRouter />} />
+                <Route path='/coupons/*' element={<CouponsModalRouter />} />
             </Routes>
         </Suspense>
     );
