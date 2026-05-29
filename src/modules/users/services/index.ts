@@ -224,7 +224,7 @@ export const UsersService = {
       if (response.ok) {
         const result = await response.json();
         const items: any[] = result.data || [];
-        const modelIds = [...new Set(items.map((i: any) => i.model_id))];
+        const modelIds = Array.from(new Set(items.map((i: any) => i.model_id)));
         const groups: IOperationGroup[] = modelIds.map((modelId) => {
           const group = items.find((i) => i.model_id === modelId);
           const operations = items

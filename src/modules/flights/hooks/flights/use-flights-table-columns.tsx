@@ -1,30 +1,188 @@
-import React, { useContext, useMemo } from 'react';
-import { Button, Dropdown, MenuProps, Modal, message, Tag } from 'antd';
+import React, { useCallback, useContext, useMemo } from 'react';
+import { Button, Dropdown, MenuProps, Modal, Tag, message } from 'antd';
 import * as Icons from '@ant-design/icons';
 import { Column } from 'react-table';
+import { useNavigate } from 'react-router-dom';
+import { useQuery } from 'react-query';
 import { StopPropagation } from '@shared/components/stop-propagation';
 import { nextTableColumns } from '@shared/modules/next-table/helpers/next-table-columns';
 import { useBackgroundNavigate } from '@shared/hooks';
+import { StatusesService } from '@modules/statuses/services';
 import { IFlight } from '../../interfaces';
 import { FlightsTableContext } from '../../context';
 import { FlightsService } from '../../services';
 
 export const useFlightsTableColumns = (): Column<IFlight>[] => {
   const { handleFetch } = useContext(FlightsTableContext);
-  const navigate = useBackgroundNavigate();
+  const navigate = useNavigate();
+  const backgroundNavigate = useBackgroundNavigate();
+
+  const { data: statusesResult } = useQuery(['statuses-for-flight-columns', 8], () => StatusesService.getList({ per_page: 500, model_id: 8 }));
+  const { data: trendyolStatusesResult } = useQuery(['trendyol-statuses-for-flight-columns', 43], () => StatusesService.getList({ per_page: 500, model_id: 43 }));
+
+  const statuses = statusesResult?.status === 200 ? statusesResult.data.data : [];
+  const trendyolStatuses = trendyolStatusesResult?.status === 200 ? trendyolStatusesResult.data.data : [];
 
   const actionsColumn = useMemo<Column<IFlight>>(
     () => ({
       ...nextTableColumns.actions,
       Cell: ({ row: { original } }: any) => {
+        const downloadFile = useCallback((blob: Blob, filename: string) => {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = filename;
+          a.click();
+          URL.revokeObjectURL(url);
+        }, []);
+
+        const exportXML = useCallback(
+          async (options: { onlyLiquids?: boolean } = {}) => {
+            message.loading({ key: 'xml', content: 'Sənəd hazırlanır...', duration: 0 });
+            const result = await FlightsService.getXML(original.id, options);
+            if (result.status === 200) {
+              message.success({ key: 'xml', content: 'Sənəd yüklənir.' });
+              downloadFile(result.data as Blob, `flight_${original.id}.xml`);
+            } else {
+              message.error({ key: 'xml', content: result.data as string });
+            }
+          },
+          [downloadFile],
+        );
+
+        const statusItems: MenuProps['items'] = statuses.map((s) => ({
+          key: `status-${s.id}`,
+          label: s.name,
+          onClick: () =>
+            Modal.confirm({
+              title: 'Diqqət',
+              content: `Statusu "${s.name}" olaraq dəyişmək istədiyinizdən əminsinizmi?`,
+              onOk: async () => {
+                const result = await FlightsService.changeStatus(original.id, s.id);
+                if (result.status === 200) { message.success('Status dəyişdirildi'); handleFetch(); }
+                else message.error(result.data as string);
+              },
+            }),
+        }));
+
+        const trendyolStatusItems: MenuProps['items'] = trendyolStatuses.map((s) => ({
+          key: `trendyol-status-${s.id}`,
+          label: s.name,
+          onClick: () =>
+            Modal.confirm({
+              title: 'Diqqət',
+              content: `Trendyol statusunu "${s.name}" olaraq dəyişmək istədiyinizdən əminsinizmi?`,
+              onOk: async () => {
+                const result = await FlightsService.changeTrendyolStatus(original.id, s.id);
+                if (result.status === 200) { message.success('Status dəyişdirildi'); handleFetch(); }
+                else message.error(result.data as string);
+              },
+            }),
+        }));
+
         const items: MenuProps['items'] = [
+          {
+            key: 'details',
+            label: 'Ətraflı bax',
+            icon: <Icons.FileSearchOutlined />,
+            onClick: () => navigate(`/flights/${original.id}`),
+          },
+          { type: 'divider' },
+          {
+            key: 'airwaybills',
+            label: 'Depeşlər',
+            icon: <Icons.FieldTimeOutlined />,
+            onClick: () => navigate(`/flights/${original.id}/air-waybills`),
+          },
+          {
+            key: 'packages',
+            label: 'Bağlanma prosesi',
+            icon: <Icons.UnorderedListOutlined />,
+            onClick: () => navigate(`/flights/${original.id}/packages`),
+          },
+          ...(original.trendyol === 1
+            ? [
+                {
+                  key: 'palets',
+                  label: 'Paletlər',
+                  icon: <Icons.AppstoreOutlined />,
+                  onClick: () => navigate(`/flights/${original.id}/palets`),
+                } as NonNullable<MenuProps['items']>[number],
+              ]
+            : []),
+          { type: 'divider' as const },
           {
             key: 'edit',
             label: 'Düzəliş et',
             icon: <Icons.EditOutlined />,
-            onClick: () => navigate(`/flights/${original.id}/update`, { withBackground: true }),
+            onClick: () => backgroundNavigate(`/flights/${original.id}/update`, { withBackground: true }),
           },
-          { type: 'divider' },
+          {
+            key: 'change-status',
+            label: 'Statusu dəyiş',
+            icon: <Icons.CheckCircleOutlined />,
+            children: statusItems,
+          },
+          ...(original.trendyol === 1
+            ? [
+                {
+                  key: 'change-trendyol-status',
+                  label: 'Trendyol Statusu dəyiş',
+                  icon: <Icons.CheckCircleOutlined />,
+                  children: trendyolStatusItems,
+                } as NonNullable<MenuProps['items']>[number],
+              ]
+            : []),
+          {
+            key: 'update-airwaybill',
+            label: 'Aviaqaimə nömrəsini dəyiş',
+            icon: <Icons.EditOutlined />,
+            onClick: () => backgroundNavigate(`/flights/${original.id}/air-waybills/update`, { withBackground: true }),
+          },
+          {
+            key: 'update-current-month',
+            label: 'Cari ayı dəyiş',
+            icon: <Icons.CalendarOutlined />,
+            onClick: () => backgroundNavigate(`/flights/${original.id}/current-month/update`, { withBackground: true }),
+          },
+          { type: 'divider' as const },
+          {
+            key: 'manifest',
+            label: 'Manifest',
+            icon: <Icons.FileExcelOutlined />,
+            onClick: async () => {
+              message.loading({ key: 'manifest', content: 'Sənəd hazırlanır...', duration: 0 });
+              const result = await FlightsService.getExcel(original.id);
+              if (result.status === 200) {
+                message.success({ key: 'manifest', content: 'Sənəd yüklənir.' });
+                const objectURL = URL.createObjectURL(result.data as Blob);
+                const a = document.createElement('a');
+                a.href = objectURL;
+                a.download = `flight_${original.id}_manifest.xls`;
+                a.click();
+                URL.revokeObjectURL(objectURL);
+              } else {
+                message.error({ key: 'manifest', content: (result.data as string) || 'Xəta baş verdi.' });
+              }
+            },
+          },
+          {
+            key: 'upload-manifest',
+            label: 'Kisələrlə toplu manifest',
+            icon: <Icons.UploadOutlined />,
+            onClick: () => backgroundNavigate(`/flights/${original.id}/manifest/upload`, { withBackground: true }),
+          },
+          {
+            key: 'xml-export',
+            label: 'XML export',
+            icon: <Icons.FileOutlined />,
+            children: [
+              { key: 'xml-liquids', label: 'Yalnız maye məhsullar', onClick: () => exportXML({ onlyLiquids: true }) },
+              { key: 'xml-non-liquids', label: 'Yalnız adi məhsullar', onClick: () => exportXML({ onlyLiquids: false }) },
+              { key: 'xml-all', label: 'Bütün məhsullar', onClick: () => exportXML({}) },
+            ],
+          },
+          { type: 'divider' as const },
           {
             key: 'close',
             label: 'Bağla',
@@ -39,6 +197,7 @@ export const useFlightsTableColumns = (): Column<IFlight>[] => {
                 onOk: async () => {
                   const result = await FlightsService.close({
                     id: String(original.id),
+                    type: 'all',
                     airWaybillNumber: original.airwaybill || '',
                     packagingLimit: '',
                   });
@@ -62,7 +221,7 @@ export const useFlightsTableColumns = (): Column<IFlight>[] => {
         );
       },
     }),
-    [navigate, handleFetch],
+    [navigate, backgroundNavigate, handleFetch, statuses, trendyolStatuses],
   );
 
   const baseColumns = useMemo<Column<IFlight>[]>(
@@ -83,12 +242,30 @@ export const useFlightsTableColumns = (): Column<IFlight>[] => {
       { ...nextTableColumns.small, accessor: (r) => r.count, id: 'count', Header: 'Say', filterable: false },
       {
         ...nextTableColumns.small,
-        accessor: (r) => `${r.completedDeclarations}/${r.declarationCount}`,
         id: 'finished',
         Header: 'Tamamlanma',
         filterable: false,
+        accessor: (r) => r,
+        Cell: ({ value: r }: { value: IFlight }) =>
+          r.status?.id === 29 ? `${r.declarationCount}` : `${r.completedDeclarations}/${r.declarationCount}`,
       },
       { ...nextTableColumns.small, accessor: (r) => r.weight, id: 'weight', Header: 'Çəki (kq)', filterable: false },
+      {
+        ...nextTableColumns.small,
+        accessor: (r) => r.productPrice,
+        id: 'price',
+        Header: 'Məbləğ',
+        filterable: false,
+        Cell: ({ value }: { value: number }) => (value ? `${value.toFixed(2)} ₺` : '—'),
+      },
+      {
+        ...nextTableColumns.small,
+        accessor: (r) => r.deliveryPrice,
+        id: 'delivery_price',
+        Header: 'Çat. məbləği',
+        filterable: false,
+        Cell: ({ value }: { value: number }) => (value ? `${value.toFixed(2)} $` : '—'),
+      },
     ],
     [],
   );
