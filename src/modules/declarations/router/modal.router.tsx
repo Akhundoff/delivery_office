@@ -4,6 +4,8 @@ import { CreateDeclaration } from '../containers/create-declaration';
 import { UnknownDeclarationDetail } from '../containers/unknown-declaration-detail';
 import { PayDeclarationModal } from '../containers/pay-declaration-modal';
 import { BulkHandoverModal } from '../containers/bulk-handover-modal';
+import { HandoverDeclarationModal } from '../containers/handover-declaration-modal';
+import { ReturnDeclarationModal } from '../containers/return-declaration-modal';
 
 const DeclarationsModalRouter = () => {
     return (
@@ -12,6 +14,8 @@ const DeclarationsModalRouter = () => {
             <Route path=':id/update' element={<CreateDeclaration />} />
             <Route path='unknowns/:id' element={<UnknownDeclarationDetail />} />
             <Route path=':id/pay' element={<PayDeclarationModal />} />
+            <Route path=':id/handover' element={<HandoverDeclarationModal />} />
+            <Route path=':id/return' element={<ReturnDeclarationModal />} />
             <Route path='handover' element={<BulkHandoverModal />} />
         </Routes>
     );

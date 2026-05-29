@@ -33,6 +33,11 @@ const CouponsModalRouter = lazy(() => import('../modules/coupons/router/modal.ro
 const RefundsModalRouter = lazy(() => import('../modules/refunds/router/modal.router'));
 const StatusesModalRouter = lazy(() => import('../modules/statuses/router/modal.router'));
 const TransactionsModalRouter = lazy(() => import('../modules/transactions/router/modal.router'));
+const CouriersModalRouter = lazy(() => import('../modules/couriers/router/modal.router'));
+const CashFlowModalRouter = lazy(() => import('../modules/cash-flow/router/modal.router'));
+const UnitedReturnsModalRouter = lazy(() => import('../modules/united-returns/router/modal.router'));
+const BranchInspectionsModalRouter = lazy(() => import('../modules/branch-inspections/router/modal.router'));
+const SupportsModalRouter = lazy(() => import('../modules/supports/router/modal.router'));
 
 export const MainRouter: FC = () => {
     const location = useLocation();
@@ -86,6 +91,11 @@ export const MainRouter: FC = () => {
                 <Route path='/refunds/*' element={<RefundsModalRouter />} />
                 <Route path='/status/*' element={<StatusesModalRouter />} />
                 <Route path='/transactions/*' element={<TransactionsModalRouter />} />
+                <Route path='/couriers/*' element={<CouriersModalRouter />} />
+                <Route path='/cash-flow/*' element={<CashFlowModalRouter />} />
+                <Route path='/united-returns/*' element={<UnitedReturnsModalRouter />} />
+                <Route path='/branch-inspections/*' element={<BranchInspectionsModalRouter />} />
+                <Route path='/supports/*' element={<SupportsModalRouter />} />
             </Routes>
         </Suspense>
     );

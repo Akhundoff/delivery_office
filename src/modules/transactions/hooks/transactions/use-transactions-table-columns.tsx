@@ -13,7 +13,7 @@ import { TransactionsService } from '../../services';
 const TYPE_COLORS: Record<number, string> = { 1: 'green', 2: 'red' };
 
 export const useTransactionsTableColumns = (): Column<ITransaction>[] => {
-  const { handleFetch, selection, handleSelect } = useContext(TransactionsTableContext);
+  const { handleFetch } = useContext(TransactionsTableContext);
 
   const { data: statusesResult } = useQuery(['statuses-for-transactions', 4], () => StatusesService.getList({ per_page: 500, model_id: 4 }));
   const statuses = statusesResult?.status === 200 ? statusesResult.data.data : [];

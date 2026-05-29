@@ -43,6 +43,18 @@ const PartnerBoxAcceptanceRouter = lazy(() => import('../../partner-box-acceptan
 const PartnerStatisticsRouter = lazy(() => import('../../partner-statistics/router/page.router'));
 const TelegramBotUsersRouter = lazy(() => import('../../telegram-bot-users/router/page.router'));
 const TransactionsRouter = lazy(() => import('../../transactions/router/page.router'));
+const CouriersRouter = lazy(() => import('../../couriers/router/page.router'));
+const SupportsRouter = lazy(() => import('../../supports/router/page.router'));
+const UnitedDeclarationsRouter = lazy(() => import('../../united-declarations/router/page.router'));
+const UnitedReturnsRouter = lazy(() => import('../../united-returns/router/page.router'));
+const BranchInspectionsRouter = lazy(() => import('../../branch-inspections/router/page.router'));
+const OrdersRouter = lazy(() => import('../../orders/router/page.router'));
+const CashFlowRouter = lazy(() => import('../../cash-flow/router/page.router'));
+const StatisticsRouter = lazy(() => import('../../statistics/router/page.router'));
+const WarehouseRouter = lazy(() => import('../../warehouse/router/page.router'));
+const BoxTransfersRouter = lazy(() => import('../../box-transfers/router/page.router'));
+const AppointmentRouter = lazy(() => import('../../appointment/router/page.router'));
+const SortingRouter = lazy(() => import('../../sorting/router/page.router'));
 
 export const HomeRouter: FC = () => {
     return (
@@ -89,6 +101,18 @@ export const HomeRouter: FC = () => {
                     <Route path='/statistics/branches-partner/*' element={<PartnerStatisticsRouter />} />
                     <Route path='/telegram-bot-users/*' element={<TelegramBotUsersRouter />} />
                     <Route path='/transactions/*' element={<TransactionsRouter />} />
+                    <Route path='/couriers/*' element={<CouriersRouter />} />
+                    <Route path='/supports/*' element={<SupportsRouter />} />
+                    <Route path='/united-declarations/*' element={<UnitedDeclarationsRouter />} />
+                    <Route path='/united-returns/*' element={<UnitedReturnsRouter />} />
+                    <Route path='/branch-inspections/*' element={<BranchInspectionsRouter />} />
+                    <Route path='/orders/*' element={<OrdersRouter />} />
+                    <Route path='/cash-flow/*' element={<CashFlowRouter />} />
+                    <Route path='/statistics/*' element={<StatisticsRouter />} />
+                    <Route path='/warehouse/*' element={<WarehouseRouter />} />
+                    <Route path='/box-transfers/*' element={<BoxTransfersRouter />} />
+                    <Route path='/appointment/*' element={<AppointmentRouter />} />
+                    <Route path='/sorting/*' element={<SortingRouter />} />
                     <Route path='*' element={<Navigate to='/' replace />} />
                 </Routes>
             </Suspense>

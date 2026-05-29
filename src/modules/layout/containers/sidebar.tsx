@@ -21,10 +21,32 @@ export const AppSidebar = () => {
                         Ana səhifə
                         <NavLink to='/' />
                     </Menu.Item>
+                    <Menu.ItemGroup title='Ümumi'>
+                        <Menu.Item key='/statistics' icon={<Icons.LineChartOutlined />}>
+                            Statistika
+                            <NavLink to='/statistics' />
+                        </Menu.Item>
+                        <Menu.Item key='/warehouse/handover/queues' icon={<Icons.UserSwitchOutlined />}>
+                            Anbardar təhvil
+                            <NavLink to='/warehouse/handover/queues' />
+                        </Menu.Item>
+                        <Menu.Item key='/box-transfers' icon={<Icons.SwapOutlined />}>
+                            Yeşik köçürmələri
+                            <NavLink to='/box-transfers' />
+                        </Menu.Item>
+                        <Menu.Item key='/appointment' icon={<Icons.CustomerServiceOutlined />}>
+                            Müştəri qəbul
+                            <NavLink to='/appointment' />
+                        </Menu.Item>
+                    </Menu.ItemGroup>
                     <Menu.ItemGroup title='Əsas menyu'>
                         <Menu.Item key='/users' icon={<Icons.TeamOutlined />}>
                             İstifadəçilər
                             <NavLink to='/users' />
+                        </Menu.Item>
+                        <Menu.Item key='/orders' icon={<Icons.ShoppingCartOutlined />}>
+                            Sifarişlər
+                            <NavLink to='/orders' />
                         </Menu.Item>
                         <Menu.Item key='/declarations' icon={<Icons.InboxOutlined />}>
                             Bağlamalar
@@ -34,9 +56,25 @@ export const AppSidebar = () => {
                             Uçuşlar
                             <NavLink to='/flights' />
                         </Menu.Item>
+                        <Menu.Item key='/couriers' icon={<Icons.CarOutlined />}>
+                            Kuryerlər
+                            <NavLink to='/couriers' />
+                        </Menu.Item>
+                        <Menu.Item key='/couriers/deliverer-assignments' icon={<Icons.UserAddOutlined />}>
+                            Kuryer təhkim
+                            <NavLink to='/couriers/deliverer-assignments' />
+                        </Menu.Item>
+                        <Menu.Item key='/supports' icon={<Icons.MessageOutlined />}>
+                            Müraciətlər
+                            <NavLink to='/supports' />
+                        </Menu.Item>
                         <Menu.Item key='/transactions' icon={<Icons.MoneyCollectOutlined />}>
                             Balans əməliyyatları
                             <NavLink to='/transactions' />
+                        </Menu.Item>
+                        <Menu.Item key='/cash-flow' icon={<Icons.FundOutlined />}>
+                            Cashflow
+                            <NavLink to='/cash-flow' />
                         </Menu.Item>
                         <Menu.Item key='/declarations/archived' icon={<Icons.FileTextOutlined />}>
                             Bağlamalar arxivi
@@ -71,6 +109,18 @@ export const AppSidebar = () => {
                         <Menu.Item key='/declarations/partners' icon={<Icons.TeamOutlined />}>
                             Partnyor bəyannamələri
                             <NavLink to='/declarations/partners' />
+                        </Menu.Item>
+                        <Menu.Item key='/united-declarations' icon={<Icons.FileTextOutlined />}>
+                            United bəyannamələri
+                            <NavLink to='/united-declarations' />
+                        </Menu.Item>
+                        <Menu.Item key='/united-returns' icon={<Icons.RollbackOutlined />}>
+                            United iadələri
+                            <NavLink to='/united-returns' />
+                        </Menu.Item>
+                        <Menu.Item key='/branch-inspections' icon={<Icons.AuditOutlined />}>
+                            Filial yoxlamaları
+                            <NavLink to='/branch-inspections' />
                         </Menu.Item>
                     </Menu.ItemGroup>
                     <Menu.ItemGroup title='Növbələr'>

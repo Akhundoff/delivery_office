@@ -9,9 +9,9 @@ export const UpdateUserPermissionsModal: FC = () => {
   const close = () => navigate(-1);
 
   const {
-    operations, cashboxes, branches,
-    operationIds, cashboxId, adminBranchId,
-    setCashboxId, setAdminBranchId, toggleOperation,
+    operations, cashboxes, companies, branches,
+    operationIds, cashboxId, adminBranchId, companyId,
+    isSelf, setCashboxId, setAdminBranchId, setCompanyId, toggleOperation,
     submit, isLoading, submitting,
   } = useUserPermissions(id!);
 
@@ -41,7 +41,7 @@ export const UpdateUserPermissionsModal: FC = () => {
       ) : (
         <Form layout='vertical' component='div'>
           <Row gutter={16}>
-            <Col xs={24} md={12}>
+            <Col xs={24} md={8}>
               <Form.Item label='Kassa'>
                 <Select allowClear value={cashboxId} onChange={setCashboxId} placeholder='Kassa seçin...'>
                   {cashboxes.map((c: any) => (
@@ -50,7 +50,16 @@ export const UpdateUserPermissionsModal: FC = () => {
                 </Select>
               </Form.Item>
             </Col>
-            <Col xs={24} md={12}>
+            <Col xs={24} md={8}>
+              <Form.Item label='Şirkət'>
+                <Select allowClear value={companyId} onChange={setCompanyId} placeholder='Şirkət seçin...'>
+                  {companies.map((c: any) => (
+                    <Select.Option key={c.id} value={c.id}>{c.name}</Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={8}>
               <Form.Item label='Filial'>
                 <Select allowClear value={adminBranchId} onChange={setAdminBranchId} placeholder='Filial seçin...'>
                   {branches.map((b: any) => (
@@ -71,6 +80,7 @@ export const UpdateUserPermissionsModal: FC = () => {
                         checked={operationIds.includes(op.id)}
                         onChange={() => toggleOperation(op.id)}
                         size='small'
+                        disabled={isSelf && op.codeName === 'changeuserpermissions'}
                       />
                     </div>
                   ))}

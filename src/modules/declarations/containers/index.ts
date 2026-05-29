@@ -13,5 +13,7 @@ export { PartnerDeclarationsTable } from './partner-declarations-table';
 export { PartnerDeclarationsActionBar } from './partner-declarations-action-bar';
 export { PayDeclarationModal } from './pay-declaration-modal';
 export { BulkHandoverModal } from './bulk-handover-modal';
+export { HandoverDeclarationModal } from './handover-declaration-modal';
+export { ReturnDeclarationModal } from './return-declaration-modal';
 export { ArchivedDeclarationsActionBar } from './archived-declarations-action-bar';
 export { ArchivedDeclarationsTable } from './archived-declarations-table';

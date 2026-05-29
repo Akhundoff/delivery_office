@@ -272,4 +272,18 @@ export const UsersService = {
       return new ApiResult(400, 'Şəbəkə xətası.', null);
     }
   },
+
+  getUserByTrackCode: async (trackCode: string): Promise<ApiResult<200, IDetailedUser> | ApiResult<400 | 500, string>> => {
+    const url = urlMaker('/api/admin/client/track_code', { track_code: trackCode });
+    try {
+      const response = await caller(url, { method: 'POST' });
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, DetailedUserMapper.toDomain(result as IDetailedUserPersistence), null);
+      }
+      return new ApiResult(400, 'İstifadəçi tapılmadı.', null);
+    } catch {
+      return new ApiResult(500, 'Şəbəkə xətası.', null);
+    }
+  },
 };

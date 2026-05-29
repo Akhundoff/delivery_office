@@ -2,6 +2,27 @@ import { ApiResult, caller, urlMaker } from "@shared/utils";
 import { IDeclaration, IDeclarationPersistence, IDeclarationFormValues, IDeclarationPost, IDeclarationPostPersistence, IUnknownDeclaration, IUnknownDeclarationPersistence, IPartnerDeclaration, IPartnerDeclarationPersistence } from "../interfaces";
 import { DeclarationMapper } from "../mappers";
 
+export type IHandoverDetails = {
+  user: { id: number; name: string };
+  ordersPrice: { try: number; azn: number };
+  deliveryPrice: { usd: number; azn: number };
+  balance: { usd: number; try: number };
+  debt: {
+    total: { usd: number; azn: number };
+    minimum: { azn: number };
+    all: { azn: number; package: number };
+  };
+};
+
+export type IReturnDetails = {
+  id: number;
+  deliveryPrice: number;
+  productPriceToBeRefunded: number;
+  deliveryPriceToBeRefunded: number;
+  paid: boolean;
+  order: { id: number; amountToBeRefunded: number; amountToBeRefundedExtra: number; amountToBeRefundedWithExtra: number } | null;
+};
+
 const unknownDeclarationToDomain = (p: IUnknownDeclarationPersistence): IUnknownDeclaration => ({
   id: p.id,
   globalTrackCode: p.global_track_code,
@@ -10,7 +31,37 @@ const unknownDeclarationToDomain = (p: IUnknownDeclarationPersistence): IUnknown
   user: p.user_id ? { id: p.user_id, name: p.user_name ?? '' } : null,
   weight: p.weight ? parseFloat(p.weight) : null,
   price: p.price ? parseFloat(p.price) : null,
+  currency: p.currency ?? null,
+  deliveryPrice: p.delivery_price ? parseFloat(p.delivery_price) : null,
+  height: p.height ? parseFloat(p.height) : null,
+  width: p.width ? parseFloat(p.width) : null,
+  depth: p.depth ? parseFloat(p.depth) : null,
+  voen: p.voen ?? null,
+  shop: p.shop_name ?? '',
+  quantity: p.quantity ?? 1,
+  type: p.type === 1 ? 'liquid' : 'other',
+  description: p.descr ?? '',
+  file: p.document_file ?? null,
+  paid: !!p.payed,
+  approved: !!p.customs,
+  returned: !!p.return,
+  read: p.is_new === 0,
+  countryId: p.country_id ?? null,
+  wardrobeNumber: p.wardrobe_number ?? null,
+  productType: p.product_type_id ? { id: p.product_type_id, name: p.product_type_name ?? '' } : null,
+  planCategory: p.tariff_category_id ? { id: p.tariff_category_id, name: p.tariff_category_name ?? '' } : null,
+  parcel: p.basket_id ? { id: p.basket_id } : null,
+  basket: p.basket_id ? { id: p.basket_id, name: p.basket_name ?? '' } : null,
+  box: p.container_id ? { id: p.container_id, name: p.container_name ?? '' } : null,
+  lastBox: p.container_id_tmp ? { id: p.container_id_tmp, name: p.container_name_tmp ?? '' } : null,
+  branch: p.branch_id ? { id: p.branch_id, name: p.branch_name ?? '' } : null,
+  flight: p.flight_name ? { id: 0, name: p.flight_name } : null,
+  deliveryPoint: p.delivery_point_id ? { id: p.delivery_point_id, name: p.delivery_point_name ?? '' } : null,
+  partnerName: p.partner_name ?? '',
+  partnerId: p.partner_id ?? null,
+  handoverTaskId: p.handover_task_id ?? null,
   createdAt: p.created_at,
+  deliveredAt: p.delivered_at ?? null,
 });
 
 const declarationPostToDomain = (p: IDeclarationPostPersistence): IDeclarationPost => ({
@@ -315,6 +366,121 @@ export const DeclarationsService = {
       return new ApiResult(400, "Şəbəkə xətası.", null);
     }
   },
+
+  getHandoverDetails: async (
+    ids: (string | number)[],
+    packages?: { small_package?: string; medium_package?: string; big_package?: string },
+  ): Promise<ApiResult<200, IHandoverDetails> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/declaration/pay', { declaration_id: ids });
+    const body = new FormData();
+    if (packages) {
+      if (packages.small_package) body.append('small_package', packages.small_package);
+      if (packages.medium_package) body.append('medium_package', packages.medium_package);
+      if (packages.big_package) body.append('big_package', packages.big_package);
+    }
+    try {
+      const response = await caller(url, { method: 'POST', body });
+      if (response.ok) {
+        const result = await response.json();
+        const d = result.data;
+        return new ApiResult(200, {
+          user: { id: d.user_id, name: d.user_name },
+          ordersPrice: { try: d.values.credit_try, azn: d.converted.credit_try },
+          deliveryPrice: { usd: d.values.credit_delivery, azn: d.converted.credit_delivery },
+          balance: { usd: d.values.balance_usd, try: d.values.balance_try },
+          debt: {
+            total: { usd: d.values.credit_usd, azn: d.converted.credit_usd },
+            minimum: { azn: d.converted.minimal },
+            all: { azn: d.converted.all_credit, package: d.converted.package_amount },
+          },
+        }, null);
+      }
+      const result = await response.json();
+      const errors = result?.errors ? Object.values(result.errors).flat().join('. ') : 'Xəta baş verdi.';
+      return new ApiResult(400, errors as string, null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  handover: async (
+    ids: (string | number)[],
+    data: { cash: string; terminal: string; accepted: boolean; handover_task: boolean; redirect_to_balance: boolean; small_package: string; medium_package: string; big_package: string; confirm: boolean },
+  ): Promise<ApiResult<200, { handover_task_id?: number }> | ApiResult<400 | 422, any>> => {
+    const url = urlMaker('/api/admin/declaration/pay');
+    const body = new FormData();
+    ids.forEach((id) => body.append('declaration_id[]', String(id)));
+    body.append('cash', data.cash);
+    body.append('terminal', data.terminal);
+    body.append('accepted', data.accepted ? '1' : '0');
+    body.append('handover_task', data.handover_task ? '1' : '0');
+    body.append('redirect_to_balance', data.redirect_to_balance ? '1' : '0');
+    body.append('small_package', data.small_package);
+    body.append('medium_package', data.medium_package);
+    body.append('big_package', data.big_package);
+    body.append('confirm', data.confirm ? '1' : '0');
+    try {
+      const response = await caller(url, { method: 'POST', body });
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, result.data || {}, null);
+      }
+      const result = await response.json();
+      if (response.status === 422) return new ApiResult(422, result.errors || {}, null);
+      const errors = result?.errors ? Object.values(result.errors).flat().join('. ') : 'Xəta baş verdi.';
+      return new ApiResult(400, errors as string, null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  getReturnDetails: async (id: string | number): Promise<ApiResult<200, IReturnDetails> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/returns/run', { declaration_id: id });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        const d = result.data;
+        return new ApiResult(200, {
+          id: d.declaration.id,
+          deliveryPrice: d.declaration.delivery_price ? parseFloat(d.declaration.delivery_price) : 0,
+          productPriceToBeRefunded: d.declaration.money_back_price ? parseFloat(String(d.declaration.money_back_price)) : 0,
+          deliveryPriceToBeRefunded: d.declaration.money_back ? parseFloat(String(d.declaration.money_back)) : 0,
+          paid: !!d.declaration.payed,
+          order: d.order?.exist
+            ? { id: d.order.id, amountToBeRefunded: d.order.money_back, amountToBeRefundedExtra: d.order.money_back_percent, amountToBeRefundedWithExtra: d.order.money_back_with_percent }
+            : null,
+        }, null);
+      }
+      const result = await response.json();
+      const errors = result?.errors ? Object.values(result.errors).flat().join('. ') : 'Xəta baş verdi.';
+      return new ApiResult(400, errors as string, null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  returnDeclaration: async (
+    id: string | number,
+    data: { typeId: string; returnOrderExtra: boolean; returnDeclarationPrice: boolean; returnDeliveryPrice: boolean },
+  ): Promise<ApiResult<200, null> | ApiResult<400 | 422, any>> => {
+    const url = urlMaker('/api/admin/returns/run');
+    const body = new FormData();
+    body.append('declaration_id', String(id));
+    body.append('return_reason_id', data.typeId);
+    body.append('return_order_extra', data.returnOrderExtra ? '1' : '0');
+    body.append('return_declaration_price', data.returnDeclarationPrice ? '1' : '0');
+    body.append('return_delivery_price', data.returnDeliveryPrice ? '1' : '0');
+    try {
+      const response = await caller(url, { method: 'POST', body });
+      if (response.ok) return new ApiResult(200, null, null);
+      const result = await response.json();
+      if (response.status === 422 || response.status === 400) return new ApiResult(422, result.errors || {}, null);
+      return new ApiResult(400, 'Xəta baş verdi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
 };
 
 export const DeletedDeclarationsService = {
@@ -414,9 +580,34 @@ const partnerDeclarationToDomain = (p: IPartnerDeclarationPersistence): IPartner
   globalTrackCode: p.global_track_code,
   status: { id: p.state_id, name: p.state_name },
   flight: p.flight_id ? { id: p.flight_id, name: p.flight_name ?? '' } : null,
+  box: p.container_id ? { id: p.container_id, name: p.container_name ?? '' } : null,
+  lastBox: p.container_id_tmp ? { id: p.container_id_tmp, name: p.container_name_tmp ?? '' } : null,
+  branch: p.branch_id ? { id: p.branch_id, name: p.branch_name ?? '' } : null,
   weight: p.weight ? parseFloat(p.weight) : null,
   price: p.price ? parseFloat(p.price) : null,
+  deliveryPrice: p.delivery_price ? parseFloat(p.delivery_price) : null,
+  quantity: p.quantity ?? 1,
+  type: p.type === 1 ? 'liquid' : 'other',
+  planCategory: p.tariff_category_id ? { id: p.tariff_category_id, name: p.tariff_category_name ?? '' } : null,
+  shop: p.shop_name ?? '',
+  productType: p.product_type_id ? { id: p.product_type_id, name: p.product_type_name ?? '' } : null,
+  parcel: p.basket_id ? { id: p.basket_id } : null,
+  basket: p.basket_id ? { id: p.basket_id, name: p.basket_name ?? '' } : null,
+  voen: p.voen ?? null,
+  wardrobeNumber: p.wardrobe_number ?? '',
+  editedBy: p.causer_id ? { id: p.causer_id, name: p.causer_name ?? '' } : null,
+  document: p.document_file ?? null,
+  file: p.document_file ?? null,
+  read: p.is_new === 0,
   paid: !!p.payed,
+  approved: !!p.customs,
+  returned: !!p.return,
+  height: p.height ? parseFloat(p.height) : null,
+  width: p.width ? parseFloat(p.width) : null,
+  depth: p.depth ? parseFloat(p.depth) : null,
+  description: p.descr ?? null,
+  countryId: p.country_id ?? 0,
+  customs: p.customs ?? 0,
   createdAt: p.created_at,
 });
 
@@ -447,6 +638,20 @@ export const PartnerDeclarationsService = {
         return new ApiResult(200, { data, total: result.total ?? data.length }, null);
       }
       return new ApiResult(400, 'Xəta baş verdi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  getExcel: async (query: Record<string, any> = {}, mini = false): Promise<ApiResult<200, Blob> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/declaration/export', { ...query, only_partner: 1, ...(mini ? { mini: 1 } : {}) });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const blob = await response.blob();
+        return new ApiResult(200, blob, null);
+      }
+      return new ApiResult(400, 'Export uğursuz oldu', null);
     } catch {
       return new ApiResult(400, 'Şəbəkə xətası.', null);
     }
