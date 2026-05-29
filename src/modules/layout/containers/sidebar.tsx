@@ -38,6 +38,10 @@ export const AppSidebar = () => {
                             Balans əməliyyatları
                             <NavLink to='/transactions' />
                         </Menu.Item>
+                        <Menu.Item key='/declarations/archived' icon={<Icons.FileTextOutlined />}>
+                            Bağlamalar arxivi
+                            <NavLink to='/declarations/archived' />
+                        </Menu.Item>
                     </Menu.ItemGroup>
                     <Menu.ItemGroup title='Bəyannamələr'>
                         <Menu.Item key='/customs/declarations' icon={<Icons.ExceptionOutlined />}>

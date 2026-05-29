@@ -5,3 +5,4 @@ export const DeletedDeclarationsTableContext = createNextTableContext();
 export const PostDeclarationsTableContext = createNextTableContext();
 export const UnknownDeclarationsTableContext = createNextTableContext();
 export const PartnerDeclarationsTableContext = createNextTableContext();
+export const ArchivedDeclarationsTableContext = createNextTableContext();

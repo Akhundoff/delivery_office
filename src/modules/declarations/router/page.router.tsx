@@ -7,6 +7,7 @@ const DeletedDeclarationsPage = React.lazy(() => import('../pages/deleted-declar
 const PostDeclarationsPage = React.lazy(() => import('../pages/post-declarations').then((m) => ({ default: m.PostDeclarationsPage })));
 const UnknownDeclarationsPage = React.lazy(() => import('../pages/unknown-declarations').then((m) => ({ default: m.UnknownDeclarationsPage })));
 const PartnerDeclarationsPage = React.lazy(() => import('../pages/partner-declarations').then((m) => ({ default: m.PartnerDeclarationsPage })));
+const ArchivedDeclarationsPage = React.lazy(() => import('../pages/archived-declarations').then((m) => ({ default: m.ArchivedDeclarationsPage })));
 
 const DeclarationsPageRouter: FC = () => {
     return (
@@ -42,6 +43,14 @@ const DeclarationsPageRouter: FC = () => {
                 element={
                     <React.Suspense fallback={null}>
                         <PartnerDeclarationsPage />
+                    </React.Suspense>
+                }
+            />
+            <Route
+                path='archived'
+                element={
+                    <React.Suspense fallback={null}>
+                        <ArchivedDeclarationsPage />
                     </React.Suspense>
                 }
             />

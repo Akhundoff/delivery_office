@@ -420,6 +420,22 @@ const partnerDeclarationToDomain = (p: IPartnerDeclarationPersistence): IPartner
   createdAt: p.created_at,
 });
 
+export const ArchivedDeclarationsService = {
+  getList: async (query: Record<string, any> = {}): Promise<ApiResult<200, { data: IDeclaration[]; total: number }> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/declaration/archive', { page: 1, per_page: 20, ...query });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, { data: (result.data || []).map((d: IDeclarationPersistence) => DeclarationMapper.toDomain(d)), total: result.total || 0 }, null);
+      }
+      return new ApiResult(400, 'Xəta baş verdi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+};
+
 export const PartnerDeclarationsService = {
   getList: async (query: Record<string, any> = {}): Promise<ApiResult<200, { data: IPartnerDeclaration[]; total: number }> | ApiResult<400, string>> => {
     const url = urlMaker('/api/admin/declaration/partner_declarations', { page: 1, per_page: 20, ...query });
