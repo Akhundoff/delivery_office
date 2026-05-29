@@ -42,6 +42,7 @@ const PartnerBoxesRouter = lazy(() => import('../../partner-boxes/router/page.ro
 const PartnerBoxAcceptanceRouter = lazy(() => import('../../partner-box-acceptance/router/page.router'));
 const PartnerStatisticsRouter = lazy(() => import('../../partner-statistics/router/page.router'));
 const TelegramBotUsersRouter = lazy(() => import('../../telegram-bot-users/router/page.router'));
+const TransactionsRouter = lazy(() => import('../../transactions/router/page.router'));
 
 export const HomeRouter: FC = () => {
     return (
@@ -87,6 +88,7 @@ export const HomeRouter: FC = () => {
                     <Route path='/partner/acceptance/box/*' element={<PartnerBoxAcceptanceRouter />} />
                     <Route path='/statistics/branches-partner/*' element={<PartnerStatisticsRouter />} />
                     <Route path='/telegram-bot-users/*' element={<TelegramBotUsersRouter />} />
+                    <Route path='/transactions/*' element={<TransactionsRouter />} />
                     <Route path='*' element={<Navigate to='/' replace />} />
                 </Routes>
             </Suspense>

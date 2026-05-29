@@ -34,6 +34,10 @@ export const AppSidebar = () => {
                             Uçuşlar
                             <NavLink to='/flights' />
                         </Menu.Item>
+                        <Menu.Item key='/transactions' icon={<Icons.MoneyCollectOutlined />}>
+                            Balans əməliyyatları
+                            <NavLink to='/transactions' />
+                        </Menu.Item>
                     </Menu.ItemGroup>
                     <Menu.ItemGroup title='Bəyannamələr'>
                         <Menu.Item key='/customs/declarations' icon={<Icons.ExceptionOutlined />}>

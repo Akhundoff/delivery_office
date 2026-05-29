@@ -32,6 +32,7 @@ const PartnerBoxesModalRouter = lazy(() => import('../modules/partner-boxes/rout
 const CouponsModalRouter = lazy(() => import('../modules/coupons/router/modal.router'));
 const RefundsModalRouter = lazy(() => import('../modules/refunds/router/modal.router'));
 const StatusesModalRouter = lazy(() => import('../modules/statuses/router/modal.router'));
+const TransactionsModalRouter = lazy(() => import('../modules/transactions/router/modal.router'));
 
 export const MainRouter: FC = () => {
     const location = useLocation();
@@ -84,6 +85,7 @@ export const MainRouter: FC = () => {
                 <Route path='/coupons/*' element={<CouponsModalRouter />} />
                 <Route path='/refunds/*' element={<RefundsModalRouter />} />
                 <Route path='/status/*' element={<StatusesModalRouter />} />
+                <Route path='/transactions/*' element={<TransactionsModalRouter />} />
             </Routes>
         </Suspense>
     );
