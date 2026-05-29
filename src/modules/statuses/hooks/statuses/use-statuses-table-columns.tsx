@@ -1,4 +1,4 @@
-import { useContext, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Column } from 'react-table';
 import { Button, Dropdown, MenuProps, Tag } from 'antd';
 import * as Icons from '@ant-design/icons';
@@ -8,10 +8,8 @@ import { nextTableColumns } from '@shared/modules/next-table/helpers/next-table-
 import { useBackgroundNavigate } from '@shared/hooks';
 
 import { IStatus } from '../../interfaces';
-import { StatusesTableContext } from '../../context';
 
 export const useStatusesTableColumns = (): Column<IStatus>[] => {
-    const { handleFetch } = useContext(StatusesTableContext);
     const navigate = useBackgroundNavigate();
 
     const actionsColumn = useMemo<Column<IStatus>>(
@@ -36,7 +34,7 @@ export const useStatusesTableColumns = (): Column<IStatus>[] => {
                 );
             },
         }),
-        [navigate, handleFetch],
+        [navigate],
     );
 
     const baseColumns = useMemo<Column<IStatus>[]>(
