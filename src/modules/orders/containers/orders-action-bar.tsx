@@ -5,22 +5,33 @@ import { useQuery } from 'react-query';
 import { HeadPortal } from '@modules/layout/components/head-portal';
 import { StyledHeaderButton } from '@modules/layout/styled';
 import { StyledActionBar } from '@shared/styled/action-bar';
+import { useBackgroundNavigate } from '@shared/hooks';
 import { StatusesService } from '@modules/statuses/services';
 import { OrdersTableContext } from '../context';
 import { OrdersService } from '../services';
+import { REJECTED_STATUS_ID } from '../constants';
 
 export const OrdersActionBar = () => {
   const { state, handleFetch, handleReset, handleSelectAll, handleResetSelection } = useContext(OrdersTableContext);
+  const navigate = useBackgroundNavigate();
   const selectionCount = Object.keys(state.selectedRowIds).length;
   const selectedIds = Object.keys(state.selectedRowIds).map(Number);
 
   const { data: statusesResult } = useQuery(['statuses-for-orders-bar', 1], () => StatusesService.getList({ per_page: 500, model_id: 1 }));
   const statuses = statusesResult?.status === 200 ? statusesResult.data.data : [];
 
+  const openCreate = useCallback(() => {
+    navigate('/orders/create', { withBackground: true });
+  }, [navigate]);
+
   const statusItems: MenuProps['items'] = statuses.map((s) => ({
     key: `bulk-status-${s.id}`,
     label: s.name,
     onClick: async () => {
+      if (Number(s.id) === REJECTED_STATUS_ID) {
+        navigate('/orders/bulk_reject', { withBackground: true, state: { rejectIds: selectedIds } });
+        return;
+      }
       const result = await OrdersService.changeStatus(selectedIds, s.id);
       if (result.status === 200) { message.success('Status dəyişdirildi.'); handleFetch(); handleResetSelection(); }
       else message.error(result.data as string);
@@ -73,6 +84,9 @@ export const OrdersActionBar = () => {
           )}
           <StyledHeaderButton type='text' onClick={exportAsExcel} icon={<Icons.FileExcelOutlined />}>
             Excel export
+          </StyledHeaderButton>
+          <StyledHeaderButton type='text' onClick={openCreate} icon={<Icons.PlusOutlined />}>
+            Yeni sifariş
           </StyledHeaderButton>
         </Space>
       </StyledActionBar>

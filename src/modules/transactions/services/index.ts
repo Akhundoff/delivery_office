@@ -16,6 +16,9 @@ const toDomain = (item: ITransactionPersistence): ITransaction => ({
   description: item.descr || '',
 });
 
+// Reused by statistics drill-down modals to map getlist rows into ITransaction.
+export const transactionRowToDomain = toDomain;
+
 export const TransactionsService = {
   getList: async (query: Record<string, any> = {}): Promise<ApiResult<200, { data: ITransaction[]; total: number }> | ApiResult<400, string>> => {
     const url = urlMaker('/api/admin/v2/pay/getlist', { page: 1, per_page: 20, ...query });

@@ -21,6 +21,9 @@ const toDomain = (p: any): ICourier => ({
   courierPrice: parseFloat(p.courier_price) || 0,
 });
 
+// Reused by statistics drill-down modals to map getlist rows into ICourier.
+export const courierRowToDomain = toDomain;
+
 export const CouriersService = {
   getList: async (query: Record<string, any> = {}): Promise<ApiResult<200, { data: ICourier[]; total: number }> | ApiResult<400, string>> => {
     const url = urlMaker('/api/admin/v2/couriers/getlist', { page: 1, per_page: 20, ...query });

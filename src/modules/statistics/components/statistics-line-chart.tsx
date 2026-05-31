@@ -1,8 +1,11 @@
 import { FC, useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler } from 'chart.js';
+import { rgba } from 'polished';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, Filler);
+
+const DEFAULT_COLOR = '#3dc0ea';
 
 type Props = {
     labels: string[];
@@ -13,13 +16,16 @@ export const StatisticsLineChart: FC<Props> = ({ labels, datasets }) => {
     const chartData = useMemo(
         () => ({
             labels,
-            datasets: datasets.map((ds) => ({
-                label: ds.label,
-                borderColor: ds.color || 'rgb(61, 192, 234)',
-                backgroundColor: `${ds.color || 'rgba(61, 192, 234'}0.1)`,
-                data: ds.data,
-                fill: true,
-            })),
+            datasets: datasets.map((ds) => {
+                const color = ds.color || DEFAULT_COLOR;
+                return {
+                    label: ds.label,
+                    borderColor: color,
+                    backgroundColor: rgba(color, 0.1),
+                    data: ds.data,
+                    fill: true,
+                };
+            }),
         }),
         [labels, datasets],
     );

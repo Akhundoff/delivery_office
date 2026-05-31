@@ -1,6 +1,12 @@
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { Layout } from 'antd';
 import { Theme } from '@shared/theme';
+
+const pulse = keyframes`
+    0% { opacity: 1; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1; }
+`;
 
 export const StyledSider = styled(Layout.Sider).attrs({ theme: 'dark' })`
     overflow: auto;
@@ -96,4 +102,15 @@ export const Brand = styled.div`
     img {
         height: 24px;
     }
+`;
+
+export const InspectionBadge = styled.span`
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    min-width: 8px;
+    background-color: #ff4d4f;
+    border-radius: 50%;
+    margin-left: 8px;
+    animation: ${pulse} 1.5s ease-in-out infinite;
 `;

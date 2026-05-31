@@ -1,0 +1,9 @@
+// Flat color palette used for multi-series statistics charts
+// (replacement for the old `random-flat-colors` dependency).
+const PALETTE = [
+    '#1abc9c', '#3498db', '#9b59b6', '#e67e22', '#e74c3c',
+    '#f1c40f', '#2ecc71', '#34495e', '#16a085', '#27ae60',
+    '#2980b9', '#8e44ad', '#d35400', '#c0392b', '#7f8c8d',
+];
+
+export const getChartColor = (index: number): string => PALETTE[index % PALETTE.length];

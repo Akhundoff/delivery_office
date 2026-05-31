@@ -2,13 +2,17 @@ import React, { useContext } from 'react';
 import { Menu } from 'antd';
 import * as Icons from '@ant-design/icons';
 import { NavLink } from 'react-router-dom';
-import { StyledSider, SiderOverlay, Brand } from '../styled';
+import { StyledSider, SiderOverlay, Brand, InspectionBadge } from '../styled';
 import { useSidebar } from '../hooks';
 import { MeContext } from '@modules/me/context/context';
+import { useInspectionBadge } from '@modules/branch-inspections';
+import { useCounter } from '@modules/counter';
 
 export const AppSidebar = () => {
     const { isOpen, activeKey, toggleSidebar } = useSidebar();
     const { can } = useContext(MeContext);
+    const { shouldShowBadge } = useInspectionBadge();
+    const { onMouseEnter } = useCounter();
 
     return (
         <React.Fragment>
@@ -16,11 +20,7 @@ export const AppSidebar = () => {
                 <Brand>
                     {isOpen ? <img src='/logo.svg' alt={process.env.REACT_APP_COMPANY_NAME} /> : <img src='/logo-compact.svg' alt={process.env.REACT_APP_COMPANY_NAME} />}
                 </Brand>
-                <Menu theme='dark' mode='inline' selectedKeys={[activeKey]}>
-                    <Menu.Item key='/' icon={<Icons.HomeOutlined />}>
-                        Ana səhifə
-                        <NavLink to='/' />
-                    </Menu.Item>
+                <Menu onMouseOver={onMouseEnter} theme='dark' mode='inline' selectedKeys={[activeKey]}>
                     <Menu.ItemGroup title='Ümumi'>
                         <Menu.Item key='/statistics' icon={<Icons.LineChartOutlined />}>
                             Statistika
@@ -118,8 +118,13 @@ export const AppSidebar = () => {
                             United iadələri
                             <NavLink to='/united-returns' />
                         </Menu.Item>
+                        <Menu.Item key='/sorting' icon={<Icons.DeliveredProcedureOutlined />}>
+                            Filial göndərişləri
+                            <NavLink to='/sorting' />
+                        </Menu.Item>
                         <Menu.Item key='/branch-inspections' icon={<Icons.AuditOutlined />}>
                             Filial yoxlamaları
+                            {shouldShowBadge && <InspectionBadge />}
                             <NavLink to='/branch-inspections' />
                         </Menu.Item>
                     </Menu.ItemGroup>
@@ -161,6 +166,10 @@ export const AppSidebar = () => {
                         <Menu.Item key='/ticket-templates' icon={<Icons.FileTextOutlined />}>
                             Müraciət şablonları
                             <NavLink to='/ticket-templates' />
+                        </Menu.Item>
+                        <Menu.Item key='/failed-jobs' icon={<Icons.CloseSquareOutlined />}>
+                            Göndərilməyən bildirişlər
+                            <NavLink to='/failed-jobs' />
                         </Menu.Item>
                     </Menu.ItemGroup>
 
@@ -204,6 +213,10 @@ export const AppSidebar = () => {
                         <Menu.Item key='/delivery-proofs' icon={<Icons.FileProtectOutlined />}>
                             Təhvil sənədləri
                             <NavLink to='/delivery-proofs' />
+                        </Menu.Item>
+                        <Menu.Item key='/telegram-bot-users' icon={<Icons.RobotOutlined />}>
+                            Telegram bot istifadəçiləri
+                            <NavLink to='/telegram-bot-users' />
                         </Menu.Item>
                     </Menu.ItemGroup>
                     <Menu.ItemGroup title='Proqram ayarları'>

@@ -12,6 +12,7 @@ export class MeMappers {
       permissions: Array.isArray(raw?.permissions)
         ? raw.permissions.map(({ code_name }: any) => code_name)
         : [],
+      adminBranchId: userData.admin_branch_id ?? null,
     };
   }
 

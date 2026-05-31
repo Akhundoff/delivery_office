@@ -1,4 +1,4 @@
-export { StyledSider, SiderOverlay, Brand } from './sidebar';
+export { StyledSider, SiderOverlay, Brand, InspectionBadge } from './sidebar';
 export {
   StyledHeader,
   StyledMenuFoldIcon,

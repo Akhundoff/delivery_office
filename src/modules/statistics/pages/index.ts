@@ -1,4 +1,14 @@
 export { StatisticsOverviewPage } from './statistics-overview';
 export { DeclarationsByStatusPage } from './declarations-by-status';
 export { OrdersByStatusPage } from './orders-by-status';
+export { OrdersByAdminPage } from './orders-by-admin';
+export { UsersCountsPage } from './users-counts';
+export { CouriersCountsPage } from './couriers-counts';
+export { CouriersByRegionsPage } from './couriers-by-regions';
+export { CouriersByRegionsOverviewPage } from './couriers-by-regions-overview';
 export { TransactionsByUserPage } from './transactions-by-user';
+export { TransactionsByPaymentTypePage } from './transactions-by-payment-type';
+export { PaymentTypesByDeclarationsPage } from './payment-types-by-declarations';
+export { CashFlowTransactionsPage } from './cashflow-transactions';
+export { TariffOverviewPage } from './tariff-overview';
+export { QizilOnluqPage } from './qizil-onluq';

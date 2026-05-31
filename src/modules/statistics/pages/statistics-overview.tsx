@@ -26,6 +26,36 @@ export const StatisticsOverviewPage: FC = () => (
             <Col xs={24} lg={8}>
                 <CardLink to='/statistics/transactions/by-user' icon={<Icons.MoneyCollectOutlined />} title='Balans artımı' />
             </Col>
+            <Col xs={24} lg={8}>
+                <CardLink to='/statistics/orders/by-admin' icon={<Icons.UserOutlined />} title='Adminlər üzrə sifarişlər' />
+            </Col>
+            <Col xs={24} lg={8}>
+                <CardLink to='/statistics/users/counts' icon={<Icons.TeamOutlined />} title='İstifadəçi sayları' />
+            </Col>
+            <Col xs={24} lg={8}>
+                <CardLink to='/statistics/couriers/counts' icon={<Icons.CarOutlined />} title='Kuryer təhvil sayları' />
+            </Col>
+            <Col xs={24} lg={8}>
+                <CardLink to='/statistics/couriers/counts/by-regions' icon={<Icons.EnvironmentOutlined />} title='Rayonlar üzrə kuryer təhvilləri' />
+            </Col>
+            <Col xs={24} lg={8}>
+                <CardLink to='/statistics/couriers/overview/counts/by-regions' icon={<Icons.GlobalOutlined />} title='Rayonlar üzrə kuryer (icmal)' />
+            </Col>
+            <Col xs={24} lg={8}>
+                <CardLink to='/statistics/qizil-onluq' icon={<Icons.CrownOutlined />} title='Qızıl onluq' />
+            </Col>
+            <Col xs={24} lg={8}>
+                <CardLink to='/statistics/transactions/payment-counts/by-payment-types' icon={<Icons.TransactionOutlined />} title='Balans artımı ödəniş tipinə görə' />
+            </Col>
+            <Col xs={24} lg={8}>
+                <CardLink to='/statistics/transactions/payment-types/by-declarations' icon={<Icons.CreditCardOutlined />} title='Bağlamalara görə ödəniş üsulları' />
+            </Col>
+            <Col xs={24} lg={8}>
+                <CardLink to='/statistics/cashflow-transactions' icon={<Icons.SwapOutlined />} title='Cashflow transaction' />
+            </Col>
+            <Col xs={24} lg={8}>
+                <CardLink to='/statistics/plans' icon={<Icons.ProfileOutlined />} title='Tariflər üzrə statistika' />
+            </Col>
         </Row>
     </PageContent>
 );

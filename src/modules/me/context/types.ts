@@ -6,6 +6,7 @@ export interface IMeUser {
   lastName: string;
   email: string;
   permissions: string[];
+  adminBranchId: number | null;
 }
 
 export interface LoginFormData {

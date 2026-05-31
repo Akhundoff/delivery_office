@@ -28,3 +28,44 @@ export type IOrder = {
   updatedAt: string | null;
   createdAt: string;
 };
+
+export type IDetailedOrder = IOrder & {
+  detailedDebts: {
+    id: string;
+    param: string;
+    amount: { current: number; difference: number };
+    status: { id: number; name: string };
+    description: string;
+    createdAt: string;
+  }[];
+};
+
+export type IOrderStateExecution = {
+  id: number;
+  ref: { id: number; name: string };
+  executor: { id: number; name: string } | null;
+  isCurrent: boolean;
+  createdAt: string | null;
+};
+
+export type ICreateOrderValues = {
+  id?: string;
+  userId: string;
+  countryId: string;
+  isUrgent: boolean;
+  description: string;
+  product: {
+    url: string;
+    shop: string;
+    typeId: string;
+    color: string;
+    size: string;
+    quantity: string;
+    price: string;
+    internalShippingPrice: string;
+  };
+};
+
+export type IRejectOrdersValues = {
+  description: string;
+};
