@@ -1,1 +1,4 @@
-echo "husky pre-commit placeholder (configured in Task 5)"
+set -e
+
+sh "$(dirname -- "$0")/branch-name-check.sh"
+npx lint-staged

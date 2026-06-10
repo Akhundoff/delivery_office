@@ -3,6 +3,9 @@
   "version": "2.0.0",
   "private": true,
   "packageManager": "yarn@4.14.1",
+  "engines": {
+    "node": ">=22"
+  },
   "resolutions": {
     "@types/react": "^18.3.12"
   },
@@ -52,11 +55,22 @@
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
     "prepare": "husky",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,css,scss,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,css,scss,md}\""
   },
   "eslintConfig": {
     "extends": "react-app"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{css,scss,md,json}": [
+      "prettier --write"
+    ]
   },
   "browserslist": {
     "production": [
