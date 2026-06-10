@@ -8,12 +8,7 @@ import { CountryProvider } from './modules/country';
 import { MeProvider } from './modules/me';
 import { NotificationProvider } from './modules/notifications';
 import { SettingsProvider } from './modules/settings';
-import { MainRouter } from './router';
-
-
-
-
-import { TableCacheProvider } from './shared/modules/next-table/context/table-cache';
+import { MainRouter } from './router';import { TableCacheProvider } from './shared/modules/next-table/context/table-cache';
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { refetchOnWindowFocus: false, retry: false } } });
 
