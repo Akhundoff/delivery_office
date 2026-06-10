@@ -1,5 +1,5 @@
 import { ApiResult, caller, urlMaker } from '@shared/utils';
-import { ICourier, IDelivererAssignment, CreateCourierDto } from '../interfaces';
+import { ICourier, IDelivererAssignment, CreateCourierDto, ICourierPaymentDetails, IDelivererReason, ICourierStatusExecution } from '../interfaces';
 
 const toDomain = (p: any): ICourier => ({
   id: p.id,
@@ -141,6 +141,115 @@ export const CouriersService = {
         return new ApiResult(200, blob, null);
       }
       return new ApiResult(400, 'Export uğursuz oldu', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası', null);
+    }
+  },
+
+  getById: async (id: string | number): Promise<ApiResult<200, ICourier> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/couriers/info', { courier_id: id });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, toDomain(result.data), null);
+      }
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası', null);
+    }
+  },
+
+  getStatusExecution: async (id: string | number): Promise<ApiResult<200, ICourierStatusExecution[]> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/couriers/getstates', { courier_id: id });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        const data: ICourierStatusExecution[] = (result.data || []).map((item: any) => ({
+          id: item.id,
+          name: item.state_name,
+          date: item.date || null,
+          executor: item.user_name || null,
+        }));
+        return new ApiResult(200, data, null);
+      }
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası', null);
+    }
+  },
+
+  getPaymentDetails: async (ids: (string | number)[]): Promise<ApiResult<200, ICourierPaymentDetails> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/couriers/pay', { 'courier_id[]': ids, confirm: false });
+    try {
+      const response = await caller(url, { method: 'POST' });
+      if (response.ok) {
+        const result = await response.json();
+        const v = result.values || {};
+        const c = result.converted || {};
+        const details: ICourierPaymentDetails = {
+          balance: { usd: parseFloat(v.balance_usd) || 0, try: parseFloat(v.balance_try) || 0, usdToAzn: parseFloat(c.balance_usd) || 0, tryToAzn: parseFloat(c.balance_try) || 0 },
+          debts: { usd: parseFloat(v.credit_usd) || 0, try: parseFloat(v.credit_try) || 0, usdToAzn: parseFloat(c.credit_usd) || 0, tryToAzn: parseFloat(c.credit_try) || 0 },
+          courierPrice: { azn: parseFloat(c.courier_azn) || 0 },
+          deliveryPrice: { azn: parseFloat(c.delivery_price) || 0, usd: parseFloat(v.credit_usd) || 0 },
+          minimalPayment: { azn: parseFloat(c.minimal) || 0 },
+          fullPayment: { azn: parseFloat(c.all_credit) || 0 },
+        };
+        return new ApiResult(200, details, null);
+      }
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası', null);
+    }
+  },
+
+  handover: async (ids: (string | number)[], amount: string): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/couriers/pay');
+    const body = new FormData();
+    ids.forEach((id) => body.append('courier_id[]', String(id)));
+    body.append('amount', amount);
+    try {
+      const response = await caller(url, { method: 'POST', body });
+      if (response.ok) return new ApiResult(200, null, null);
+      return new ApiResult(400, 'Əməliyyat uğursuz oldu', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası', null);
+    }
+  },
+
+  assignDeliverer: async (courierIds: (string | number)[], delivererId: string | number): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/couriers/edit/state', { 'courier_id[]': courierIds, state_id: 13, deliverer_id: delivererId });
+    try {
+      const response = await caller(url, { method: 'POST' });
+      if (response.ok) return new ApiResult(200, null, null);
+      return new ApiResult(400, 'Əməliyyat uğursuz oldu', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası', null);
+    }
+  },
+
+  cancelDeliverer: async (ids: (string | number)[], reasonId: string | number): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/couriers/deliverer_cancel', { 'courier_id[]': ids, reason_id: reasonId });
+    try {
+      const response = await caller(url, { method: 'POST' });
+      if (response.ok) return new ApiResult(200, null, null);
+      return new ApiResult(400, 'Əməliyyat uğursuz oldu', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası', null);
+    }
+  },
+
+  getDelivererReasons: async (): Promise<ApiResult<200, IDelivererReason[]> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/couriers/deliverer/reasons');
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        const data: IDelivererReason[] = (result.data || []).map((item: any) => ({ id: item.id, name: item.name }));
+        return new ApiResult(200, data, null);
+      }
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
     } catch {
       return new ApiResult(400, 'Şəbəkə xətası', null);
     }

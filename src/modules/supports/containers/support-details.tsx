@@ -132,6 +132,9 @@ export const SupportDetails: FC = () => {
               Status dəyiş
             </Button>
           </Dropdown>
+          <Button onClick={() => navigate(`/archive-status?object_id=${id}&model_id=9`)} icon={<Icons.HistoryOutlined />} type="link">
+            Status tarixçəsi
+          </Button>
           <Button onClick={remove} icon={<Icons.DeleteOutlined />} type="link" danger />
         </SupportInboxUI.HeaderExtra>
       </SupportInboxUI.Header>

@@ -451,6 +451,20 @@ export class StatisticsService {
         }
     }
 
+    public static async getDeclarationsStatisticsExcel(query: { start_date?: string; end_date?: string; state_id?: number; branch_id?: number }): Promise<ApiResult<200, Blob> | ApiResult<400 | 500, string>> {
+        const url = urlMaker('/api/admin/statistics/by_declarations_count/export', query);
+        try {
+            const response = await caller(url);
+            if (response.ok) {
+                const blob = await response.blob();
+                return new ApiResult(200, blob, null);
+            }
+            return new ApiResult(400, 'Sənəd hazırlana bilmədi', null);
+        } catch {
+            return new ApiResult(500, 'Şəbəkə ilə əlaqə qurula bilmədi', null);
+        }
+    }
+
     public static async getCourierPriceExcel(query: { start_date?: string; end_date?: string }): Promise<ApiResult<200, Blob> | ApiResult<400 | 500, string>> {
         const url = urlMaker('/api/admin/couriers/courier_price', query);
         try {

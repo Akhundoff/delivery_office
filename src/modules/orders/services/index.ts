@@ -184,6 +184,19 @@ export const OrdersService = {
     }
   },
 
+  updateRead: async (ids: (number | string)[], read: boolean): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/isnew', { model_id: 1, object_id: ids, is_new: read });
+    try {
+      const response = await caller(url, { method: 'POST' });
+      if (response.ok) return new ApiResult(200, null, null);
+      const result = await response.json().catch(() => ({}));
+      const reason = result.errors ? Object.values(result.errors).flat().join('. ') : 'Əməliyyat uğursuz oldu';
+      return new ApiResult(400, reason, null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası', null);
+    }
+  },
+
   getExcel: async (query: Record<string, any> = {}): Promise<ApiResult<200, Blob> | ApiResult<400, string>> => {
     const url = urlMaker('/api/admin/orders/export', query);
     try {

@@ -27,6 +27,22 @@ export const getCurrencySymbolByCountryId = (id: string | number | null | undefi
   return CURRENCIES[Number(id)] || CURRENCIES[CountryIds.AMERICA];
 };
 
+export const getCurrencySymbol = (currency: string | null | undefined): string => {
+  if (!currency) return '';
+  switch (currency.toUpperCase()) {
+    case 'USD':
+      return CurrencySymbols.USD;
+    case 'TRY':
+      return CurrencySymbols.TRY;
+    case 'AZN':
+      return CurrencySymbols.AZN;
+    case 'AVRO':
+      return CurrencySymbols.EURO;
+    default:
+      return currency;
+  }
+};
+
 // Status that represents a rejected/cancelled order — opens the rejection-reason modal.
 export const REJECTED_STATUS_ID = 4;
 

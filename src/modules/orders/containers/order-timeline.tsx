@@ -4,6 +4,7 @@ import * as Icons from '@ant-design/icons';
 import { useParams } from 'react-router-dom';
 
 import { useBackgroundNavigate, useCloseModal } from '@shared/hooks';
+import { localURLMaker } from '@shared/utils';
 
 import { useOrderStates } from '../hooks';
 
@@ -25,13 +26,20 @@ export const OrderTimeline: FC = () => {
   const onClose = useCallback(() => closeModal(`/orders/${id}`), [closeModal, id]);
 
   const openLogs = useCallback(() => {
-    navigate(`/logs?object_id=${id}&model_id=1`, { withBackground: false });
+    navigate(localURLMaker('/logs', {}, { object_id: id, model_id: 1 }), { withBackground: false });
+  }, [id, navigate]);
+
+  const openStatusHistory = useCallback(() => {
+    navigate(localURLMaker('/archive/state', {}, { object_id: id, model_id: 1 }), { withBackground: false });
   }, [id, navigate]);
 
   const footer = (
     <React.Fragment>
       <Button onClick={openLogs} icon={<Icons.HistoryOutlined />}>
         Əməliyyat tarixçəsi
+      </Button>
+      <Button onClick={openStatusHistory} icon={<Icons.FieldTimeOutlined />}>
+        Status tarixçəsi
       </Button>
     </React.Fragment>
   );

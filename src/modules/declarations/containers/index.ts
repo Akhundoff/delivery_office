@@ -17,3 +17,4 @@ export { HandoverDeclarationModal } from './handover-declaration-modal';
 export { ReturnDeclarationModal } from './return-declaration-modal';
 export { ArchivedDeclarationsActionBar } from './archived-declarations-action-bar';
 export { ArchivedDeclarationsTable } from './archived-declarations-table';
+export { DeclarationTimeline } from './declaration-timeline';

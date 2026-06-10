@@ -159,6 +159,29 @@ export class CashRegisterOperationsService {
     }
 }
 
+const toTransactionDomain = (item: any): ICashFlowTransaction => {
+    const type: 'income' | 'expense' = item.operation === 1 ? 'income' : 'expense';
+    return {
+        id: item.id,
+        executor: { id: item.user_id, name: item.user_name },
+        cashRegister: { id: item.cashbox_id, name: item.cashbox_name, currency: { id: item.currency_id, code: item.currency_code } },
+        target: item.transfer && item.transfer_cashbox_id
+            ? { cashRegister: { id: item.transfer_cashbox_id, name: item.cashbox_name_transfer, currency: { id: item.transfer_cashbox_currency_id, code: item.transfer_cashbox_currency_code } }, amount: item.transfer_cashbox_amount }
+            : null,
+        amount: item.amount,
+        balance: { previous: item.before_balance },
+        transferBalance: { previous: item.transfer_before_balance },
+        status: { id: item.state_id, name: item.state_name },
+        operation: { id: item.cash_category_id_parent, name: item.category_name_parent, child: { id: item.cash_category_id, name: item.category_name } },
+        isTransfer: !!item.transfer,
+        type,
+        paymentType: { id: item.payment_type, name: item.payment_type_name },
+        description: item.descr,
+        operatedAt: item.operation_date,
+        createdAt: item.created_at,
+    };
+};
+
 export class CashFlowTransactionsService {
     public static async getList(query?: object): Promise<ApiResult<200, { data: ICashFlowTransaction[]; total: number }> | ApiResult<400 | 500, string>> {
         const url = urlMaker('/api/admin/cashbox_operations', { page: 1, per_page: 20, ...query });
@@ -166,29 +189,22 @@ export class CashFlowTransactionsService {
             const response = await caller(url);
             if (response.ok) {
                 const body = await response.json();
-                const data: ICashFlowTransaction[] = body.data.map((item: any) => {
-                    const type: 'income' | 'expense' = item.operation === 1 ? 'income' : 'expense';
-                    return {
-                        id: item.id,
-                        executor: { id: item.user_id, name: item.user_name },
-                        cashRegister: { id: item.cashbox_id, name: item.cashbox_name, currency: { id: item.currency_id, code: item.currency_code } },
-                        target: item.transfer && item.transfer_cashbox_id
-                            ? { cashRegister: { id: item.transfer_cashbox_id, name: item.cashbox_name_transfer, currency: { id: item.transfer_cashbox_currency_id, code: item.transfer_cashbox_currency_code } }, amount: item.transfer_cashbox_amount }
-                            : null,
-                        amount: item.amount,
-                        balance: { previous: item.before_balance },
-                        transferBalance: { previous: item.transfer_before_balance },
-                        status: { id: item.state_id, name: item.state_name },
-                        operation: { id: item.cash_category_id_parent, name: item.category_name_parent, child: { id: item.cash_category_id, name: item.category_name } },
-                        isTransfer: !!item.transfer,
-                        type,
-                        paymentType: { id: item.payment_type, name: item.payment_type_name },
-                        description: item.descr,
-                        operatedAt: item.operation_date,
-                        createdAt: item.created_at,
-                    };
-                });
+                const data: ICashFlowTransaction[] = body.data.map(toTransactionDomain);
                 return new ApiResult(200, { data, total: body.total }, null);
+            }
+            return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
+        } catch {
+            return new ApiResult(500, 'Şəbəkə ilə əlaqə qurula bilmədi', null);
+        }
+    }
+
+    public static async getById(id: string | number): Promise<ApiResult<200, ICashFlowTransaction> | ApiResult<400 | 500, string>> {
+        const url = urlMaker('/api/admin/cashbox_operations/info', { cashbox_operation_id: id });
+        try {
+            const response = await caller(url);
+            if (response.ok) {
+                const result = await response.json();
+                return new ApiResult(200, toTransactionDomain(result.data), null);
             }
             return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
         } catch {
@@ -237,11 +253,20 @@ export class CashFlowTransactionsService {
         }
     }
 
-    public static async remove(id: number): Promise<ApiResult<200, null> | ApiResult<400 | 500, string>> {
-        const url = urlMaker('/api/admin/cashbox_operations/remove', { cashbox_operation_id: id });
+    public static async remove(id: string | number): Promise<ApiResult<200, null> | ApiResult<400 | 500, string>> {
+        const url = urlMaker('/api/admin/cashbox_operations/cancel', { cashbox_operation_id: id });
         try {
             const response = await caller(url, { method: 'POST' });
             if (response.ok) return new ApiResult(200, null, null);
+            try {
+                const errBody = await response.json();
+                if (errBody.errors) {
+                    const msgs = Object.values(errBody.errors).flat().join('. ');
+                    return new ApiResult(400, msgs, null);
+                }
+            } catch {
+                // ignore parse error
+            }
             return new ApiResult(400, 'Əməliyyat uğursuz oldu', null);
         } catch {
             return new ApiResult(500, 'Şəbəkə ilə əlaqə qurula bilmədi', null);

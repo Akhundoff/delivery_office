@@ -8,3 +8,4 @@ export { CashFlowTransactionsActionBar } from './cash-flow-transactions-action-b
 export { CreateCashRegister } from './create-cash-register';
 export { CreateCashRegisterOperation } from './create-cash-register-operation';
 export { CreateCashFlowTransaction } from './create-cash-flow-transaction';
+export { CashFlowTransactionDetail } from './cash-flow-transaction-detail';

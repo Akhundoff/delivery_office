@@ -1,0 +1,187 @@
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0' />
+    <meta http-equiv='X-UA-Compatible' content='ie=edge' />
+    <title>Waybill</title>
+    <style>
+      body { margin: 0; padding: 0; font-size: 15px; font-family: 'Tahoma', serif; } @page { size: A4; } .barcode-area { display: flex; align-items: flex-start; } .barcode-wrapper { display: flex;
+      align-items: center; justify-content: center; flex-direction: column; } .reg-number { position: absolute; top: 8px; right: 12px; } .barcode-value { transform: translateY(-6px); margin-bottom:
+      -8px; } .page { width: 210mm; box-sizing: border-box; padding: 24px; overflow: hidden; margin: 0; } @media print { .page { clear: both; } .page:nth-child(odd) { page-break-before: always; } }
+      table { border-collapse: collapse; width: 100%; } table, tr, td, th { border: 1px solid black; } td, th { padding: 6px; } th { text-align: left; } td { text-align: center; }
+    </style>
+  </head>
+  <body>
+    {{#each declarations}}
+      <div class='page'>
+        <table>
+          <thead>
+            <tr>
+              <th colspan='2'>WAYBILL</th>
+              <td colspan='4' style='position: relative'>
+                <div class='barcode-area'>
+                  <div class='barcode-wrapper'>
+                    <svg class='barcode' id='barcode-{{trackCode}}'></svg>
+                    <span class='barcode-value'>{{trackCode}}</span>
+                  </div>
+                </div>
+                <span class='reg-number'>{{regNumber}}</span>
+              </td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th colspan='5'>
+                1. Shipper
+              </th>
+            </tr>
+            <tr>
+              <th>
+                Name:
+              </th>
+              <td colspan='4'>
+                {{countryData.carrierCompanyName}}
+              </td>
+            </tr>
+            <tr>
+              <th>
+                Adress:
+              </th>
+              <td colspan='4'>
+                {{countryData.carrierCompanyAddress}}
+              </td>
+            </tr>
+            <tr>
+              <th>
+                Type of goods:
+              </th>
+              <td colspan='4'>
+                {{productType.name}}
+              </td>
+            </tr>
+            <tr>
+              <th>
+                Store:
+              </th>
+              <td colspan='4'>
+                {{shop}}
+              </td>
+            </tr>
+
+            <tr>
+              <th colspan='5'>
+                2. Consignee
+              </th>
+            </tr>
+            <tr>
+              <th>
+                Country:
+              </th>
+              <td colspan='4'>
+                Azerbaijan
+              </td>
+            </tr>
+            <tr>
+              <th>
+                Name:
+              </th>
+              <td colspan='4'>
+                {{user.fullName}}
+              </td>
+            </tr>
+            <tr>
+              <th>
+                Personal ID:
+              </th>
+              <td colspan='4'>
+                {{user.id}}
+              </td>
+            </tr>
+            <tr>
+              <th>
+                Address:
+              </th>
+              <td colspan='4'>
+                {{user.address}}
+              </td>
+            </tr>
+            <tr>
+              <th>
+                Phone:
+              </th>
+              <td colspan='4'>
+                {{user.phoneNumber}}
+              </td>
+            </tr>
+
+            <tr>
+              <th colspan='5'>
+                3. Shipment details
+              </th>
+            </tr>
+            <tr>
+              <td>
+                Quantity
+              </td>
+              <td>
+                Weight (kg)
+              </td>
+              <td>
+                Product price
+              </td>
+              <td>
+                Shipping charge
+              </td>
+              <td>
+                Total
+              </td>
+            </tr>
+            <tr>
+              <td>
+                {{quantity}}
+              </td>
+              <td>
+                {{weight}}
+              </td>
+              <td style='padding: 0'>
+                <table style='margin: -1px;width: calc(100% + 2px)'>
+                  <tbody>
+                    <tr>
+                      <td>
+                        {{#if oneCol}}
+                          ({{productPrice.usd}}) USD
+                        {{else}}
+                          ({{price}})
+                          {{currency}}
+                          | ({{productPrice.usd}}) USD
+                        {{/if}}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
+              <td>
+                {{deliveryPrice}}
+                USD
+              </td>
+              <td>
+                {{totalPrice}}
+                USD
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    {{/each}}
+
+    <script src='https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js'></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', (event) => {
+      {{#each declarations}}
+        JsBarcode('#barcode-{{trackCode}}', '{{trackCode}}', { height: 60, width: 2, displayValue: false });
+      {{/each}}
+      }); (function () { setTimeout(function () { window.print(); }, 500); var afterPrint = function () { var delay = 500; setTimeout(function () { window.close(); }, delay); }; if (window.matchMedia)
+      { var mediaQueryList = window.matchMedia('print'); mediaQueryList.addListener(function (mql) { if (!mql.matches) { afterPrint(); } }); } window.onafterprint = afterPrint; })();
+    </script>
+  </body>
+</html>

@@ -11,15 +11,27 @@ import { filterOption } from '@shared/modules/antd/helpers/filter-option';
 import { useBackgroundNavigate } from '@shared/hooks';
 
 import { useBranches } from '@modules/branches';
+import { useParcels } from '@modules/parcels';
 import { IDeclaration } from '../../interfaces';
 import { declarationQueryKeys } from '../../utils';
 import { DeclarationsService } from '../../services';
 import { DeclarationsTableContext } from '../../context';
+import { useDeclarationStatusChange } from './use-declaration-status-change';
+
+// Quick row-level status options (model-2 declaration states).
+const ROW_STATUS_OPTIONS = [
+    { id: 9, name: 'Yerli anbarda' },
+    { id: 88, name: 'Gömrükdə saxlanılıb' },
+    { id: 36, name: 'Gömrük rəsmiləşdirilməsi' },
+    { id: 160, name: 'Gömrük baxışı' },
+];
 
 export const useDeclarationsTableColumns = (): Column<IDeclaration>[] => {
     const { handleFetch } = useContext(DeclarationsTableContext);
     const navigate = useBackgroundNavigate();
     const branches = useBranches();
+    const parcels = useParcels();
+    const { updateStatus } = useDeclarationStatusChange();
 
     const actionsColumn = useMemo<Column<IDeclaration>>(
         () => ({
@@ -37,6 +49,16 @@ export const useDeclarationsTableColumns = (): Column<IDeclaration>[] => {
                         label: 'Düzəliş et',
                         icon: <Icons.EditOutlined />,
                         onClick: () => navigate(`/declarations/${original.id}/update`, { withBackground: true }),
+                    },
+                    {
+                        key: 'status',
+                        label: 'Status dəyiş',
+                        icon: <Icons.AppstoreOutlined />,
+                        children: ROW_STATUS_OPTIONS.map((status) => ({
+                            key: `status-${status.id}`,
+                            label: status.name,
+                            onClick: () => updateStatus([original.id], status.id),
+                        })),
                     },
                     { type: 'divider' },
                     {
@@ -73,7 +95,7 @@ export const useDeclarationsTableColumns = (): Column<IDeclaration>[] => {
                 );
             },
         }),
-        [navigate, handleFetch],
+        [navigate, handleFetch, updateStatus],
     );
 
     const baseColumns = useMemo<Column<IDeclaration>[]>(
@@ -208,13 +230,29 @@ export const useDeclarationsTableColumns = (): Column<IDeclaration>[] => {
                 ),
             },
             {
+                ...nextTableColumns.small,
+                accessor: (row) => row.parcel?.id,
+                id: declarationQueryKeys.parcelId,
+                Header: 'Koli',
+                Cell: OverCell,
+                Filter: ({ column: { filterValue, setFilter } }: any) => (
+                    <Select showSearch={true} filterOption={filterOption} allowClear={true} style={{ width: '100%' }} onChange={setFilter} value={filterValue}>
+                        {parcels.data?.map((parcel) => (
+                            <Select.Option key={parcel.id} value={parcel.id.toString()}>
+                                {parcel.name}
+                            </Select.Option>
+                        ))}
+                    </Select>
+                ),
+            },
+            {
                 ...nextTableColumns.date,
                 accessor: (row) => row.createdAt,
                 id: declarationQueryKeys.createdAt,
                 Header: 'Yaradılma tarixi',
             },
         ],
-        [branches.data],
+        [branches.data, parcels.data],
     );
 
     return useMemo(() => [actionsColumn, ...baseColumns], [actionsColumn, baseColumns]);

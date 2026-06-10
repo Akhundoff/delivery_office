@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { Dropdown, MenuProps, Space, message } from 'antd';
+import { Dropdown, MenuProps, Modal, Select, Space, message } from 'antd';
 import * as Icons from '@ant-design/icons';
 import { useQuery } from 'react-query';
 import { HeadPortal } from '@modules/layout/components/head-portal';
@@ -12,12 +12,26 @@ import { SupportsService } from '../services';
 
 export const SupportsActionBar = () => {
   const navigate = useBackgroundNavigate();
-  const { state, handleFetch, handleReset, handleSelectAll, handleResetSelection } = useContext(SupportsTableContext);
+  const { state, handleFetch, handleReset, handleSelectAll, handleResetSelection, handleChangeFilterById } = useContext(SupportsTableContext);
   const selectionCount = Object.keys(state.selectedRowIds).length;
   const selectedIds = Object.keys(state.selectedRowIds).map(Number);
 
   const { data: statusesResult } = useQuery(['statuses-for-supports-bar', 9], () => StatusesService.getList({ per_page: 500, model_id: 9 }));
   const statuses = statusesResult?.status === 200 ? statusesResult.data.data : [];
+
+  const remove = () =>
+    Modal.confirm({
+      title: 'Diqqət',
+      content: 'Müraciətləri silməyə əminsinizmi?',
+      okType: 'danger',
+      okText: 'Sil',
+      cancelText: 'Ləğv et',
+      onOk: async () => {
+        const result = await SupportsService.cancel(selectedIds);
+        if (result.status === 200) { message.success('Müraciətlər silindi.'); handleFetch(); handleResetSelection(); }
+        else message.error(result.data as string);
+      },
+    });
 
   const statusItems: MenuProps['items'] = statuses.map((s) => ({
     key: `bulk-status-${s.id}`,
@@ -59,10 +73,25 @@ export const SupportsActionBar = () => {
         </Space>
         <Space>
           {!!selectionCount && (
-            <Dropdown menu={{ items: statusItems }} trigger={['click']}>
-              <StyledHeaderButton type='text' icon={<Icons.AppstoreOutlined />}>Statusu dəyiş</StyledHeaderButton>
-            </Dropdown>
+            <>
+              <Dropdown menu={{ items: statusItems }} trigger={['click']}>
+                <StyledHeaderButton type='text' icon={<Icons.AppstoreOutlined />}>Statusu dəyiş</StyledHeaderButton>
+              </Dropdown>
+              <StyledHeaderButton type='text' danger onClick={remove} icon={<Icons.DeleteOutlined />}>
+                Sil
+              </StyledHeaderButton>
+            </>
           )}
+          <Select
+            placeholder='Oxunmaya görə filterlə'
+            style={{ width: 188 }}
+            value={state.filters.find((filter) => filter.id === 'is_new_admin')?.value}
+            onChange={(value) => handleChangeFilterById('is_new_admin', value)}
+            allowClear={true}
+          >
+            <Select.Option value='0'>Oxunmuş</Select.Option>
+            <Select.Option value='1'>Oxunmamış</Select.Option>
+          </Select>
         </Space>
       </StyledActionBar>
     </HeadPortal>

@@ -1,15 +1,17 @@
-import React, { useCallback, useContext } from 'react';
+import React, { useCallback, useContext, useMemo } from 'react';
 import { Dropdown, MenuProps, Space, message } from 'antd';
 import * as Icons from '@ant-design/icons';
 import { useQuery } from 'react-query';
+import { CSVLink } from 'react-csv';
 import { HeadPortal } from '@modules/layout/components/head-portal';
 import { StyledHeaderButton } from '@modules/layout/styled';
 import { StyledActionBar } from '@shared/styled/action-bar';
-import { useBackgroundNavigate } from '@shared/hooks';
+import { useBackgroundNavigate, useMassiveExport } from '@shared/hooks';
+import { tableFilterQueryMaker } from '@shared/modules/next-table/utils';
 import { StatusesService } from '@modules/statuses/services';
 import { OrdersTableContext } from '../context';
 import { OrdersService } from '../services';
-import { REJECTED_STATUS_ID } from '../constants';
+import { REJECTED_STATUS_ID, CurrencySymbols } from '../constants';
 
 export const OrdersActionBar = () => {
   const { state, handleFetch, handleReset, handleSelectAll, handleResetSelection } = useContext(OrdersTableContext);
@@ -20,9 +22,30 @@ export const OrdersActionBar = () => {
   const { data: statusesResult } = useQuery(['statuses-for-orders-bar', 1], () => StatusesService.getList({ per_page: 500, model_id: 1 }));
   const statuses = statusesResult?.status === 200 ? statusesResult.data.data : [];
 
+  const { handleExport, exportedData } = useMassiveExport(OrdersService.getList);
+
+  const selectedItems = useMemo(() => state.data.filter((item) => selectedIds.includes(Number(item.id))), [selectedIds, state.data]);
+
+  const totalPrice = useMemo(
+    () =>
+      selectedItems.reduce(
+        (acc: number, item: any) => acc + item.product.price * item.product.quantity + item.product.internalShippingPrice + item.debts.internalShippingPrice,
+        0,
+      ),
+    [selectedItems],
+  );
+
   const openCreate = useCallback(() => {
     navigate('/orders/create', { withBackground: true });
   }, [navigate]);
+
+  const openCountsByStatus = useCallback(() => {
+    navigate('/statistics/status/order-counts', { withBackground: true });
+  }, [navigate]);
+
+  const handleMassiveExport = useCallback(() => {
+    handleExport(tableFilterQueryMaker(state.filters));
+  }, [handleExport, state.filters]);
 
   const statusItems: MenuProps['items'] = statuses.map((s) => ({
     key: `bulk-status-${s.id}`,
@@ -40,9 +63,7 @@ export const OrdersActionBar = () => {
 
   const exportAsExcel = useCallback(async () => {
     message.loading({ key: 'orders-export', content: 'Sənəd hazırlanır...', duration: 0 });
-    const query: Record<string, any> = {};
-    state.filters.forEach((f: any) => { query[f.id] = f.value; });
-    const result = await OrdersService.getExcel(query);
+    const result = await OrdersService.getExcel(tableFilterQueryMaker(state.filters));
     if (result.status === 200) {
       message.success({ key: 'orders-export', content: 'Sənəd yüklənir.' });
       const a = document.createElement('a');
@@ -65,7 +86,9 @@ export const OrdersActionBar = () => {
           ) : (
             <StyledActionBar.Selection>
               <Icons.CloseCircleTwoTone twoToneColor='#ff4d4f' onClick={handleResetSelection} style={{ cursor: 'pointer', fontSize: 16 }} role='icon' />
-              <span>{selectionCount} seçilib</span>
+              <span>
+                {selectionCount} seçilib ({totalPrice.toFixed(2)} {CurrencySymbols.TRY})
+              </span>
             </StyledActionBar.Selection>
           )}
           <StyledHeaderButton type='text' onClick={handleFetch} icon={<Icons.ReloadOutlined />}>
@@ -81,6 +104,20 @@ export const OrdersActionBar = () => {
             <Dropdown menu={{ items: statusItems }} trigger={['click']}>
               <StyledHeaderButton type='text' icon={<Icons.AppstoreOutlined />}>Statusu dəyiş</StyledHeaderButton>
             </Dropdown>
+          )}
+          <StyledHeaderButton type='text' onClick={openCountsByStatus} icon={<Icons.BarChartOutlined />}>
+            Statuslar üzrə say
+          </StyledHeaderButton>
+          {exportedData.length ? (
+            <StyledHeaderButton type='text' icon={<Icons.FileExcelOutlined />}>
+              <CSVLink style={{ marginLeft: 8 }} filename={`orders_list_${Math.round(Math.random() * 1000)}.csv`} data={exportedData as any[]}>
+                Yüklə
+              </CSVLink>
+            </StyledHeaderButton>
+          ) : (
+            <StyledHeaderButton type='text' onClick={handleMassiveExport} icon={<Icons.FileExcelOutlined />}>
+              CSV export
+            </StyledHeaderButton>
           )}
           <StyledHeaderButton type='text' onClick={exportAsExcel} icon={<Icons.FileExcelOutlined />}>
             Excel export

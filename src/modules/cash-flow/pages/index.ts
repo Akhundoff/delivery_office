@@ -4,3 +4,4 @@ export { CashRegistersPage } from './cash-registers';
 export { CashRegisterOperationsPage } from './cash-register-operations';
 export { CashFlowTransactionsPage } from './cash-flow-transactions';
 export { CashFlowAnalyticsPage } from './cash-flow-analytics';
+export { CashFlowTransactionDetailsPage } from './cash-flow-transaction-detail';

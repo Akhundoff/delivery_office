@@ -1,5 +1,15 @@
 import { ApiResult, caller, urlMaker } from "@shared/utils";
-import { IBranchListItem, IBranchFormValues } from "../interfaces";
+import { IBranchListItem, IBranchFormValues, IFlyexLocation } from "../interfaces";
+
+const flyexLocationToDomain = (item: any): IFlyexLocation => ({
+  id: item.id,
+  name: item.name,
+  address: item.address || "",
+  lat: item.lat,
+  lng: item.lng,
+  mapUrl: item.map_url || "",
+  scheduleDescription: item.schedule_description || "",
+});
 
 const toDomain = (item: any): IBranchListItem => ({
   id: item.id,
@@ -123,6 +133,33 @@ export const BranchesService = {
       const response = await caller(url, { method: "POST" });
       if (response.ok) return new ApiResult(200, null, null);
       return new ApiResult(400, "Silinmə zamanı xəta baş verdi.", null);
+    } catch {
+      return new ApiResult(400, "Şəbəkə xətası.", null);
+    }
+  },
+
+  getFlyexLocations: async (): Promise<ApiResult<200, IFlyexLocation[]> | ApiResult<400, string>> => {
+    const url = urlMaker("/api/admin/flyex/locations");
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, (result.data || []).map(flyexLocationToDomain), null);
+      }
+      return new ApiResult(400, "Məlumatlar əldə edilə bilmədi", null);
+    } catch {
+      return new ApiResult(400, "Şəbəkə xətası.", null);
+    }
+  },
+
+  createBranchesFromLocations: async (locationIds: (string | number)[]): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
+    const url = urlMaker("/api/admin/flyex/create-from-locations", { location_ids: locationIds });
+    try {
+      const response = await caller(url, { method: "POST" });
+      if (response.ok) return new ApiResult(200, null, null);
+      const result = await response.json();
+      if (response.status === 400) return new ApiResult(400, Object.values(result.errors || {}).flat().join(". "), null);
+      return new ApiResult(400, "Filial yaradılmadı", null);
     } catch {
       return new ApiResult(400, "Şəbəkə xətası.", null);
     }

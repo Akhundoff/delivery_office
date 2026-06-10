@@ -1,5 +1,5 @@
 import { ApiResult, caller, urlMaker } from '@shared/utils';
-import { IDnsQueue, ICustomsDeclaration, ICustomsDeclarationPersistence, ICustomsPost, ICustomsPostPersistence, ICustomsTask, ICustomsTaskPersistence } from '../interfaces';
+import { IDnsQueue, ICustomsDeclaration, ICustomsDeclarationPersistence, ICustomsPost, ICustomsPostPersistence, ICustomsStatus, ICustomsTask, ICustomsTaskPersistence } from '../interfaces';
 
 type ListResponse = { data: IDnsQueue[]; total: number };
 
@@ -148,6 +148,22 @@ export const DnsQueuesService = {
       return new ApiResult(400, 'Xəta baş verdi.', null);
     } catch {
       return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+};
+
+export const CustomsService = {
+  getStatus: async (): Promise<ApiResult<200, ICustomsStatus>> => {
+    const url = urlMaker('/api/admin/customs/ping');
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, { status: result.data ? 'success' : 'error' }, null);
+      }
+      return new ApiResult(200, { status: 'warning' }, null);
+    } catch {
+      return new ApiResult(200, { status: 'warning' }, null);
     }
   },
 };

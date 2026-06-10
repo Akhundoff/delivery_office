@@ -1,0 +1,156 @@
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0' />
+    <meta http-equiv='X-UA-Compatible' content='ie=edge' />
+    <title>Proforma invoice</title>
+    <style>
+      body { padding: 0; margin: 0; font-size: 13px; font-family: Courier, monospace; } .container { width: 210mm; height: 297mm; } .page-title { text-transform: uppercase; text-align: center; }
+      .layout-table { width: 100%; } .layout-table .borderless-cell-top-right { border-top-color: transparent; border-right-color: transparent; } .layout-table, .layout-table tr, .layout-table td,
+      .layout-table th { border: 3px solid black; border-collapse: collapse; padding: 6px; } .layout-table td { vertical-align: top; } .serial-date-box h3 { margin: 0; } .info-box p { text-transform:
+      uppercase; margin: 6px 0; letter-spacing: -0.4px; } .info-box h3 { margin: 0; } .info-title { text-transform: uppercase; } .serial-date-box { text-align: center; } .declarations-table {
+      margin-top: 32px; width: 100%; } .declarations-table, .declarations-table tr, .declarations-table td, .declarations-table th { border: 1px solid black; border-collapse: collapse; padding: 6px;
+      font-size: 12px; text-align: center; } .declarations-table th { text-transform: uppercase; } .declarations-table .hide-empty-cell td:empty { visibility: hidden; } .declarations-table .small-cell
+      { max-width: 112px; } .about-box { margin-top: 48px; } .bs-large { margin-bottom: 72px; } .bs-none { margin-bottom: 0; } .bt-none { margin-top: 0; }
+    </style>
+  </head>
+  <body>
+    <div class='container'>
+      <h2 class='page-title'>
+        Proforma invoice
+      </h2>
+      <table class='layout-table'>
+        <tbody>
+          <tr>
+            <td>
+              <div class='info-box'>
+                <h3 class='info-title'>Sender's</h3>
+                <p>Company name: <b>{{@root.shipper.name}}</b></p>
+                <p>Address: <b>{{@root.shipper.address}}</b></p>
+                <p>Phone: <b>{{@root.shipper.phoneNumber}}</b></p>
+                <p>City & postal code: <b>{{@root.shipper.city}} {{@root.shipper.postal.code}}</b></p>
+                <p>Country: <b>{{@root.shipper.country}}</b></p>
+              </div>
+            </td>
+            <td class='borderless-cell-top-right va-top'>
+              <div class='serial-date-box'>
+                <h3>
+                  NO:
+                </h3>
+                <h4>
+                  Date: 10-10-2011
+                </h4>
+              </div>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <div class='info-box'>
+                <h3 class='info-title'>Receiver's</h3>
+                <p>Company name: <b>{{user.fullName}}</b></p>
+                <p>Address: <b>{{user.address}}</b></p>
+                <p>City & postal code: <b>{{user.city}}</b></p>
+                <p>Country: <b>{{user.country}}</b></p>
+                <p>Contact name: <b>{{user.fullName}}</b></p>
+              </div>
+            </td>
+            <td>
+              <div class='info-box'>
+                <h3 class='info-title'>Receiver's</h3>
+                <p>Phone: <b>{{user.phoneNumber}}</b></p>
+                <p>Fax/Telex: <b>{{user.phoneNumber}}</b></p>
+                <p>Number of pieces: <b>{{totalQuantity}}</b></p>
+                <p>Total gross weight: <b>{{totalWeight}}</b></p>
+                <p>Total net weight: <b>{{totalWeight}}</b></p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <table class='declarations-table'>
+        <thead>
+          <tr>
+            <th>
+              Full description of goods
+            </th>
+            <th>
+              Customs commodity code
+            </th>
+            <th>
+              Country
+            </th>
+            <th>
+              QIY
+            </th>
+            <th class='small-cell'>
+              Unit value and currency
+            </th>
+            <th class='small-cell'>
+              Subtotal value and currency
+            </th>
+          </tr>
+        </thead>
+        {{#each items}}
+          <tr>
+            <td>
+              {{productType.name}}
+            </td>
+            <td>
+              {{trackCode}}
+            </td>
+            <td>
+              {{country}}
+            </td>
+            <td>
+              {{quantity}}
+            </td>
+            <td>
+              {{unitPrice}}
+              TRY
+            </td>
+            <td>
+              {{price}}
+              TRY
+            </td>
+          </tr>
+        {{/each}}
+        <tr class='hide-empty-cell'>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td>Total value</td>
+          <td>{{totalPrice}} TRY</td>
+        </tr>
+      </table>
+
+      <div class='about-box'>
+        <p class='bs-large'><b>ONLY SAMPLE, NOT FOR SALE OR RESALE.</b></p>
+        <p><b>NO COMMERCIAL VALUE , VALUE FOR CUSTOMS PURPOSES ONLY</b></p>
+        <p><b>REASON FOR SENDING:</b></p>
+        <p class='bs-none'><b>COUNTRY OF ORIGIN:</b></p>
+        <p class='bt-none'><b>TERMS OF DELIVERY:</b></p>
+        <p class='bs-none'><b>The exporter of product covered py this document (customs autorization No:..)</b></p>
+        <p class='bt-none'><b>declares that, except where otherwise clearly indicated, these products are of TURKEY preferential origin.</b></p>
+        <table style='width: 100%; margin: -3px; text-align: left'>
+          <tbody>
+            <tr>
+              <th style='width: 50%'>
+                Name:
+              </th>
+              <th style='width: 50%; text-align: right; padding-right: 124px'>
+                Stamp of Company
+              </th>
+            </tr>
+          </tbody>
+        </table>
+        <p class='bs-large'><b>Signature</b></p>
+        <p><b>Place and Date: 06-06-2020</b></p>
+      </div>
+    </div>
+    <script>
+      (function () { setTimeout(function () { window.print(); }, 500); var afterPrint = function () { var delay = 500; setTimeout(function () { window.close(); }, delay); }; if (window.matchMedia) {
+      var mediaQueryList = window.matchMedia('print'); mediaQueryList.addListener(function (mql) { if (!mql.matches) { afterPrint(); } }); } window.onafterprint = afterPrint; })();
+    </script>
+  </body>
+</html>

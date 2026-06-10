@@ -31,3 +31,26 @@ export const TransactionsByPaymentTypeDetailsModal: FC = () => {
         </Modal>
     );
 };
+
+export const TransactionsByUserDetailsModal: FC = () => {
+    const [close] = useCloseModal();
+    const { startDate, endDate, currency } = (useLocation().state || {}) as any;
+
+    const onFetch = useMemo(
+        () =>
+            makeDetailFetchUseCase(
+                '/api/admin/statistics/by_balance_count',
+                { start_date: startDate, end_date: endDate, ...(currency ? { currency } : {}) },
+                transactionRowToDomain,
+            ),
+        [startDate, endDate, currency],
+    );
+
+    return (
+        <Modal open onCancel={() => close('/statistics/transactions/by-user')} footer={null} width='100%' closable={false}>
+            <NextTableProvider context={TransactionsTableContext} onFetch={onFetch} name='stat-transactions-by-user-details' useCache={false}>
+                <TransactionsDetailTable />
+            </NextTableProvider>
+        </Modal>
+    );
+};

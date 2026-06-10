@@ -1,3 +1,13 @@
+export type IFlyexLocation = {
+  id: number;
+  name: string;
+  address: string;
+  lat: string;
+  lng: string;
+  mapUrl: string;
+  scheduleDescription: string;
+};
+
 export type IBranchListItem = {
   id: number;
   name: string;

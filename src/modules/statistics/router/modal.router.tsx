@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { OrdersByAdminDetailsModal, OrdersByStatusDetailsModal } from '../containers/orders-details-modal';
 import { CouriersCountDetailsModal, CouriersByRegionsDetailsModal } from '../containers/couriers-details-modal';
-import { TransactionsByPaymentTypeDetailsModal } from '../containers/transactions-details-modal';
+import { TransactionsByPaymentTypeDetailsModal, TransactionsByUserDetailsModal } from '../containers/transactions-details-modal';
 import { DeclarationsByStatusDetailsModal, PaymentTypesByDeclarationsDetailsModal } from '../containers/declarations-details-modal';
 import { UsersCountDetailsModal } from '../containers/users-details-modal';
 import { CashFlowDetailsModal } from '../containers/cashflow-details-modal';
@@ -24,6 +24,7 @@ const StatisticsModalRouter: FC = () => (
         <Route path='couriers/counts/details' element={<CouriersCountDetailsModal />} />
         <Route path='couriers/counts/by-regions/details' element={<CouriersByRegionsDetailsModal />} />
         <Route path='couriers/counts/by-regions/overview' element={<CouriersByRegionsOverviewModal />} />
+        <Route path='transactions/by-user/details' element={<TransactionsByUserDetailsModal />} />
         <Route path='transactions/payment-counts/by-payment-types/details' element={<TransactionsByPaymentTypeDetailsModal />} />
         <Route path='transactions/payment-types/by-declarations/details' element={<PaymentTypesByDeclarationsDetailsModal />} />
         <Route path='transactions/balances' element={<TransactionBalancesModal />} />

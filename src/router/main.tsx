@@ -82,6 +82,7 @@ const PopupsModalRouter = lazy(() => import('../modules/popups/router/modal.rout
 const LogsModalRouter = lazy(() => import('../modules/logs/router/modal.router'));
 const CustomsModalRouter = lazy(() => import('../modules/customs/router/modal.router'));
 const UnitedQueuesModalRouter = lazy(() => import('../modules/united-queues/router/modal.router'));
+const AzerpostQueuesModalRouter = lazy(() => import('../modules/azerpost-queues/router/modal.router'));
 const FailedJobsModalRouter = lazy(() => import('../modules/failed-jobs/router/modal.router'));
 const PartnerBoxesModalRouter = lazy(() => import('../modules/partner-boxes/router/modal.router'));
 const CouponsModalRouter = lazy(() => import('../modules/coupons/router/modal.router'));
@@ -195,6 +196,7 @@ export const MainRouter: FC = () => {
                     <Route path='/logs/*' element={<LogsModalRouter />} />
                     <Route path='/customs/*' element={<CustomsModalRouter />} />
                     <Route path='/united-queues/*' element={<UnitedQueuesModalRouter />} />
+                    <Route path='/azerpost-queues/*' element={<AzerpostQueuesModalRouter />} />
                     <Route path='/failed-jobs/*' element={<FailedJobsModalRouter />} />
                     <Route path='/partner-boxes/*' element={<PartnerBoxesModalRouter />} />
                     <Route path='/coupons/*' element={<CouponsModalRouter />} />

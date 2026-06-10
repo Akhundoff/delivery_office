@@ -7,6 +7,7 @@ import { NextTableCheckboxFilter } from '@shared/modules/next-table/components/f
 import { OverCell, TagCell } from '@shared/components/cells';
 import { StopPropagation } from '@shared/components/stop-propagation';
 import { useBackgroundNavigate } from '@shared/hooks';
+import { usePartners } from '@modules/partners';
 import { IPartnerDeclaration } from '../../interfaces';
 import { DeclarationsService } from '../../services';
 import { PartnerDeclarationsTableContext } from '../../context';
@@ -14,6 +15,7 @@ import { PartnerDeclarationsTableContext } from '../../context';
 export const usePartnerDeclarationsTableColumns = (): Column<IPartnerDeclaration>[] => {
   const { handleFetch } = useContext(PartnerDeclarationsTableContext);
   const navigate = useBackgroundNavigate();
+  const partners = usePartners();
 
   const actionsColumn = useMemo<Column<IPartnerDeclaration>>(
     () => ({
@@ -86,9 +88,18 @@ export const usePartnerDeclarationsTableColumns = (): Column<IPartnerDeclaration
       },
       {
         accessor: (row) => row.partner.name,
-        id: 'partner_name',
+        id: 'partner_id',
         Header: 'Partnyor',
         Cell: OverCell,
+        Filter: ({ column: { filterValue, setFilter } }: any) => (
+          <Select allowClear={true} style={{ width: '100%' }} onChange={setFilter} value={filterValue}>
+            {partners.data?.map((partner) => (
+              <Select.Option key={partner.id} value={partner.id}>
+                {partner.name}
+              </Select.Option>
+            ))}
+          </Select>
+        ),
       },
       {
         ...nextTableColumns.smaller,
@@ -212,7 +223,7 @@ export const usePartnerDeclarationsTableColumns = (): Column<IPartnerDeclaration
         Header: 'Yaradılma tarixi',
       },
     ],
-    [],
+    [partners.data],
   );
 
   return useMemo(() => [actionsColumn, ...baseColumns], [actionsColumn, baseColumns]);

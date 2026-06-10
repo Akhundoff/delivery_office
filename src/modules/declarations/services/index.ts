@@ -1,6 +1,67 @@
 import { ApiResult, caller, urlMaker } from "@shared/utils";
-import { IDeclaration, IDeclarationPersistence, IDeclarationFormValues, IDeclarationPost, IDeclarationPostPersistence, IUnknownDeclaration, IUnknownDeclarationPersistence, IPartnerDeclaration, IPartnerDeclarationPersistence } from "../interfaces";
+import { IDeclaration, IDeclarationPersistence, IDeclarationFormValues, IDeclarationPost, IDeclarationPostPersistence, IUnknownDeclaration, IUnknownDeclarationPersistence, IPartnerDeclaration, IPartnerDeclarationPersistence, IWaybill, IWaybillPersistence, IProformaInvoice, IProformaInvoicePersistence, IStatusMapItem, IStatusMapItemPersistence, IDeclarationCustomsStatus, IDeclarationCustomsStatusPersistence, IParcelStates, IParcelStatesPersistence } from "../interfaces";
 import { DeclarationMapper } from "../mappers";
+
+const round2 = (value: number) => Math.round(value * 100) / 100;
+
+const waybillToDomain = (w: IWaybillPersistence): IWaybill => ({
+  id: w.declaration_id,
+  trackCode: w.track_code,
+  currency: w.currency,
+  price: w.price,
+  barcode: w.barcode,
+  provider: w.provider,
+  countryData: {
+    carrierCompanyAddress: w.country_data.carrier_company_address,
+    carrierCompanyName: w.country_data.carrier_company_name,
+    countryCode: w.country_data.country_code,
+    currencyType: w.country_data.currency_type,
+    id: w.country_data.id,
+  },
+  weight: w.weight,
+  quantity: w.quantity,
+  regNumber: w.RegNumber,
+  shop: w.shop_name || '',
+  productPrice: { try: round2(parseFloat(w.product_price_try)), usd: round2(parseFloat(w.product_price_usd)) },
+  deliveryPrice: round2(parseFloat(w.delivery_price)),
+  totalPrice: round2(w.total_price),
+  productType: { name: w.product_type_name },
+  user: { id: w.user_id, fullName: w.user_name, phoneNumber: w.number, address: w.user_address, passportNumber: w.passport_number },
+  currencyRate: round2(parseFloat(w.currency_rate)),
+  printedAt: w.print_date,
+});
+
+const proformaInvoiceToDomain = (p: IProformaInvoicePersistence): IProformaInvoice => ({
+  user: {
+    id: p.user.id,
+    fullName: p.user.user_name,
+    phoneNumber: p.user.number,
+    country: p.user.country,
+    city: p.user.city,
+    address: p.user.address,
+  },
+  items: p.declarations.map((d) => ({
+    trackCode: d.track_code,
+    quantity: d.quantity,
+    weight: parseFloat(d.weight),
+    price: parseFloat(d.price),
+    unitPrice: parseFloat(d.unit_price),
+    country: d.country,
+    productType: { name: d.product_type_name },
+  })),
+  totalPrice: p.price,
+  totalQuantity: p.total_quantity,
+  totalWeight: p.weight,
+  createdAt: p.date,
+});
+
+const statusMapToDomain = (s: IStatusMapItemPersistence): IStatusMapItem => ({
+  id: s.id,
+  descr: s.descr,
+  createdAt: s.created_at,
+  state: { id: s.state_id, name: s.state_name },
+  user: { id: s.user_id, name: s.user_name },
+});
 
 export type IHandoverDetails = {
   user: { id: number; name: string };
@@ -122,6 +183,24 @@ export const DeclarationsService = {
       return new ApiResult(400, "Məlumatlar əldə edilə bilmədi", null);
     } catch {
       return new ApiResult(500, "Şəbəkə xətası.", null);
+    }
+  },
+
+  getDeclarationByTrackCode: async (
+    params: { trackCode: string; trendyol?: boolean },
+  ): Promise<ApiResult<200, IDeclaration> | ApiResult<400 | 500, string>> => {
+    const url = urlMaker("/api/admin/declaration/info_by_track_code", { track_code: params.trackCode, trendyol: params.trendyol ? "1" : undefined });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, DeclarationMapper.toDomain(result.data as IDeclarationPersistence), null);
+      }
+      const result = await response.json();
+      const trackCodeError = result?.errors?.track_code;
+      return new ApiResult(400, trackCodeError ? Object.values(result.errors).flat().join(", ") : "Məlumatlar əldə edilə bilmədi", null);
+    } catch {
+      return new ApiResult(500, "Şəbəkə ilə əlaqə qurula bilmədi.", null);
     }
   },
 
@@ -367,6 +446,104 @@ export const DeclarationsService = {
     }
   },
 
+  getCustomsStatus: async (params: { trackCode: string }): Promise<ApiResult<200, IDeclarationCustomsStatus> | ApiResult<400 | 500, string>> => {
+    const url = urlMaker("/api/client/customs_status", { track_code: params.trackCode });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        const data = result.data as IDeclarationCustomsStatusPersistence;
+        return new ApiResult(200, { customsStatus: data?.customs_status ?? null, json: data?.json || {} }, null);
+      }
+      return new ApiResult(400, "Məlumatlar əldə edilə bilmədi", null);
+    } catch {
+      return new ApiResult(500, "Şəbəkə ilə əlaqə qurula bilmədi.", null);
+    }
+  },
+
+  getParcelStates: async (params: { trackCode: string }): Promise<ApiResult<200, IParcelStates[]> | ApiResult<400 | 500, string>> => {
+    const url = urlMaker(`/api/admin/declaration/trendyol/parcel-states/${params.trackCode}`);
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        const data = (result.data || []).map((item: IParcelStatesPersistence) => ({
+          state: item.state,
+          comment: item.comment,
+          author: item.author,
+          _id: item._id,
+          createdAt: item.created_at,
+          updatedAt: item.updated_at,
+        }));
+        return new ApiResult(200, data, null);
+      }
+      return new ApiResult(400, "Məlumatlar əldə edilə bilmədi", null);
+    } catch {
+      return new ApiResult(500, "Şəbəkə ilə əlaqə qurula bilmədi.", null);
+    }
+  },
+
+  changeTrendyolStatus: async (ids: (string | number)[], statusId: string | number, filter: string | number = 0): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
+    const url = urlMaker("/api/admin/declaration/trendyol/updateState");
+    const body = new FormData();
+    ids.forEach((id) => body.append("declaration_id[]", String(id)));
+    body.append("trendyol_state_id", String(statusId));
+    body.append("filter", String(filter));
+    try {
+      const response = await caller(url, { method: "POST", body });
+      if (response.ok) return new ApiResult(200, null, null);
+      const result = await response.json();
+      return new ApiResult(400, result?.errors ? Object.values(result.errors).flat().join(". ") : "Məlumatlar əldə edilə bilmədi", null);
+    } catch {
+      return new ApiResult(400, "Şəbəkə ilə əlaqə qurula bilmədi.", null);
+    }
+  },
+
+  changePincode: async (id: string | number, values: { pincode: string }): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
+    const url = urlMaker(`/api/admin/declaration/customs_fin_change/${id}`, values);
+    try {
+      const response = await caller(url);
+      if (response.ok) return new ApiResult(200, null, null);
+      const result = await response.json();
+      return new ApiResult(400, result?.errors ? Object.values(result.errors).flat().join(". ") : "Məlumatlar əldə edilə bilmədi", null);
+    } catch {
+      return new ApiResult(400, "Şəbəkə ilə əlaqə qurula bilmədi.", null);
+    }
+  },
+
+  changeTemuPincode: async (id: string | number, values: { pincode: string }): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
+    const url = urlMaker(`/api/admin/declaration/trendyol/fin_change/${id}`);
+    const body = new FormData();
+    body.append("pincode", values.pincode);
+    try {
+      const response = await caller(url, { method: "POST", body });
+      if (response.ok) return new ApiResult(200, null, null);
+      const result = await response.json();
+      return new ApiResult(400, result?.errors ? Object.values(result.errors).flat().join(". ") : "Məlumatlar əldə edilə bilmədi", null);
+    } catch {
+      return new ApiResult(400, "Şəbəkə ilə əlaqə qurula bilmədi.", null);
+    }
+  },
+
+  addCommercial: async (values: { declarationId: string; awb: string; voen: string }): Promise<ApiResult<200, null> | ApiResult<422, Record<string, string[]>> | ApiResult<400, string>> => {
+    const url = urlMaker("/api/admin/declaration/commercial");
+    const body = new FormData();
+    body.append("declaration_id", values.declarationId);
+    body.append("awb", values.awb);
+    body.append("voen", values.voen);
+    try {
+      const response = await caller(url, { method: "POST", body });
+      if (response.ok) return new ApiResult(200, null, null);
+      if (response.status === 400 || response.status === 422) {
+        const result = await response.json();
+        return new ApiResult(422, result?.errors || {}, null);
+      }
+      return new ApiResult(400, "Məlumatlar əldə edilə bilmədi", null);
+    } catch {
+      return new ApiResult(400, "Şəbəkə ilə əlaqə qurula bilmədi.", null);
+    }
+  },
+
   getHandoverDetails: async (
     ids: (string | number)[],
     packages?: { small_package?: string; medium_package?: string; big_package?: string },
@@ -477,6 +654,97 @@ export const DeclarationsService = {
       const result = await response.json();
       if (response.status === 422 || response.status === 400) return new ApiResult(422, result.errors || {}, null);
       return new ApiResult(400, 'Xəta baş verdi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  getWaybills: async (id: string | number): Promise<ApiResult<200, IWaybill[]> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/declaration/manifesto', { declaration_id: id });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, (result.data || []).map((w: IWaybillPersistence) => waybillToDomain(w)), null);
+      }
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  getProformaInvoice: async (ids: (string | number)[]): Promise<ApiResult<200, IProformaInvoice> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/declaration/proforma', { declaration_id: ids });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, proformaInvoiceToDomain(result.data as IProformaInvoicePersistence), null);
+      }
+      const result = await response.json();
+      const errors = result?.errors ? Object.values(result.errors).flat().join('. ') : 'Məlumatlar əldə edilə bilmədi';
+      return new ApiResult(400, errors as string, null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  getStatusMap: async (id: string | number): Promise<ApiResult<200, IStatusMapItem[]> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/client/get_status_map', { model_id: 2, object_id: id });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, (result.data || []).map((s: IStatusMapItemPersistence) => statusMapToDomain(s)), null);
+      }
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  // Statuses for the declaration model (model_id = 2), including the `freely` flag
+  // that gates which statuses can be set in bulk.
+  getStatuses: async (): Promise<ApiResult<200, { id: number; name: string; freely: boolean }[]> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/states/getlistbymodelid', { model_id: 2 });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, (result.data || []).map((s: any) => ({ id: s.id, name: s.name, freely: s.freely === 1 })), null);
+      }
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  // Status change for explicit declaration ids (row action / selected rows).
+  updateStatus: async (ids: (string | number)[], statusId: string | number, description?: string): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/declaration/edit/state', { declaration_id: ids, state_id: statusId });
+    const body = new FormData();
+    if (description) body.append('descr', description);
+    try {
+      const response = await caller(url, { method: 'POST', body });
+      if (response.ok) return new ApiResult(200, null, null);
+      const result = await response.json();
+      const errors = result?.errors ? Object.values(result.errors).flat().join('. ') : 'Məlumatlar əldə edilə bilmədi';
+      return new ApiResult(400, errors as string, null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  // Filter-based bulk status change — applies to every declaration matching the
+  // current table filters, not just the loaded page.
+  bulkUpdateStatus: async (query: Record<string, any>, statusId: string | number, description?: string): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/v2/declaration/edit/state', { ...query, new_state_id: statusId, ...(description ? { new_descr: description } : {}) });
+    try {
+      const response = await caller(url, { method: 'POST' });
+      if (response.ok) return new ApiResult(200, null, null);
+      const result = await response.json();
+      const errors = result?.errors ? Object.values(result.errors).flat().join('. ') : 'Məlumatlar əldə edilə bilmədi';
+      return new ApiResult(400, errors as string, null);
     } catch {
       return new ApiResult(400, 'Şəbəkə xətası.', null);
     }

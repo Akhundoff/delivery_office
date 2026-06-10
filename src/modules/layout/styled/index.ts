@@ -8,4 +8,4 @@ export {
   StyledHeaderButton,
   StyledPortalArea,
 } from "./header";
-export { StyledContent } from "./layout";
+export { StyledLayout, StyledContent } from './layout';

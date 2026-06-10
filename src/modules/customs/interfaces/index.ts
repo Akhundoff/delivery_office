@@ -1,5 +1,9 @@
 export * from './customs-task.interface';
 
+export type ICustomsStatus = {
+  status: 'success' | 'error' | 'warning';
+};
+
 export type IDnsQueue = {
   id: number;
   action: string;

@@ -1,3 +1,47 @@
+export type ICustomsStatus = "Initial" | "Sent" | "Declared" | "Boxed" | "Depesh" | string;
+
+export type ICustomsData = {
+  created_at: string;
+  Regnumber: string;
+  raw_data: Record<string, unknown> | null;
+};
+
+export type ITrendyolLog = {
+  category: string;
+  city: string;
+  comment: string;
+  createdAt: string;
+  declarationId: string;
+  weight: string;
+  zipCode: string;
+  phoneNumber: string;
+  domesticCargoCompany: string;
+  emailAddress: string;
+  fullName: string;
+  invoice: { invoicePrice: number | string; invoiceUrl: string };
+  isDoor: boolean;
+  isDeclared: boolean;
+  isLiquid: boolean;
+  isMicro: boolean;
+  name: string;
+  parcelId: string;
+  pinCode: string;
+  products: { sku: string };
+  state: string;
+  quantity: string | number;
+  shippingAddress: string;
+  smsCount: number;
+  smsDate: string | null;
+  trendyolDeliveryNumber: string;
+  type: string;
+  unitPrice: string;
+  volume: number;
+  warehouseId: string;
+  uid: string;
+  customsStatus: ICustomsStatus;
+  barcode: string;
+};
+
 export type IDeclaration = {
   id: number;
   awb: string;
@@ -14,6 +58,7 @@ export type IDeclaration = {
   wantedDescription: string;
   flight: { id: number; name: string } | null;
   box: { id: number; name: string } | null;
+  lastBox: { id: number; name: string } | null;
   branch: { id: number; name: string } | null;
   voen: string | null;
   weight: number | null;
@@ -21,6 +66,7 @@ export type IDeclaration = {
   currency: string | null;
   deliveryPrice: number | null;
   quantity: number;
+  couponId: number;
   type: "liquid" | "other";
   isCommercial: boolean;
   canAccommodate: boolean;
@@ -28,6 +74,7 @@ export type IDeclaration = {
   shop: string;
   productType: { id: number; name: string };
   parcel: { id: string } | null;
+  parcelSorting?: { id: number | null; state_name: string | null; created_at: string | null };
   basket: { id: string; name: string } | null;
   deliveryPoint: { id: number; name: string } | null;
   wardrobeNumber: string;
@@ -46,6 +93,10 @@ export type IDeclaration = {
   locationName: string;
   locationId: number;
   customs: number;
+  customsData?: ICustomsData | null;
+  trendyol?: number;
+  trendyolLogs?: ITrendyolLog | null;
+  bbs: { user: string | null; date: string | null };
   handoverTaskId: string | null;
   partnerName: string;
   partnerId: number | null;
@@ -85,6 +136,11 @@ export type IDeclarationPersistence = {
   basket_name?: string;
   container_id?: number | null;
   container_name?: string | null;
+  container_id_tmp?: number | null;
+  container_name_tmp?: string | null;
+  parcel_sorting_id?: number | null;
+  parcel_sorting_state_name?: string | null;
+  parcel_sorting_created_at?: string | null;
   track_code: string;
   height: string | null;
   width: string | null;
@@ -113,4 +169,41 @@ export type IDeclarationPersistence = {
   delivered_at: string;
   partner_name?: string | null;
   partner_id?: number | null;
+  trendyol?: number;
+  customs_data?: ICustomsData | null;
+  trendyol_logs?: {
+    category: string;
+    city: string;
+    comment: string;
+    created_at: string;
+    declaration_id: string;
+    domestic_cargo_company: string;
+    email_address: string;
+    full_name: string;
+    customs_status: ICustomsStatus;
+    invoice: { invoice_price: number | string; invoice_url: string };
+    weight: string;
+    zip_code: string;
+    phone_number: string;
+    is_door: number;
+    is_declared: number;
+    is_liquid: number;
+    is_micro: string | number;
+    name: string;
+    parcel_id: string;
+    pin_code: string;
+    products: { sku: string };
+    state: string;
+    quantity: string | number;
+    shipping_address: string;
+    sms_count: number;
+    sms_date: string | null;
+    trendyol_delivery_number: string;
+    type: string;
+    unit_price: string;
+    volume: number;
+    warehouse_id: string;
+    uid: string[] | null;
+    barcode: string;
+  };
 };

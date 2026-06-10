@@ -39,6 +39,16 @@ export const useSupportsTableColumns = (): Column<ISupport>[] => {
 
         const items: MenuProps['items'] = [
           { key: 'open', label: 'Bax', icon: <Icons.MessageOutlined />, onClick: () => navigate(`/supports/${original.id}`) },
+          {
+            key: 'toggle-read',
+            label: original.read ? 'Oxunmamış et' : 'Oxunmuş et',
+            icon: <Icons.ReadOutlined />,
+            onClick: async () => {
+              const result = await SupportsService.toggleRead([original.id], original.read);
+              if (result.status === 200) handleFetch();
+              else message.error(result.data as string);
+            },
+          },
           { key: 'change-status', label: 'Statusu dəyiş', icon: <Icons.AppstoreOutlined />, children: statusItems },
           { type: 'divider' as const },
           {

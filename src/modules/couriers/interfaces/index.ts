@@ -41,3 +41,16 @@ export type CreateCourierDto = {
   paid: boolean;
   description: string;
 };
+
+export type ICourierPaymentDetails = {
+  balance: { usd: number; try: number; usdToAzn: number; tryToAzn: number };
+  debts: { usd: number; try: number; usdToAzn: number; tryToAzn: number };
+  courierPrice: { azn: number };
+  deliveryPrice: { azn: number; usd: number };
+  minimalPayment: { azn: number };
+  fullPayment: { azn: number };
+};
+
+export type IDelivererReason = { id: number; name: string };
+
+export type ICourierStatusExecution = { id: number; name: string; date: string | null; executor: string | null };
