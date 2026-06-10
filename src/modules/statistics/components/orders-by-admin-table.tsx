@@ -1,5 +1,5 @@
 import { FC, useCallback, useMemo } from 'react';
-import { Col, Row, Table } from 'antd';
+import { Col, Row, Table, Typography } from 'antd';
 import { ColumnType } from 'antd/es/table';
 import groupBy from 'lodash/groupBy';
 import dayjs from 'dayjs';
@@ -35,7 +35,7 @@ export const OrdersByAdminTable: FC<{ data: IOrderStatisticByAdmin[]; countryId:
                 dataIndex: 'count',
                 title: 'Say',
                 render: (value: number, row) => (
-                    <a onClick={() => openDetails(row.updatedAt, row.user.id)}>{value} ədəd</a>
+                    <Typography.Link onClick={() => openDetails(row.updatedAt, row.user.id)}>{value} ədəd</Typography.Link>
                 ),
             },
             { key: 'price', dataIndex: 'price', title: 'Məbləğ', render: (value: number) => `${value.toFixed(2)} ${getCurrencySymbolByCountryId(countryId)}` },

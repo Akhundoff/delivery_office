@@ -158,7 +158,6 @@ const DeclarationFormFields: FC<FormFieldsProps> = ({ values, setFieldValue, han
 
 export const CreateDeclaration: FC = () => {
     const { initialValues, onSubmit, id, isLoading, productTypes, planCategories, users } = useDeclarationForm();
-    const [closeModal] = useCloseModal();
 
     if (isLoading) {
         return (

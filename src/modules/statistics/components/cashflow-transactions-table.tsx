@@ -1,5 +1,5 @@
 import { FC, useCallback, useMemo } from 'react';
-import { Col, Row, Table } from 'antd';
+import { Col, Row, Table, Typography } from 'antd';
 import { ColumnType } from 'antd/es/table';
 import groupBy from 'lodash/groupBy';
 import dayjs from 'dayjs';
@@ -40,7 +40,7 @@ export const CashFlowTransactionsTable: FC<Props> = ({ data, operationType, paym
     const columns = useMemo<ColumnType<ICashFlowDailyTransaction>[]>(
         () => [
             { key: 'date', dataIndex: 'date', title: 'Tarix' },
-            { key: 'count', dataIndex: 'count', title: 'Say', render: (value: number, record) => <a onClick={() => openDetails(record.date)}>{value} ədəd</a> },
+            { key: 'count', dataIndex: 'count', title: 'Say', render: (value: number, record) => <Typography.Link onClick={() => openDetails(record.date)}>{value} ədəd</Typography.Link> },
             { key: 'price', dataIndex: 'price', title: 'Məbləğ', render: (value: number) => value.toFixed(2) },
         ],
         [openDetails],

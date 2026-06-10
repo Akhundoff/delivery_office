@@ -1,5 +1,5 @@
 import { FC, useCallback, useMemo } from 'react';
-import { Col, Row, Space, Table } from 'antd';
+import { Col, Row, Space, Table, Typography } from 'antd';
 import * as Icons from '@ant-design/icons';
 import { ColumnType } from 'antd/es/table';
 import groupBy from 'lodash/groupBy';
@@ -39,8 +39,8 @@ export const CouriersCountStatisticsTable: FC<{ data: ICouriersCountStatistic[];
                 title: 'Say',
                 render: (value: number, record) => (
                     <Space size={8}>
-                        <a onClick={() => openOverview(record.updatedAt)}><Icons.PicLeftOutlined /></a>
-                        <a onClick={() => openDetails(record.updatedAt)}>{value} ədəd</a>
+                        <Typography.Link onClick={() => openOverview(record.updatedAt)}><Icons.PicLeftOutlined /></Typography.Link>
+                        <Typography.Link onClick={() => openDetails(record.updatedAt)}>{value} ədəd</Typography.Link>
                     </Space>
                 ),
             },

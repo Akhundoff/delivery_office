@@ -64,7 +64,7 @@ export const useRejectOrders = () => {
       }
       helpers.setSubmitting(false);
     },
-    [ids, query, id, closeModal, navigate, queryClient],
+    [ids, query, id, closeModal, navigate, queryClient, onClose],
   );
 
   return { initialValues, onSubmit, onClose, ids, isBulk };

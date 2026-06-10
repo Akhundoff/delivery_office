@@ -20,8 +20,8 @@ export const useFlightsTableColumns = (): Column<IFlight>[] => {
   const { data: statusesResult } = useQuery(['statuses-for-flight-columns', 8], () => StatusesService.getList({ per_page: 500, model_id: 8 }));
   const { data: trendyolStatusesResult } = useQuery(['trendyol-statuses-for-flight-columns', 43], () => StatusesService.getList({ per_page: 500, model_id: 43 }));
 
-  const statuses = statusesResult?.status === 200 ? statusesResult.data.data : [];
-  const trendyolStatuses = trendyolStatusesResult?.status === 200 ? trendyolStatusesResult.data.data : [];
+  const statuses = useMemo(() => (statusesResult?.status === 200 ? statusesResult.data.data : []), [statusesResult]);
+  const trendyolStatuses = useMemo(() => (trendyolStatusesResult?.status === 200 ? trendyolStatusesResult.data.data : []), [trendyolStatusesResult]);
 
   const actionsColumn = useMemo<Column<IFlight>>(
     () => ({
@@ -47,7 +47,7 @@ export const useFlightsTableColumns = (): Column<IFlight>[] => {
               message.error({ key: 'xml', content: result.data as string });
             }
           },
-          [downloadFile],
+          [downloadFile, original.id],
         );
 
         const statusItems: MenuProps['items'] = statuses.map((s) => ({

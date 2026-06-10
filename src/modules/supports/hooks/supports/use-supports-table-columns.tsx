@@ -16,7 +16,7 @@ export const useSupportsTableColumns = (): Column<ISupport>[] => {
   const navigate = useBackgroundNavigate();
 
   const { data: statusesResult } = useQuery(['statuses-for-supports', 9], () => StatusesService.getList({ per_page: 500, model_id: 9 }));
-  const statuses = statusesResult?.status === 200 ? statusesResult.data.data : [];
+  const statuses = useMemo(() => (statusesResult?.status === 200 ? statusesResult.data.data : []), [statusesResult]);
 
   const actionsColumn = useMemo<Column<ISupport>>(
     () => ({

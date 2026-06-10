@@ -1,11 +1,10 @@
 import React, { FC } from 'react';
-import { Row, Col, Button, Select } from 'antd';
+import { Row, Col, Button } from 'antd';
 import { Form } from 'antd';
 import { Formik, FormikProps } from 'formik';
 
 import { TextField } from '@shared/modules/form/fields/text';
 import { DateField } from '@shared/modules/form/fields/date';
-import { SelectField } from '@shared/modules/form/fields/select';
 
 import { CreateDiscountDto } from '../interfaces';
 import { useCreateDiscount } from '../hooks';

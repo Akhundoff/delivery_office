@@ -1,5 +1,5 @@
 import { FC, useCallback, useMemo } from 'react';
-import { Col, Row, Table } from 'antd';
+import { Col, Row, Table, Typography } from 'antd';
 import { ColumnType } from 'antd/es/table';
 import groupBy from 'lodash/groupBy';
 import dayjs from 'dayjs';
@@ -30,7 +30,7 @@ export const CouriersCountByRegionsStatisticsTable: FC<{ data: ICouriersCountByR
         () => [
             { key: 'updatedAt', dataIndex: 'updatedAt', title: 'Tarix' },
             { key: 'region', dataIndex: ['region', 'name'], title: 'Rayon' },
-            { key: 'count', dataIndex: 'count', title: 'Say', render: (value: number, record) => <a onClick={() => openDetails(record.updatedAt, record.region.id)}>{value} ədəd</a> },
+            { key: 'count', dataIndex: 'count', title: 'Say', render: (value: number, record) => <Typography.Link onClick={() => openDetails(record.updatedAt, record.region.id)}>{value} ədəd</Typography.Link> },
             { key: 'azn', dataIndex: ['paymentAmount', 'azn'], title: `Məbləğ (${CurrencySymbols.AZN})`, render: (value: number) => value.toFixed(2) },
             { key: 'usd', dataIndex: ['paymentAmount', 'usd'], title: `Məbləğ (${CurrencySymbols.USD})`, render: (value: number) => value.toFixed(2) },
         ],

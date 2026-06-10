@@ -1,12 +1,11 @@
 import React, { FC, useCallback, useState } from 'react';
-import { Col, DatePicker, Row, Result, Select, Spin, Table, Typography } from 'antd';
+import { Col, DatePicker, Row, Result, Select, Spin, Table } from 'antd';
 import { green, red } from '@ant-design/colors';
 import { useQuery } from 'react-query';
-import dayjs, { Dayjs } from 'dayjs';
+import { Dayjs } from 'dayjs';
 import { PageContent } from '@shared/styled/page-content';
 import { HeadPortal } from '@modules/layout/components/head-portal';
 import { StyledActionBar } from '@shared/styled/action-bar';
-import { StyledHeaderButton } from '@modules/layout/styled';
 import { CashRegistersService, CashFlowAnalyticsService } from '../services';
 import { ICashFlowAnalyticsResult } from '../interfaces';
 

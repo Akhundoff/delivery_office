@@ -1,15 +1,12 @@
-import React, { useContext, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { Button, Dropdown, MenuProps, Tag } from 'antd';
 import * as Icons from '@ant-design/icons';
 import { Column } from 'react-table';
 import { nextTableColumns } from '@shared/modules/next-table/helpers/next-table-columns';
 import { StopPropagation } from '@shared/components/stop-propagation';
 import { IDeclaration } from '@modules/declarations/interfaces';
-import { UnitedDeclarationsTableContext } from '../../context';
 
 export const useUnitedDeclarationsTableColumns = (): Column<IDeclaration>[] => {
-  const { handleFetch } = useContext(UnitedDeclarationsTableContext);
-
   const actionsColumn = useMemo<Column<IDeclaration>>(
     () => ({
       ...nextTableColumns.actions,
@@ -32,7 +29,7 @@ export const useUnitedDeclarationsTableColumns = (): Column<IDeclaration>[] => {
         );
       },
     }),
-    [handleFetch],
+    [],
   );
 
   const baseColumns = useMemo<Column<IDeclaration>[]>(

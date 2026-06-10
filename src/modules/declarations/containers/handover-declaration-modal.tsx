@@ -40,7 +40,8 @@ export const HandoverDeclarationModal: FC = () => {
   const totalAmount = details?.debt.all.azn ?? 0;
 
   useEffect(() => {
-    if (details) setCashAmount(fmt(details.debt.all.azn));
+    const azn = details?.debt.all.azn;
+    if (azn != null) setCashAmount(fmt(azn));
   }, [details?.debt.all.azn]);
 
   useEffect(() => {

@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo } from 'react';
+import React, { useContext, useMemo } from 'react';
 import { Button, Dropdown, MenuProps, Modal, Tag, message } from 'antd';
 import * as Icons from '@ant-design/icons';
 import { Column } from 'react-table';
@@ -14,7 +14,7 @@ export const useCouriersTableColumns = (): Column<ICourier>[] => {
   const { handleFetch } = useContext(CouriersTableContext);
 
   const { data: statusesResult } = useQuery(['statuses-for-couriers', 3], () => StatusesService.getList({ per_page: 500, model_id: 3 }));
-  const statuses = statusesResult?.status === 200 ? statusesResult.data.data : [];
+  const statuses = useMemo(() => (statusesResult?.status === 200 ? statusesResult.data.data : []), [statusesResult]);
 
   const actionsColumn = useMemo<Column<ICourier>>(
     () => ({

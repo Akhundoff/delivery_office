@@ -22,7 +22,7 @@ export const useOrdersTableColumns = (): Column<IOrder>[] => {
   const settings = useContext(SettingsContext);
 
   const { data: statusesResult } = useQuery(['statuses-for-orders', 1], () => StatusesService.getList({ per_page: 500, model_id: 1 }));
-  const statuses = statusesResult?.status === 200 ? statusesResult.data.data : [];
+  const statuses = useMemo(() => (statusesResult?.status === 200 ? statusesResult.data.data : []), [statusesResult]);
 
   const actionsColumn = useMemo<Column<IOrder>>(
     () => ({

@@ -1,14 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Input, Modal, message } from 'antd';
+import { Modal, message } from 'antd';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
-import { useContext } from 'react';
-import { MeContext } from '@modules/me/context/context';
 import { usePartnerBoxes } from '@modules/partner-boxes';
 import { PartnerBoxAcceptanceService } from '../../services';
 import { IAcceptanceBarcode } from '../../interfaces';
 
 export const usePartnerBoxAcceptance = () => {
-  const { state } = useContext(MeContext);
   const queryClient = useQueryClient();
   const partnerBoxes = usePartnerBoxes();
 
@@ -33,8 +30,6 @@ export const usePartnerBoxAcceptance = () => {
   const [boxId, setBoxId] = useState('');
   const [isBoxSelectVisible, setIsBoxSelectVisible] = useState(false);
   const [closeError, setCloseError] = useState<{ message: string; failedBarcodeIndexes: number[] } | null>(null);
-
-  const branchId = useMemo(() => state.user.data ? undefined : undefined, [state.user.data]);
 
   const tableData = useMemo(
     () =>

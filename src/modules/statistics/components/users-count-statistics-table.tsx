@@ -1,5 +1,5 @@
 import { FC, useCallback, useMemo } from 'react';
-import { Col, Row, Table } from 'antd';
+import { Col, Row, Table, Typography } from 'antd';
 import { ColumnType } from 'antd/es/table';
 import groupBy from 'lodash/groupBy';
 import dayjs from 'dayjs';
@@ -31,7 +31,7 @@ export const UsersCountStatisticsTable: FC<Props> = ({ data, gender, ageFrom, ag
     const columns = useMemo<ColumnType<IUsersCountStatistic>[]>(
         () => [
             { key: 'createdAt', dataIndex: 'createdAt', title: 'Tarix' },
-            { key: 'count', dataIndex: 'count', title: 'Say', render: (value: number, record) => <a onClick={() => openDetails(record.createdAt)}>{value} ədəd</a> },
+            { key: 'count', dataIndex: 'count', title: 'Say', render: (value: number, record) => <Typography.Link onClick={() => openDetails(record.createdAt)}>{value} ədəd</Typography.Link> },
         ],
         [openDetails],
     );

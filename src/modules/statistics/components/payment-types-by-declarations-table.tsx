@@ -1,5 +1,5 @@
 import { FC, useCallback, useMemo } from 'react';
-import { Col, Row, Table } from 'antd';
+import { Col, Row, Table, Typography } from 'antd';
 import { ColumnType } from 'antd/es/table';
 import groupBy from 'lodash/groupBy';
 import dayjs from 'dayjs';
@@ -28,7 +28,7 @@ export const PaymentTypesByDeclarationsTable: FC<{ data: IPaymentTypeStatisticBy
     const columns = useMemo<ColumnType<IPaymentTypeStatisticByDeclaration>[]>(
         () => [
             { key: 'paidAt', dataIndex: 'paidAt', title: 'Tarix' },
-            { key: 'count', dataIndex: 'count', title: 'Say', render: (value: number, record) => <a onClick={() => openDetails(record.paidAt, record.paymentType.id)}>{value} ədəd</a> },
+            { key: 'count', dataIndex: 'count', title: 'Say', render: (value: number, record) => <Typography.Link onClick={() => openDetails(record.paidAt, record.paymentType.id)}>{value} ədəd</Typography.Link> },
             { key: 'paymentType', dataIndex: ['paymentType', 'name'], title: 'Ödəniş tipi' },
             { key: 'usd', dataIndex: ['deliveryPrice', 'usd'], title: `Çatdırılma (${CurrencySymbols.USD})`, render: (value: number) => value.toFixed(2) },
             { key: 'azn', dataIndex: ['deliveryPrice', 'azn'], title: `Çatdırılma (${CurrencySymbols.AZN})`, render: (value: number) => value.toFixed(2) },

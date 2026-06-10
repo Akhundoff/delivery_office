@@ -1,4 +1,4 @@
-import { FC, useEffect } from 'react';
+import { FC, useCallback, useEffect } from 'react';
 import { Checkbox, Descriptions, Form, Modal, Select, Spin, message } from 'antd';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery } from 'react-query';
@@ -8,7 +8,7 @@ import { ReturnTypesService } from '@modules/return-types/services';
 export const ReturnDeclarationModal: FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const close = () => navigate(-1);
+  const close = useCallback(() => navigate(-1), [navigate]);
   const [form] = Form.useForm();
 
   const returnOrderExtra = Form.useWatch('returnOrderExtra', form);
@@ -30,11 +30,11 @@ export const ReturnDeclarationModal: FC = () => {
       message.error('Məlumatlar əldə edilə bilmədi');
       close();
     }
-  }, [error]);
+  }, [error, close]);
 
   useEffect(() => {
     if (returnOrderExtra) form.setFieldValue('returnDeclarationPrice', returnOrderExtra);
-  }, [returnOrderExtra]);
+  }, [returnOrderExtra, form]);
 
   const onOk = async () => {
     const values = await form.validateFields();

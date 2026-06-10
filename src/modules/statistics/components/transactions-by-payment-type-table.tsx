@@ -1,5 +1,5 @@
 import { FC, useCallback, useMemo } from 'react';
-import { Col, Row, Table } from 'antd';
+import { Col, Row, Table, Typography } from 'antd';
 import { ColumnType } from 'antd/es/table';
 import groupBy from 'lodash/groupBy';
 import dayjs from 'dayjs';
@@ -26,7 +26,7 @@ export const TransactionsByPaymentTypeTable: FC<{ data: ITransactionStatisticByP
     const columns = useMemo<ColumnType<ITransactionStatisticByPaymentType>[]>(
         () => [
             { key: 'date', dataIndex: 'date', title: 'Tarix' },
-            { key: 'count', dataIndex: 'count', title: 'Say', render: (value: number, record) => <a onClick={() => openDetails(record.date)}>{value} ədəd</a> },
+            { key: 'count', dataIndex: 'count', title: 'Say', render: (value: number, record) => <Typography.Link onClick={() => openDetails(record.date)}>{value} ədəd</Typography.Link> },
             { key: 'price', dataIndex: 'price', title: 'Ümumi məbləğ' },
             { key: 'online', dataIndex: 'online', title: 'Online / Office', render: (_: string, record) => `online: ${record.online} / office: ${record.office}` },
         ],
