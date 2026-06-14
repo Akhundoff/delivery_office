@@ -20,11 +20,7 @@ This repo uses Husky + commitlint + lint-staged to enforce branch naming, lint/f
 
 Requires Node >= 22 (see `.nvmrc`).
 
-Yarn 4 does not run the `prepare` script automatically on `yarn install`, so after installing dependencies, activate the git hooks once:
-
-```bash
-yarn prepare
-```
+Yarn 4 does not run the `prepare` script automatically on `yarn install`. To work around this, `start`, `build`, and `test` run `husky` (silently, idempotently) before delegating to `react-app-rewired`, so git hooks are activated the first time you run any of those.
 
 ## Notes
 

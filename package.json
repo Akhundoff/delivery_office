@@ -51,9 +51,9 @@
     "uuid": "^11.0.2"
   },
   "scripts": {
-    "start": "react-app-rewired start",
-    "build": "react-app-rewired build",
-    "test": "react-app-rewired test",
+    "start": "husky >/dev/null 2>&1; react-app-rewired start",
+    "build": "husky >/dev/null 2>&1; react-app-rewired build",
+    "test": "husky >/dev/null 2>&1; react-app-rewired test",
     "prepare": "husky",
     "lint": "eslint src --ext .ts,.tsx",
     "lint:fix": "eslint src --ext .ts,.tsx --fix",
