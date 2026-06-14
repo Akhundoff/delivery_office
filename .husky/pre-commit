@@ -1,0 +1,4 @@
+set -e
+
+sh "$(dirname -- "$0")/branch-name-check.sh"
+npx lint-staged
