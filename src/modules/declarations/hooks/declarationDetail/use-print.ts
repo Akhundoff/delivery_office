@@ -26,6 +26,29 @@ const openPrintWindow = (html: string) => {
   printWindow.document.close();
 };
 
+export const printProformaInvoiceForIds = async (ids: (string | number)[]) => {
+  const hide = message.loading('Proforma invoys hazırlanır.', 0);
+  const result = await DeclarationsService.getProformaInvoice(ids);
+  hide();
+  if (result.status !== 200) {
+    message.error(result.data as string);
+    return;
+  }
+  registerHelpers();
+  const html = handlebars.compile(proformaInvoiceTemplate)({
+    ...result.data,
+    shipper: {
+      name: process.env.REACT_APP_SHIPPER,
+      address: process.env.REACT_APP_SHIPPER_ADDRESS,
+      phoneNumber: process.env.REACT_APP_SHIPPER_PHONE_NUMBER,
+      city: process.env.REACT_APP_SHIPPER_CITY,
+      postalCode: process.env.REACT_APP_SHIPPER_POSTAL_CODE,
+      country: process.env.REACT_APP_SHIPPER_COUNTRY,
+    },
+  });
+  openPrintWindow(html);
+};
+
 export const usePrint = (id: string) => {
   const me = useContext(MeContext);
 
@@ -51,28 +74,7 @@ export const usePrint = (id: string) => {
     openPrintWindow(html);
   }, [id]);
 
-  const printProformaInvoice = useCallback(async () => {
-    const hide = message.loading('Proforma invoys hazırlanır.', 0);
-    const result = await DeclarationsService.getProformaInvoice([id]);
-    hide();
-    if (result.status !== 200) {
-      message.error(result.data as string);
-      return;
-    }
-    registerHelpers();
-    const html = handlebars.compile(proformaInvoiceTemplate)({
-      ...result.data,
-      shipper: {
-        name: process.env.REACT_APP_SHIPPER,
-        address: process.env.REACT_APP_SHIPPER_ADDRESS,
-        phoneNumber: process.env.REACT_APP_SHIPPER_PHONE_NUMBER,
-        city: process.env.REACT_APP_SHIPPER_CITY,
-        postalCode: process.env.REACT_APP_SHIPPER_POSTAL_CODE,
-        country: process.env.REACT_APP_SHIPPER_COUNTRY,
-      },
-    });
-    openPrintWindow(html);
-  }, [id]);
+  const printProformaInvoice = useCallback(() => printProformaInvoiceForIds([id]), [id]);
 
   const printHandoverCheck = useCallback(
     (declaration?: IDeclaration | null) => {
