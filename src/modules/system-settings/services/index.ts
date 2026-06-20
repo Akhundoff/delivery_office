@@ -1,40 +1,34 @@
-import { ApiResult, appendToFormData, caller, urlMaker } from "@shared/utils";
+import { ApiResult, appendToFormData, caller, urlMaker } from '@shared/utils';
 
 export type ISettingsGroup = Record<string, any>;
 
 export const SystemSettingsService = {
-  getGroup: async (
-    groupId: string,
-  ): Promise<ApiResult<200, ISettingsGroup> | ApiResult<400, string>> => {
-    const url = urlMaker("/api/admin/settings/data", { group_id: groupId });
+  getGroup: async (groupId: string): Promise<ApiResult<200, ISettingsGroup> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/settings/data', { group_id: groupId });
     try {
       const response = await caller(url);
       if (response.ok) {
         const result = await response.json();
         return new ApiResult(200, result.data || {}, null);
       }
-      return new ApiResult(400, "Məlumatlar əldə edilə bilmədi", null);
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
     } catch {
-      return new ApiResult(400, "Şəbəkə xətası.", null);
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
     }
   },
 
-  updateGroup: async (
-    groupId: string,
-    values: Record<string, any>,
-  ): Promise<ApiResult<200, null> | ApiResult<400 | 422, any>> => {
-    const url = urlMaker("/api/admin/settings/data");
+  updateGroup: async (groupId: string, values: Record<string, any>, groupIdAsQuery = false): Promise<ApiResult<200, null> | ApiResult<400 | 422, any>> => {
+    const url = groupIdAsQuery ? urlMaker('/api/admin/settings/data', { group_id: groupId }) : urlMaker('/api/admin/settings/data');
     const body = new FormData();
-    appendToFormData({ group_id: groupId, ...values }, body);
+    appendToFormData(groupIdAsQuery ? values : { group_id: groupId, ...values }, body);
     try {
-      const response = await caller(url, { method: "POST", body });
+      const response = await caller(url, { method: 'POST', body });
       if (response.ok) return new ApiResult(200, null, null);
       const result = await response.json();
-      if (response.status === 422)
-        return new ApiResult(422, result.errors || {}, null);
-      return new ApiResult(400, "Xəta baş verdi.", null);
+      if (response.status === 422) return new ApiResult(422, result.errors || {}, null);
+      return new ApiResult(400, 'Xəta baş verdi.', null);
     } catch {
-      return new ApiResult(400, "Şəbəkə xətası.", null);
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
     }
   },
 };

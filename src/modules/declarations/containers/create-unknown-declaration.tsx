@@ -9,6 +9,7 @@ import { SelectField } from '@shared/modules/form/fields/select';
 import { CheckboxField } from '@shared/modules/form/fields/checkbox';
 import { filterOption } from '@shared/modules/antd/helpers/filter-option';
 import { useCloseModal } from '@shared/hooks';
+import { appendToFormData } from '@shared/utils';
 import { SettingsContext } from '@modules/settings';
 import { MeContext } from '@modules/me';
 import { UnknownDeclarationsService } from '../services';
@@ -228,18 +229,23 @@ export const CreateUnknownDeclaration: FC = () => {
   const onSubmit = useCallback(
     async (values: UnknownDeclarationFormValues) => {
       const body = new FormData();
-      if (values.userId) body.append('user_id', values.userId);
-      if (values.globalTrackCode) body.append('global_track_code', values.globalTrackCode);
-      if (values.countryId) body.append('country_id', values.countryId);
-      if (values.productTypeId) body.append('product_type_id', values.productTypeId);
-      body.append('quantity', values.quantity);
-      if (values.weight) body.append('weight', values.weight);
-      if (values.price) body.append('price', values.price);
-      if (values.deliveryPrice) body.append('delivery_price', values.deliveryPrice);
-      if (values.shop) body.append('shop_name', values.shop);
-      if (values.description) body.append('descr', values.description);
-      body.append('type', values.isLiquid ? '1' : '2');
-      if (values.wardrobeNumber) body.append('wardrobe_number', values.wardrobeNumber);
+      appendToFormData(
+        {
+          user_id: values.userId,
+          global_track_code: values.globalTrackCode,
+          country_id: values.countryId,
+          product_type_id: values.productTypeId,
+          quantity: values.quantity,
+          weight: values.weight,
+          price: values.price,
+          delivery_price: values.deliveryPrice,
+          shop_name: values.shop,
+          descr: values.description,
+          type: values.isLiquid ? '1' : '2',
+          wardrobe_number: values.wardrobeNumber,
+        },
+        body,
+      );
       if (values.file) body.append('document_file', values.file);
 
       const result = id ? await UnknownDeclarationsService.update(id, body) : await UnknownDeclarationsService.create(body);

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <title>Sticker</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: monospace;
+    }
+
+    .wrapper {
+      width: 10cm;
+      max-width: 10cm;
+      min-width: 10cm;
+      height: 10cm;
+      max-height: 10cm;
+      min-height: 10cm;
+    }
+
+    .barcode-wrapper {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .sender {
+      border: 1px dashed black;
+      padding: 14px 8px;
+      position: relative;
+    }
+
+    .title {
+      font-weight: 600;
+    }
+
+    .sender .title {
+      position: absolute;
+      top: -9px;
+      background-color: white;
+    }
+
+    .sender table {
+      width: 100%;
+    }
+
+    .sender table thead th {
+      text-align: left;
+    }
+
+    .info {
+      border: 1px dashed black;
+      margin-top: 8px;
+      padding: 14px 8px;
+      position: relative;
+    }
+
+    .info .title {
+      position: absolute;
+      top: -9px;
+      background-color: white;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+  <div class="info">
+    <span class="title">
+      www.findex.az | office@findex.az
+    </span>
+    <div>
+      Name: {{user.name}}
+    </div>
+    <div>
+      Personal id: {{user.id}}
+    </div>
+    <div>
+      Refund number: {{refundNumber}}
+    </div>
+    <div>
+      Cargo: {{cargo.name}}
+    </div>
+  </div>
+</div>
+<script>
+  window.onafterprint = function() {
+    window.close()
+  }
+  window.print();
+</script>
+</body>
+</html>

@@ -54,7 +54,7 @@ export type ITransferBarcode = {
   checked?: boolean;
 };
 
-export type SortingDeclarationsView = 'total' | 'another' | 'missing';
+export type SortingDeclarationsView = 'total' | 'another' | 'sorting' | 'missing';
 
 export type IAzeriExpressInfo = {
   senderName: string;

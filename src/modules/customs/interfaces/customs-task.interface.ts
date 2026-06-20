@@ -10,6 +10,7 @@ export type ICustomsTask = {
     globalTrackCode: string;
     weight: number | null;
     quantity: number;
+    basket: { id: number; name: string | null } | null;
     user: { id: number; name: string };
     status: { id: number; name: string };
     productType: { id: number; name: string };
@@ -36,6 +37,8 @@ export type ICustomsTaskPersistence = {
   declaration_state_name: string;
   weight: string | null;
   quantity: number;
+  basket_id: number | null;
+  basket_name: string | null;
   product_type_id: number;
   product_type_name: string;
   changer_id: number | null;

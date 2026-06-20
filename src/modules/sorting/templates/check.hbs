@@ -1,0 +1,99 @@
+<html lang='en'>
+  <head>
+    <meta charset='UTF-8' />
+    <meta name='viewport' content='width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0' />
+    <meta http-equiv='X-UA-Compatible' content='ie=edge' />
+    <title>Check</title>
+    <style>
+      body { font-family: monospace; margin: 0; } .check-view { width: 80mm; padding: 0 8px; } .check-table { width: 100%; margin-bottom:1rem } .check-table, .check-table th, .check-table tr,
+      .check-table td { border-collapse: collapse; } .logo { padding: 24px 0 12px 0; display: flex; align-items: center; justify-content: center; } .logo svg { width: 32mm; } .check-number {
+      font-size: 42px; line-height: 42px; font-weight: 600; padding-bottom: 24px; } .check-items, .check-items th, .check-items tr, .check-items td { border: 1px solid black; padding: 3px; }
+      .check-items th { text-align: left; } .text-center{ text-align: center } .py-6{padding:24px 0} .barcode-area { display: flex; align-items: flex-start; } .barcode-wrapper { display: flex;
+      align-items: center; justify-content: center; flex-direction: column; }
+    </style>
+  </head>
+  <body>
+    <div class='check-view'>
+      <table class='check-table'>
+        <thead>
+          <tr>
+            <td colspan='5' style='position: relative'>
+              <div class='barcode-area'>
+                <div class='barcode-wrapper'>
+                  <svg class='barcode' id='barcode-{{data.id}}'></svg>
+                  <span class='barcode-value'>FDX-{{data.id}}</span>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </thead>
+        <tbody class='check-items'>
+          <tr>
+            <th colspan='5' style='text-align: center'>{{data.branch.name}}</th>
+          </tr>
+          <tr>
+            <td>Göndəriş ID:</td>
+            <td>{{data.id}}</td>
+          </tr>
+          <tr>
+            <td>Cari göndərilən bağlamalar:</td>
+            <td>{{data.declaration.all}}</td>
+          </tr>
+          <tr>
+            <td>Göndərilməli olan bağlamalar:</td>
+            <td>{{data.declaration.thisFlight}}</td>
+          </tr>
+          <tr>
+            <td>Çatışmayan bağlamalar:</td>
+            <td>{{data.declaration.missing}}</td>
+          </tr>
+          <tr>
+            <td>Başqa uçuşdan olan bağlamalar:</td>
+            <td>{{data.declaration.anotherFlight}}</td>
+          </tr>
+          <tr>
+            <td>İcraçı:</td>
+            <td>{{data.user.id}}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table class='check-table'>
+        <tbody class='check-items'>
+          <tr>
+            <th colspan='4' style='text-align: center'>Bağlamalar üzrə uçuşlar</th>
+          </tr>
+          <tr>
+            <th>Uçuş nömrəsi</th>
+            <th>Bağlama sayı</th>
+            <th>Göndərilən</th>
+            <th>Göndərilməyən</th>
+          </tr>
+          {{#each data.flights}}
+            <tr>
+              <td>{{flightId}}</td>
+              <td>{{totalDeclarations}}</td>
+              <td>{{sortingDeclarations}}</td>
+              <td>{{notSortingDeclarations}}</td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+
+      <table class='check-table'>
+        <tfoot>
+          <tr>
+            <th colspan='5' class='py-6'>Göndərilmə Tarixi: {{checkDate}}</th>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+
+    <script src='https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js'></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', (event) => { JsBarcode('#barcode-{{data.id}}', 'FDX-{{data.id}}', { height: 40, width: 2, displayValue: false }); }); (function() {
+      setTimeout(function () { window.print(); }, 500); var afterPrint = function() { var delay = 500; setTimeout(function(){ window.close(); }, delay); }; if (window.matchMedia) { var mediaQueryList
+      = window.matchMedia('print'); mediaQueryList.addListener(function(mql) { if (!mql.matches) { afterPrint(); } }); } window.onafterprint = afterPrint; }());
+    </script>
+  </body>
+</html>

@@ -1,9 +1,10 @@
 import { FC } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import { SendSortingModal } from '../containers';
+import { SendSortingModal, SortingInfoModal } from '../containers';
 
 const SortingModalRouter: FC = () => (
   <Routes>
+    <Route path=":id/info" element={<SortingInfoModal />} />
     <Route path=":id/send" element={<SendSortingModal />} />
   </Routes>
 );

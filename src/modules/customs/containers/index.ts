@@ -8,3 +8,5 @@ export { CustomsTasksTable } from './customs-tasks-table';
 export { CustomsTasksActionBar } from './customs-tasks-action-bar';
 export { CustomsTaskDetail } from './customs-task-detail';
 export { CustomsStatus } from './customs-status';
+export { CustomsDeclarationsCounts } from './customs-declarations-counts';
+export { UploadCustomsDeclarationsDocument } from './upload-customs-declarations-document';
