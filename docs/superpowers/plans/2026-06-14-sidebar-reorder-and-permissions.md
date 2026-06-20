@@ -22,7 +22,7 @@
 - Modify: `src/modules/me/mappers/index.ts`
 - Modify: `src/modules/me/context/context.tsx`
 
-- [ ] **Step 1: Add `admin` to `IMeUser` and extend `IMeContext`**
+- [x] **Step 1: Add `admin` to `IMeUser` and extend `IMeContext`**
 
 In `src/modules/me/context/types.ts`, add `admin: number | null;` to `IMeUser` (alongside `adminBranchId`):
 
@@ -50,7 +50,7 @@ export interface IMeContext {
 }
 ```
 
-- [ ] **Step 2: Map `admin` from the API response**
+- [x] **Step 2: Map `admin` from the API response**
 
 In `src/modules/me/mappers/index.ts`, add `admin` to the object returned by `meFromApi`, next to `adminBranchId`:
 
@@ -72,7 +72,7 @@ In `src/modules/me/mappers/index.ts`, add `admin` to the object returned by `meF
   }
 ```
 
-- [ ] **Step 3: Implement `canDisplay` and `hasAnyPermission` in `MeProvider`**
+- [x] **Step 3: Implement `canDisplay` and `hasAnyPermission` in `MeProvider`**
 
 Replace the full contents of `src/modules/me/context/context.tsx` with:
 

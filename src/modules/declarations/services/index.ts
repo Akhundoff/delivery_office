@@ -19,6 +19,7 @@ import {
   IDeclarationCustomsStatusPersistence,
   IParcelStates,
   IParcelStatesPersistence,
+  IExportDeclarationTask,
 } from '../interfaces';
 import { DeclarationMapper } from '../mappers';
 
@@ -710,6 +711,24 @@ export const DeclarationsService = {
     }
   },
 
+  getWaybillsByFlight: async (params: { flightId: string | number; partnerId?: string | number }): Promise<ApiResult<200, IWaybill[]> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/declaration/manifesto', { flight_id: params.flightId, partner_id: params.partnerId });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(
+          200,
+          (result.data || []).map((w: IWaybillPersistence) => waybillToDomain(w)),
+          null,
+        );
+      }
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
   getProformaInvoice: async (ids: (string | number)[]): Promise<ApiResult<200, IProformaInvoice> | ApiResult<400, string>> => {
     const url = urlMaker('/api/admin/declaration/proforma', { declaration_id: ids });
     try {
@@ -856,6 +875,134 @@ export const DeclarationsService = {
       return new ApiResult(400, 'Şəbəkə xətası.', null);
     }
   },
+
+  acceptDeclaration: async (id: string | number, data: { wardrobeNumber: string; description: string; updateStatus: boolean }): Promise<ApiResult<200, null> | ApiResult<400 | 422, any>> => {
+    const url = urlMaker('/api/admin/declaration/update');
+    const body = new FormData();
+    body.append('declaration_id', String(id));
+    body.append('wardrobe_number', data.wardrobeNumber);
+    body.append('descr', data.description);
+    body.append('change_state', Number(data.updateStatus).toString());
+    try {
+      const response = await caller(url, { method: 'POST', body });
+      if (response.ok) return new ApiResult(200, null, null);
+      const result = await response.json();
+      if (response.status === 422) return new ApiResult(422, result.errors || {}, null);
+      return new ApiResult(400, 'Xəta baş verdi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  importExcel: async (file: File): Promise<ApiResult<200, { message: string }> | ApiResult<400 | 422, any>> => {
+    const url = urlMaker('/api/admin/export/declaration/import');
+    const body = new FormData();
+    body.append('file', file);
+    try {
+      const response = await caller(url, { method: 'POST', body });
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, { message: result.data.message }, null);
+      }
+      const result = await response.json();
+      if (response.status === 422) return new ApiResult(422, result.errors || {}, null);
+      return new ApiResult(400, 'Xəta baş verdi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  getExportTasks: async (): Promise<ApiResult<200, IExportDeclarationTask[]> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/export/declaration/task_list', { sort_column: 'id', sort_order: 'desc' });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(
+          200,
+          (result.data || []).map((item: any) => ({
+            id: item.id,
+            type: item.type,
+            filePath: item.file_path,
+            createdAt: item.created_at,
+            updatedAt: item.updated_at,
+            user: { id: item.user?.id, name: item.user?.user_name || '' },
+            status: { id: item.status?.id || item.state_id, name: item.status?.name || '' },
+            model: { id: item.model?.id || item.model_id, name: item.model?.name || '' },
+          })),
+          null,
+        );
+      }
+      return new ApiResult(400, 'Xəta baş verdi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  downloadExportTask: async (id: string | number): Promise<ApiResult<200, Blob> | ApiResult<400, string>> => {
+    const url = urlMaker(`/api/admin/export/declaration/download/${id}`);
+    try {
+      const response = await caller(url);
+      if (response.ok) return new ApiResult(200, await response.blob(), null);
+      return new ApiResult(400, 'Sənəd hazırlana bilmədi', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  getHandoverExcel: async (query: Record<string, any>): Promise<ApiResult<200, Blob> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/declaration/handing_export', query);
+    try {
+      const response = await caller(url);
+      if (response.ok) return new ApiResult(200, await response.blob(), null);
+      return new ApiResult(400, 'Sənəd hazırlana bilmədi', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  getCurrentMonthDeclarations: async (query: Record<string, any> = {}): Promise<ApiResult<200, { data: IDeclaration[]; total: number }> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/declaration/this_month', {
+      page: 1,
+      per_page: 20,
+      ...query,
+    });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(
+          200,
+          {
+            data: (result.data || []).map((d: IDeclarationPersistence) => DeclarationMapper.toDomain(d)),
+            total: result.total || 0,
+          },
+          null,
+        );
+      }
+      return new ApiResult(400, 'Xəta baş verdi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  getTinyDeclarations: async (query: Record<string, any> = {}): Promise<ApiResult<200, { data: any[]; total: number }> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/declaration/minilist', {
+      page: 1,
+      per_page: 20,
+      ...query,
+    });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, { data: result.data || [], total: result.total || 0 }, null);
+      }
+      return new ApiResult(400, 'Xəta baş verdi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
 };
 
 export const DeletedDeclarationsService = {
@@ -945,6 +1092,33 @@ export const UnknownDeclarationsService = {
       return new ApiResult(400, 'Şəbəkə xətası.', null);
     }
   },
+
+  create: async (values: FormData): Promise<ApiResult<200, null> | ApiResult<400 | 422, any>> => {
+    const url = urlMaker('/api/admin/conflicted_declaration/create');
+    try {
+      const response = await caller(url, { method: 'POST', body: values });
+      if (response.ok) return new ApiResult(200, null, null);
+      const result = await response.json();
+      if (response.status === 422) return new ApiResult(422, result.errors || {}, null);
+      return new ApiResult(400, 'Xəta baş verdi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  update: async (id: string | number, values: FormData): Promise<ApiResult<200, null> | ApiResult<400 | 422, any>> => {
+    const url = urlMaker('/api/admin/conflicted_declaration/edit');
+    values.append('conflicted_declaration_id', String(id));
+    try {
+      const response = await caller(url, { method: 'POST', body: values });
+      if (response.ok) return new ApiResult(200, null, null);
+      const result = await response.json();
+      if (response.status === 422) return new ApiResult(422, result.errors || {}, null);
+      return new ApiResult(400, 'Xəta baş verdi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
 };
 
 const partnerDeclarationToDomain = (p: IPartnerDeclarationPersistence): IPartnerDeclaration => ({
@@ -996,6 +1170,17 @@ export const ArchivedDeclarationsService = {
         return new ApiResult(200, { data: (result.data || []).map((d: IDeclarationPersistence) => DeclarationMapper.toDomain(d)), total: result.total || 0 }, null);
       }
       return new ApiResult(400, 'Xəta baş verdi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  getExcel: async (query: Record<string, any> = {}): Promise<ApiResult<200, Blob> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/declaration/archive_export', query);
+    try {
+      const response = await caller(url);
+      if (response.ok) return new ApiResult(200, await response.blob(), null);
+      return new ApiResult(400, 'Sənəd hazırlana bilmədi', null);
     } catch {
       return new ApiResult(400, 'Şəbəkə xətası.', null);
     }

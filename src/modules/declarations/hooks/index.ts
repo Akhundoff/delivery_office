@@ -4,3 +4,4 @@ export * from './deletedDeclarations';
 export * from './postDeclarations';
 export * from './unknownDeclarations';
 export * from './partnerDeclarations';
+export * from './tinyDeclarations';

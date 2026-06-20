@@ -1,5 +1,5 @@
 import { ApiResult, caller, urlMaker } from '@shared/utils';
-import { INonSortedDeclaration, ISorting, ISortingDeclaration, ITransferInfo } from '../interfaces';
+import { IAzeriExpressInfo, INonSortedDeclaration, ISorting, ISortingDeclaration, ITransferInfo } from '../interfaces';
 
 const sortingToDomain = (s: any): ISorting => ({
   id: s.id,
@@ -55,18 +55,20 @@ const transferInfoToDomain = (t: any): ITransferInfo => ({
   isSendAzeriExpress: !!t.is_send_azeriexpress,
 });
 
-const listResult = <T>(mapper: (x: any) => T) => async (url: string): Promise<ApiResult<200, { data: T[]; total: number }> | ApiResult<400, string>> => {
-  try {
-    const response = await caller(url);
-    if (response.ok) {
-      const result = await response.json();
-      return new ApiResult(200, { data: (result.data || []).map(mapper), total: result.total || 0 }, null);
+const listResult =
+  <T>(mapper: (x: any) => T) =>
+  async (url: string): Promise<ApiResult<200, { data: T[]; total: number }> | ApiResult<400, string>> => {
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, { data: (result.data || []).map(mapper), total: result.total || 0 }, null);
+      }
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası', null);
     }
-    return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
-  } catch {
-    return new ApiResult(400, 'Şəbəkə xətası', null);
-  }
-};
+  };
 
 export const SortingService = {
   getList: (query: Record<string, any> = {}) => listResult(sortingToDomain)(urlMaker('/api/admin/sorting/list', { page: 1, per_page: 20, ...query })),
@@ -165,13 +167,67 @@ export const SortingService = {
     }
   },
 
+  sendToAzeriExpress: async (sortingId: number | string, note: string): Promise<ApiResult<200, string> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/azeriexpress/orders');
+    const body = new FormData();
+    body.append('sorting_id', String(sortingId));
+    body.append('note', note);
+    try {
+      const response = await caller(url, { method: 'POST', body });
+      const result = await response.json().catch(() => ({}));
+      if (response.ok) return new ApiResult(200, result.message || 'Göndərildi', null);
+      return new ApiResult(400, result?.message || 'Əməliyyat uğursuz oldu', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası', null);
+    }
+  },
+
+  getAzeriExpressInfo: async (id: string | number): Promise<ApiResult<200, IAzeriExpressInfo> | ApiResult<400, string>> => {
+    const url = urlMaker(`/api/admin/azeriexpress/orders/${id}`);
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        const o = result.order ?? result;
+        return new ApiResult(
+          200,
+          {
+            senderName: o.sender_name,
+            senderEmail: o.sender_email,
+            formattedSenderMobile: o.formattedSenderMobile,
+            receiverName: o.receiver_name,
+            receiverEmail: o.receiver_email,
+            formattedReceiverMobile: o.formattedReceiverMobile,
+            barcodeFullNumber: o.barcode?.full_number ?? '',
+            statusText: o.statusText,
+            priorityText: o.priorityText,
+            weight: o.weight,
+            distance: o.distance,
+            packageContents: o.package_contents,
+            pickupInstructions: o.pickup_instructions,
+            deliveryInstructions: o.delivery_instructions,
+            createdAt: o.created_at,
+          },
+          null,
+        );
+      }
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası', null);
+    }
+  },
+
   getSelectFlights: async (): Promise<ApiResult<200, { id: number; name: string }[]> | ApiResult<400, string>> => {
     const url = urlMaker('/api/admin/flights/select');
     try {
       const response = await caller(url);
       if (response.ok) {
         const result = await response.json();
-        return new ApiResult(200, (result.data || []).map((f: any) => ({ id: f.id, name: f.flight_name || f.name || '' })), null);
+        return new ApiResult(
+          200,
+          (result.data || []).map((f: any) => ({ id: f.id, name: f.flight_name || f.name || '' })),
+          null,
+        );
       }
       return new ApiResult(400, 'Uçuşlar əldə edilə bilmədi', null);
     } catch {

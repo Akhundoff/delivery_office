@@ -59,6 +59,7 @@ const WarehouseRouter = lazy(() => import('../modules/warehouse/router/page.rout
 const BoxTransfersRouter = lazy(() => import('../modules/box-transfers/router/page.router'));
 const AppointmentRouter = lazy(() => import('../modules/appointment/router/page.router'));
 const SortingRouter = lazy(() => import('../modules/sorting/router/page.router'));
+const SortingModalRouter = lazy(() => import('../modules/sorting/router/modal.router'));
 
 // Modal Routers
 const UsersModalRouter = lazy(() => import('../modules/users/router/modal.router'));
@@ -98,120 +99,121 @@ const OrdersModalRouter = lazy(() => import('../modules/orders/router/modal.rout
 const StatisticsModalRouter = lazy(() => import('../modules/statistics/router/modal.router'));
 
 export const MainRouter: FC = () => {
-    const location = useLocation();
-    const { state } = location;
-    const me = useContext(MeContext);
+  const location = useLocation();
+  const { state } = location;
+  const me = useContext(MeContext);
 
-    if (me.state.user.loading) {
-        return <SuspenseSpin />;
-    }
+  if (me.state.user.loading) {
+    return <SuspenseSpin />;
+  }
 
-    if (!me.state.user.data) {
-        return (
-            <Suspense fallback={<SuspenseSpin />}>
-                <Routes>
-                    <Route path='/*' element={<MeRouter />} />
-                </Routes>
-            </Suspense>
-        );
-    }
-
+  if (!me.state.user.data) {
     return (
-        <AppLayout>
-            <Suspense fallback={<SuspenseSpin />}>
-                <Routes location={state?.background || location}>
-                    <Route path='/users/*' element={<UsersRouter />} />
-                    <Route path='/declarations/*' element={<DeclarationsRouter />} />
-                    <Route path='/flights/*' element={<FlightsRouter />} />
-                    <Route path='/settings/*' element={<SystemSettingsRouter />} />
-                    <Route path='/coupons/*' element={<CouponsRouter />} />
-                    <Route path='/refunds/*' element={<RefundsRouter />} />
-                    <Route path='/cashback/*' element={<CashbacksRouter />} />
-                    <Route path='/cargoes/*' element={<CargoesRouter />} />
-                    <Route path='/boxes/*' element={<BoxesRouter />} />
-                    <Route path='/shop-names/*' element={<ShopNamesRouter />} />
-                    <Route path='/return-types/*' element={<ReturnTypesRouter />} />
-                    <Route path='/countries/*' element={<CountriesRouter />} />
-                    <Route path='/branches/*' element={<BranchesRouter />} />
-                    <Route path='/branch-partners/*' element={<BranchPartnersRouter />} />
-                    <Route path='/plans/*' element={<PlansRouter />} />
-                    <Route path='/product-types/*' element={<ProductTypesRouter />} />
-                    <Route path='/regions/*' element={<RegionsRouter />} />
-                    <Route path='/models/*' element={<ModelsRouter />} />
-                    <Route path='/status/*' element={<StatusesRouter />} />
-                    <Route path='/archive/state/*' element={<ArchiveStatusRouter />} />
-                    <Route path='/logs/*' element={<LogsRouter />} />
-                    <Route path='/news/*' element={<NewsRouter />} />
-                    <Route path='/faq/*' element={<FaqRouter />} />
-                    <Route path='/shops/*' element={<ShopsRouter />} />
-                    <Route path='/about/*' element={<AboutRouter />} />
-                    <Route path='/transportation_conditions/*' element={<TransportationConditionsRouter />} />
-                    <Route path='/banners/*' element={<BannersRouter />} />
-                    <Route path='/popups/*' element={<PopupsRouter />} />
-                    <Route path='/delivery-proofs/*' element={<DeliveryProofsRouter />} />
-                    <Route path='/customs/*' element={<CustomsRouter />} />
-                    <Route path='/united-queues/*' element={<UnitedQueuesRouter />} />
-                    <Route path='/azerpost-queues/*' element={<AzerpostQueuesRouter />} />
-                    <Route path='/failed-jobs/*' element={<FailedJobsRouter />} />
-                    <Route path='/notifier/*' element={<NotifierRouter />} />
-                    <Route path='/ticket-templates/*' element={<TicketTemplatesRouter />} />
-                    <Route path='/partner-boxes/*' element={<PartnerBoxesRouter />} />
-                    <Route path='/partner/acceptance/box/*' element={<PartnerBoxAcceptanceRouter />} />
-                    <Route path='/statistics/branches-partner/*' element={<PartnerStatisticsRouter />} />
-                    <Route path='/telegram-bot-users/*' element={<TelegramBotUsersRouter />} />
-                    <Route path='/transactions/*' element={<TransactionsRouter />} />
-                    <Route path='/couriers/*' element={<CouriersRouter />} />
-                    <Route path='/supports/*' element={<SupportsRouter />} />
-                    <Route path='/united-declarations/*' element={<UnitedDeclarationsRouter />} />
-                    <Route path='/united-returns/*' element={<UnitedReturnsRouter />} />
-                    <Route path='/branch-inspections/*' element={<BranchInspectionsRouter />} />
-                    <Route path='/orders/*' element={<OrdersRouter />} />
-                    <Route path='/cash-flow/*' element={<CashFlowRouter />} />
-                    <Route path='/statistics/*' element={<StatisticsRouter />} />
-                    <Route path='/warehouse/*' element={<WarehouseRouter />} />
-                    <Route path='/box-transfers/*' element={<BoxTransfersRouter />} />
-                    <Route path='/appointment/*' element={<AppointmentRouter />} />
-                    <Route path='/sorting/*' element={<SortingRouter />} />
-                    <Route path='*' element={<Navigate to='/statistics' replace />} />
-                </Routes>
-                <Routes>
-                    <Route path='/users/*' element={<UsersModalRouter />} />
-                    <Route path='/declarations/*' element={<DeclarationsModalRouter />} />
-                    <Route path='/flights/*' element={<FlightsModalRouter />} />
-                    <Route path='/cargoes/*' element={<CargoesModalRouter />} />
-                    <Route path='/boxes/*' element={<BoxesModalRouter />} />
-                    <Route path='/shop-names/*' element={<ShopNamesModalRouter />} />
-                    <Route path='/return-types/*' element={<ReturnTypesModalRouter />} />
-                    <Route path='/plans/*' element={<PlansModalRouter />} />
-                    <Route path='/product-types/*' element={<ProductTypesModalRouter />} />
-                    <Route path='/regions/*' element={<RegionsModalRouter />} />
-                    <Route path='/branch-partners/*' element={<BranchPartnersModalRouter />} />
-                    <Route path='/branches/*' element={<BranchesModalRouter />} />
-                    <Route path='/countries/*' element={<CountriesModalRouter />} />
-                    <Route path='/faq/*' element={<FaqModalRouter />} />
-                    <Route path='/news/*' element={<NewsModalRouter />} />
-                    <Route path='/shops/*' element={<ShopsModalRouter />} />
-                    <Route path='/banners/*' element={<BannersModalRouter />} />
-                    <Route path='/popups/*' element={<PopupsModalRouter />} />
-                    <Route path='/logs/*' element={<LogsModalRouter />} />
-                    <Route path='/customs/*' element={<CustomsModalRouter />} />
-                    <Route path='/united-queues/*' element={<UnitedQueuesModalRouter />} />
-                    <Route path='/azerpost-queues/*' element={<AzerpostQueuesModalRouter />} />
-                    <Route path='/failed-jobs/*' element={<FailedJobsModalRouter />} />
-                    <Route path='/partner-boxes/*' element={<PartnerBoxesModalRouter />} />
-                    <Route path='/coupons/*' element={<CouponsModalRouter />} />
-                    <Route path='/refunds/*' element={<RefundsModalRouter />} />
-                    <Route path='/status/*' element={<StatusesModalRouter />} />
-                    <Route path='/transactions/*' element={<TransactionsModalRouter />} />
-                    <Route path='/couriers/*' element={<CouriersModalRouter />} />
-                    <Route path='/cash-flow/*' element={<CashFlowModalRouter />} />
-                    <Route path='/united-returns/*' element={<UnitedReturnsModalRouter />} />
-                    <Route path='/branch-inspections/*' element={<BranchInspectionsModalRouter />} />
-                    <Route path='/supports/*' element={<SupportsModalRouter />} />
-                    <Route path='/orders/*' element={<OrdersModalRouter />} />
-                    <Route path='/statistics/*' element={<StatisticsModalRouter />} />
-                </Routes>
-            </Suspense>
-        </AppLayout>
+      <Suspense fallback={<SuspenseSpin />}>
+        <Routes>
+          <Route path="/*" element={<MeRouter />} />
+        </Routes>
+      </Suspense>
     );
+  }
+
+  return (
+    <AppLayout>
+      <Suspense fallback={<SuspenseSpin />}>
+        <Routes location={state?.background || location}>
+          <Route path="/users/*" element={<UsersRouter />} />
+          <Route path="/declarations/*" element={<DeclarationsRouter />} />
+          <Route path="/flights/*" element={<FlightsRouter />} />
+          <Route path="/settings/*" element={<SystemSettingsRouter />} />
+          <Route path="/coupons/*" element={<CouponsRouter />} />
+          <Route path="/refunds/*" element={<RefundsRouter />} />
+          <Route path="/cashback/*" element={<CashbacksRouter />} />
+          <Route path="/cargoes/*" element={<CargoesRouter />} />
+          <Route path="/boxes/*" element={<BoxesRouter />} />
+          <Route path="/shop-names/*" element={<ShopNamesRouter />} />
+          <Route path="/return-types/*" element={<ReturnTypesRouter />} />
+          <Route path="/countries/*" element={<CountriesRouter />} />
+          <Route path="/branches/*" element={<BranchesRouter />} />
+          <Route path="/branch-partners/*" element={<BranchPartnersRouter />} />
+          <Route path="/plans/*" element={<PlansRouter />} />
+          <Route path="/product-types/*" element={<ProductTypesRouter />} />
+          <Route path="/regions/*" element={<RegionsRouter />} />
+          <Route path="/models/*" element={<ModelsRouter />} />
+          <Route path="/status/*" element={<StatusesRouter />} />
+          <Route path="/archive/state/*" element={<ArchiveStatusRouter />} />
+          <Route path="/logs/*" element={<LogsRouter />} />
+          <Route path="/news/*" element={<NewsRouter />} />
+          <Route path="/faq/*" element={<FaqRouter />} />
+          <Route path="/shops/*" element={<ShopsRouter />} />
+          <Route path="/about/*" element={<AboutRouter />} />
+          <Route path="/transportation_conditions/*" element={<TransportationConditionsRouter />} />
+          <Route path="/banners/*" element={<BannersRouter />} />
+          <Route path="/popups/*" element={<PopupsRouter />} />
+          <Route path="/delivery-proofs/*" element={<DeliveryProofsRouter />} />
+          <Route path="/customs/*" element={<CustomsRouter />} />
+          <Route path="/united-queues/*" element={<UnitedQueuesRouter />} />
+          <Route path="/azerpost-queues/*" element={<AzerpostQueuesRouter />} />
+          <Route path="/failed-jobs/*" element={<FailedJobsRouter />} />
+          <Route path="/notifier/*" element={<NotifierRouter />} />
+          <Route path="/ticket-templates/*" element={<TicketTemplatesRouter />} />
+          <Route path="/partner-boxes/*" element={<PartnerBoxesRouter />} />
+          <Route path="/partner/acceptance/box/*" element={<PartnerBoxAcceptanceRouter />} />
+          <Route path="/statistics/branches-partner/*" element={<PartnerStatisticsRouter />} />
+          <Route path="/telegram-bot-users/*" element={<TelegramBotUsersRouter />} />
+          <Route path="/transactions/*" element={<TransactionsRouter />} />
+          <Route path="/couriers/*" element={<CouriersRouter />} />
+          <Route path="/supports/*" element={<SupportsRouter />} />
+          <Route path="/united-declarations/*" element={<UnitedDeclarationsRouter />} />
+          <Route path="/united-returns/*" element={<UnitedReturnsRouter />} />
+          <Route path="/branch-inspections/*" element={<BranchInspectionsRouter />} />
+          <Route path="/orders/*" element={<OrdersRouter />} />
+          <Route path="/cash-flow/*" element={<CashFlowRouter />} />
+          <Route path="/statistics/*" element={<StatisticsRouter />} />
+          <Route path="/warehouse/*" element={<WarehouseRouter />} />
+          <Route path="/box-transfers/*" element={<BoxTransfersRouter />} />
+          <Route path="/appointment/*" element={<AppointmentRouter />} />
+          <Route path="/sorting/*" element={<SortingRouter />} />
+          <Route path="*" element={<Navigate to="/statistics" replace />} />
+        </Routes>
+        <Routes>
+          <Route path="/users/*" element={<UsersModalRouter />} />
+          <Route path="/declarations/*" element={<DeclarationsModalRouter />} />
+          <Route path="/flights/*" element={<FlightsModalRouter />} />
+          <Route path="/cargoes/*" element={<CargoesModalRouter />} />
+          <Route path="/boxes/*" element={<BoxesModalRouter />} />
+          <Route path="/shop-names/*" element={<ShopNamesModalRouter />} />
+          <Route path="/return-types/*" element={<ReturnTypesModalRouter />} />
+          <Route path="/plans/*" element={<PlansModalRouter />} />
+          <Route path="/product-types/*" element={<ProductTypesModalRouter />} />
+          <Route path="/regions/*" element={<RegionsModalRouter />} />
+          <Route path="/branch-partners/*" element={<BranchPartnersModalRouter />} />
+          <Route path="/branches/*" element={<BranchesModalRouter />} />
+          <Route path="/countries/*" element={<CountriesModalRouter />} />
+          <Route path="/faq/*" element={<FaqModalRouter />} />
+          <Route path="/news/*" element={<NewsModalRouter />} />
+          <Route path="/shops/*" element={<ShopsModalRouter />} />
+          <Route path="/banners/*" element={<BannersModalRouter />} />
+          <Route path="/popups/*" element={<PopupsModalRouter />} />
+          <Route path="/logs/*" element={<LogsModalRouter />} />
+          <Route path="/customs/*" element={<CustomsModalRouter />} />
+          <Route path="/united-queues/*" element={<UnitedQueuesModalRouter />} />
+          <Route path="/azerpost-queues/*" element={<AzerpostQueuesModalRouter />} />
+          <Route path="/failed-jobs/*" element={<FailedJobsModalRouter />} />
+          <Route path="/partner-boxes/*" element={<PartnerBoxesModalRouter />} />
+          <Route path="/coupons/*" element={<CouponsModalRouter />} />
+          <Route path="/refunds/*" element={<RefundsModalRouter />} />
+          <Route path="/status/*" element={<StatusesModalRouter />} />
+          <Route path="/transactions/*" element={<TransactionsModalRouter />} />
+          <Route path="/couriers/*" element={<CouriersModalRouter />} />
+          <Route path="/cash-flow/*" element={<CashFlowModalRouter />} />
+          <Route path="/united-returns/*" element={<UnitedReturnsModalRouter />} />
+          <Route path="/branch-inspections/*" element={<BranchInspectionsModalRouter />} />
+          <Route path="/supports/*" element={<SupportsModalRouter />} />
+          <Route path="/orders/*" element={<OrdersModalRouter />} />
+          <Route path="/statistics/*" element={<StatisticsModalRouter />} />
+          <Route path="/sorting/*" element={<SortingModalRouter />} />
+        </Routes>
+      </Suspense>
+    </AppLayout>
+  );
 };

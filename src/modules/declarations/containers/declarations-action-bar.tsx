@@ -27,6 +27,13 @@ export const DeclarationsActionBar = () => {
         .map(([rowId]) => rowId),
     [state.selectedRowIds],
   );
+  const selectionSummary = useMemo(() => {
+    const selected = state.data.filter((d) => state.selectedRowIds[d.id]);
+    const usd = selected.reduce((acc, d) => acc + ((d as any).deliveryPrice || 0), 0);
+    const azn = Math.round(usd * 1.7 * 100) / 100;
+    const weight = selected.reduce((acc, d) => acc + ((d as any).weight || 0), 0);
+    return { usd: usd.toFixed(2), azn: azn.toFixed(2), weight: weight.toFixed(2) };
+  }, [state.data, state.selectedRowIds]);
   const { freelyStatuses, updateSelectedStatus, bulkUpdateStatus } = useDeclarationStatusChange();
   const { handleExport, exportedData } = useMassiveExport(DeclarationsService.getDeclarations);
 
@@ -170,6 +177,18 @@ export const DeclarationsActionBar = () => {
       icon: <Icons.SearchOutlined />,
       onClick: exportWantedAsExcel,
     },
+    {
+      key: 'handover-export',
+      label: 'Təhvil Excel',
+      icon: <Icons.FileExcelOutlined />,
+      onClick: () => backgroundNavigate('/declarations/handover-export', { withBackground: true }),
+    },
+    {
+      key: 'import',
+      label: 'Excel Filter',
+      icon: <Icons.ImportOutlined />,
+      onClick: () => backgroundNavigate('/declarations/import', { withBackground: true }),
+    },
   ];
 
   return (
@@ -186,12 +205,29 @@ export const DeclarationsActionBar = () => {
           ) : (
             <StyledActionBar.Selection>
               <Icons.CloseCircleTwoTone twoToneColor="#ff4d4f" onClick={handleResetSelection} style={{ cursor: 'pointer', fontSize: 16 }} role="icon" />
-              <span>{selectionCount} seçilib</span>
+              <span>
+                {selectionCount} sətir | Çatdırılma: (${selectionSummary.usd} / ₼{selectionSummary.azn}) | Çəki: {selectionSummary.weight}
+              </span>
             </StyledActionBar.Selection>
           )}
-          <StyledHeaderButton type="text" icon={<Icons.DollarOutlined />} onClick={() => navigate('/declarations/handover')}>
-            Toplu təhvil
-          </StyledHeaderButton>
+          <Dropdown
+            trigger={['click']}
+            menu={{
+              items: [
+                { key: 'standard', label: 'Standart', onClick: () => navigate('/declarations/acceptance') },
+                { key: 'box', label: 'Yeşiklərlə', onClick: () => navigate('/declarations/acceptance/box') },
+              ],
+            }}
+          >
+            <StyledHeaderButton type="text" icon={<Icons.LoginOutlined />}>
+              Qəbul
+            </StyledHeaderButton>
+          </Dropdown>
+          {can('bulkdeclarationhandover') && (
+            <StyledHeaderButton type="text" icon={<Icons.DollarOutlined />} onClick={() => navigate('/declarations/handover')}>
+              Toplu təhvil
+            </StyledHeaderButton>
+          )}
           {selectionCount > 0 ? (
             <Dropdown trigger={['click']} disabled={!freelyStatuses.length} menu={{ items: statusMenuItems(updateSelectedStatus) }}>
               <StyledHeaderButton type="text" icon={<Icons.AppstoreOutlined />}>

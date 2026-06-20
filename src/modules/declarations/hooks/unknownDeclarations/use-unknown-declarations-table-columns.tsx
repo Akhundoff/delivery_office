@@ -20,15 +20,12 @@ export const useUnknownDeclarationsTableColumns = (): Column<IUnknownDeclaration
         Cell: ({ row: { original } }: any) => (
           <StopPropagation>
             <Space size={4}>
-              <Button
-                icon={<Icons.FileSearchOutlined />}
-                size='small'
-                onClick={() => navigate(`/declarations/unknowns/${original.id}`, { withBackground: true })}
-              />
+              <Button icon={<Icons.FileSearchOutlined />} size="small" onClick={() => navigate(`/declarations/unknowns/${original.id}`, { withBackground: true })} />
+              <Button icon={<Icons.EditOutlined />} size="small" onClick={() => navigate(`/declarations/unknowns/${original.id}/update`, { withBackground: true })} />
               <Button
                 icon={<Icons.CheckOutlined />}
-                size='small'
-                type='primary'
+                size="small"
+                type="primary"
                 ghost
                 onClick={() => {
                   Modal.confirm({
@@ -36,15 +33,17 @@ export const useUnknownDeclarationsTableColumns = (): Column<IUnknownDeclaration
                     content: 'Bu bəyannaməni qəbul etmək istədiyinizdən əminsinizmi?',
                     onOk: async () => {
                       const result = await UnknownDeclarationsService.accept(original.id);
-                      if (result.status === 200) { message.success('Qəbul edildi'); handleFetch(); }
-                      else message.error(result.data as string);
+                      if (result.status === 200) {
+                        message.success('Qəbul edildi');
+                        handleFetch();
+                      } else message.error(result.data as string);
                     },
                   });
                 }}
               />
               <Button
                 icon={<Icons.DeleteOutlined />}
-                size='small'
+                size="small"
                 danger
                 onClick={() => {
                   Modal.confirm({
@@ -52,8 +51,10 @@ export const useUnknownDeclarationsTableColumns = (): Column<IUnknownDeclaration
                     content: 'Ləğv etmək istədiyinizdən əminsinizmi?',
                     onOk: async () => {
                       const result = await UnknownDeclarationsService.cancel([original.id]);
-                      if (result.status === 200) { message.success('Ləğv edildi'); handleFetch(); }
-                      else message.error(result.data as string);
+                      if (result.status === 200) {
+                        message.success('Ləğv edildi');
+                        handleFetch();
+                      } else message.error(result.data as string);
                     },
                   });
                 }}

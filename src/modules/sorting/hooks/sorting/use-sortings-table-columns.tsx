@@ -5,13 +5,17 @@ import { Column } from 'react-table';
 import { nextTableColumns } from '@shared/modules/next-table/helpers/next-table-columns';
 import { StopPropagation } from '@shared/components/stop-propagation';
 import { useBackgroundNavigate } from '@shared/hooks';
+import { useNavigate } from 'react-router-dom';
+import { MeContext } from '@modules/me';
 import { ISorting } from '../../interfaces';
 import { SortingsTableContext } from '../../context';
 import { SortingService } from '../../services';
 
 export const useSortingsTableColumns = (): Column<ISorting>[] => {
   const navigate = useBackgroundNavigate();
+  const plainNavigate = useNavigate();
   const { handleFetch } = useContext(SortingsTableContext);
+  const { can } = useContext(MeContext);
 
   const actionsColumn = useMemo<Column<ISorting>>(
     () => ({
@@ -19,20 +23,15 @@ export const useSortingsTableColumns = (): Column<ISorting>[] => {
       Cell: ({ row: { original } }: any) => {
         const items: MenuProps['items'] = [
           { key: 'details', label: 'Ətraflı bax', icon: <Icons.FileSearchOutlined />, onClick: () => navigate(`/sorting/${original.id}`) },
+          ...(can('parcel_sorting_create')
+            ? [{ key: 'edit', label: 'Düzəliş et', icon: <Icons.EditOutlined />, onClick: () => plainNavigate('/sorting/acceptance', { state: { id: original.id } }) }]
+            : []),
           {
             key: 'azeriexpress',
             label: 'AzəriExpress-ə göndər',
             icon: <Icons.TransactionOutlined />,
             disabled: original.isSendAzeriexpress,
-            onClick: () =>
-              Modal.confirm({
-                title: 'AzəriExpress-ə göndərilsin?',
-                onOk: async () => {
-                  const result = await SortingService.send(original.id);
-                  if (result.status === 200) { message.success(result.data as string); handleFetch(); }
-                  else message.error(result.data as string);
-                },
-              }),
+            onClick: () => navigate(`/sorting/${original.id}/send`, { withBackground: true }),
           },
           {
             key: 'flyex',
@@ -43,8 +42,10 @@ export const useSortingsTableColumns = (): Column<ISorting>[] => {
                 title: 'Flyex-ə göndərilsin?',
                 onOk: async () => {
                   const result = await SortingService.transferToFlyex(original.id);
-                  if (result.status === 200) { message.success(result.data as string); handleFetch(); }
-                  else message.error(result.data as string);
+                  if (result.status === 200) {
+                    message.success(result.data as string);
+                    handleFetch();
+                  } else message.error(result.data as string);
                 },
               }),
           },
@@ -59,7 +60,7 @@ export const useSortingsTableColumns = (): Column<ISorting>[] => {
         );
       },
     }),
-    [navigate, handleFetch],
+    [navigate, plainNavigate, handleFetch, can],
   );
 
   const baseColumns = useMemo<Column<ISorting>[]>(
