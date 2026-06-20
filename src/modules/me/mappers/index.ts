@@ -9,10 +9,9 @@ export class MeMappers {
       firstName: userData.name,
       lastName: userData.surname,
       email: userData.email,
-      permissions: Array.isArray(raw?.permissions)
-        ? raw.permissions.map(({ code_name }: any) => code_name)
-        : [],
+      permissions: Array.isArray(raw?.permissions) ? raw.permissions.map(({ code_name }: any) => code_name) : [],
       adminBranchId: userData.admin_branch_id ?? null,
+      admin: userData.admin ?? null,
     };
   }
 

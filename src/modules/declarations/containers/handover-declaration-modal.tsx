@@ -11,6 +11,7 @@ const fmt = (n: number | undefined) => (n != null ? n.toFixed(2) : '0.00');
 
 export const HandoverDeclarationModal: FC = () => {
   const { id } = useParams<{ id: string }>();
+  const ids = useMemo(() => id!.split(','), [id]);
   const navigate = useNavigate();
   const close = () => navigate(-1);
   const { handleFetch } = useContext(DeclarationsTableContext);
@@ -29,7 +30,7 @@ export const HandoverDeclarationModal: FC = () => {
   const { data: details, isLoading } = useQuery(
     ['handover-details', id, smallPackage, mediumPackage, bigPackage],
     () =>
-      DeclarationsService.getHandoverDetails([id!], {
+      DeclarationsService.getHandoverDetails(ids, {
         small_package: String(smallPackage),
         medium_package: String(mediumPackage),
         big_package: String(bigPackage),
@@ -62,7 +63,7 @@ export const HandoverDeclarationModal: FC = () => {
 
   const handleOk = async () => {
     setSubmitting(true);
-    const result = await DeclarationsService.handover([id!], {
+    const result = await DeclarationsService.handover(ids, {
       cash: cashAmount,
       terminal: terminalAmount || '0',
       accepted: handover,
@@ -79,7 +80,12 @@ export const HandoverDeclarationModal: FC = () => {
       handleFetch();
       close();
     } else {
-      const errMsg = typeof result.data === 'object' ? Object.values(result.data as object).flat().join('. ') : String(result.data);
+      const errMsg =
+        typeof result.data === 'object'
+          ? Object.values(result.data as object)
+              .flat()
+              .join('. ')
+          : String(result.data);
       message.error(errMsg || 'Xəta baş verdi.');
     }
   };
@@ -95,20 +101,24 @@ export const HandoverDeclarationModal: FC = () => {
       title={
         <Space>
           <Typography.Text strong>Bağlamaları təhvil ver</Typography.Text>
-          {totalUsd > 0.03 && <Tag color='error' icon={<WalletOutlined />}>Ödəniş tələb edilir</Tag>}
+          {totalUsd > 0.03 && (
+            <Tag color="error" icon={<WalletOutlined />}>
+              Ödəniş tələb edilir
+            </Tag>
+          )}
         </Space>
       }
-      okText='Təsdiq et'
-      cancelText='İmtina'
+      okText="Təsdiq et"
+      cancelText="İmtina"
       width={720}
     >
       {isLoading && <Spin />}
       {details && (
-        <Space direction='vertical' size='middle' style={{ width: '100%' }}>
+        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
           {totalUsd > 0.03 && (
             <Alert
               banner
-              type='error'
+              type="error"
               showIcon
               message={
                 <Typography.Text strong style={{ fontSize: 15 }}>
@@ -120,19 +130,25 @@ export const HandoverDeclarationModal: FC = () => {
 
           <Row gutter={12}>
             <Col xs={24} lg={14}>
-              <Card size='small' title='Ödəniş xülasəsi'>
-                <Descriptions bordered column={1} size='small'>
-                  <Descriptions.Item label='Sifariş'>{fmt(details.ordersPrice.try)} ₺ / {fmt(details.ordersPrice.azn)} ₼</Descriptions.Item>
-                  <Descriptions.Item label='Bağlama'>{fmt(details.deliveryPrice.usd)} $ / {fmt(details.deliveryPrice.azn)} ₼</Descriptions.Item>
-                  <Descriptions.Item label='Borc'>{fmt(details.debt.total.usd)} $ / {fmt(details.debt.total.azn)} ₼</Descriptions.Item>
-                  <Descriptions.Item label='Paket qiyməti'>{fmt(details.debt.all.package)} ₼</Descriptions.Item>
+              <Card size="small" title="Ödəniş xülasəsi">
+                <Descriptions bordered column={1} size="small">
+                  <Descriptions.Item label="Sifariş">
+                    {fmt(details.ordersPrice.try)} ₺ / {fmt(details.ordersPrice.azn)} ₼
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Bağlama">
+                    {fmt(details.deliveryPrice.usd)} $ / {fmt(details.deliveryPrice.azn)} ₼
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Borc">
+                    {fmt(details.debt.total.usd)} $ / {fmt(details.debt.total.azn)} ₼
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Paket qiyməti">{fmt(details.debt.all.package)} ₼</Descriptions.Item>
                   <Descriptions.Item label={<Typography.Text strong>Cəmi ödəniləcək</Typography.Text>}>
-                    <Button type='link' size='small' style={{ padding: 0, fontWeight: 600 }} onClick={() => setTerminalAmount('')}>
+                    <Button type="link" size="small" style={{ padding: 0, fontWeight: 600 }} onClick={() => setTerminalAmount('')}>
                       {fmt(details.debt.all.azn)} ₼
                     </Button>
                   </Descriptions.Item>
-                  <Descriptions.Item label='Minimal ödəniləcək'>
-                    <Button type='link' size='small' style={{ padding: 0 }} onClick={() => setTerminalAmount(fmt(totalAmount - details.debt.minimum.azn))}>
+                  <Descriptions.Item label="Minimal ödəniləcək">
+                    <Button type="link" size="small" style={{ padding: 0 }} onClick={() => setTerminalAmount(fmt(totalAmount - details.debt.minimum.azn))}>
                       {fmt(details.debt.minimum.azn)} ₼
                     </Button>
                   </Descriptions.Item>
@@ -140,61 +156,89 @@ export const HandoverDeclarationModal: FC = () => {
               </Card>
             </Col>
             <Col xs={24} lg={10}>
-              <Card size='small' title='Balans'>
-                <Statistic title='ABŞ Dolları' value={details.balance.usd} precision={2} prefix='$' valueStyle={{ color: '#3f8600', fontSize: 18 }} />
+              <Card size="small" title="Balans">
+                <Statistic title="ABŞ Dolları" value={details.balance.usd} precision={2} prefix="$" valueStyle={{ color: '#3f8600', fontSize: 18 }} />
                 <Divider style={{ margin: '8px 0' }} />
-                <Statistic title='Türk Lirəsi' value={details.balance.try} precision={2} prefix='₺' valueStyle={{ color: '#cf1322', fontSize: 18 }} />
+                <Statistic title="Türk Lirəsi" value={details.balance.try} precision={2} prefix="₺" valueStyle={{ color: '#cf1322', fontSize: 18 }} />
               </Card>
             </Col>
           </Row>
 
-          <Card size='small' title='Ödəniş detalları'>
+          <Card size="small" title="Ödəniş detalları">
             <Row gutter={12}>
               <Col xs={24} sm={8}>
-                <Typography.Text type='secondary' style={{ fontSize: 12 }}>Nağd 💵</Typography.Text>
+                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                  Nağd 💵
+                </Typography.Text>
                 <Input value={`${cashAmount} ₼`} disabled style={{ fontWeight: 600, marginTop: 4 }} />
               </Col>
               <Col xs={24} sm={8}>
-                <Typography.Text type='secondary' style={{ fontSize: 12 }}>Terminal 💳</Typography.Text>
-                <Input value={terminalAmount} onChange={(e) => setTerminalAmount(e.target.value)} placeholder='0.00' suffix='₼' style={{ fontWeight: 600, marginTop: 4 }} />
+                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                  Terminal 💳
+                </Typography.Text>
+                <Input value={terminalAmount} onChange={(e) => setTerminalAmount(e.target.value)} placeholder="0.00" suffix="₼" style={{ fontWeight: 600, marginTop: 4 }} />
               </Col>
               <Col xs={24} sm={8}>
-                <Typography.Text type='secondary' style={{ fontSize: 12 }}>Alınan məbləğ 💸</Typography.Text>
-                <Input value={amountToBeBorrowed} onChange={(e) => setAmountToBeBorrowed(e.target.value)} placeholder='0.00' suffix='₼' style={{ fontWeight: 600, marginTop: 4 }} />
+                <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+                  Alınan məbləğ 💸
+                </Typography.Text>
+                <Input value={amountToBeBorrowed} onChange={(e) => setAmountToBeBorrowed(e.target.value)} placeholder="0.00" suffix="₼" style={{ fontWeight: 600, marginTop: 4 }} />
               </Col>
             </Row>
             {amountToGiveBack !== 0 && (
               <Alert
                 style={{ marginTop: 8 }}
-                message='Qaytarılmalı məbləğ'
-                description={<Typography.Text strong style={{ color: amountToGiveBack > 0 ? 'green' : 'red' }}>{fmt(amountToGiveBack)} ₼</Typography.Text>}
+                message="Qaytarılmalı məbləğ"
+                description={
+                  <Typography.Text strong style={{ color: amountToGiveBack > 0 ? 'green' : 'red' }}>
+                    {fmt(amountToGiveBack)} ₼
+                  </Typography.Text>
+                }
                 type={amountToGiveBack > 0 ? 'success' : 'warning'}
                 showIcon
               />
             )}
           </Card>
 
-          <Card size='small' title='Əməliyyatlar'>
+          <Card size="small" title="Əməliyyatlar">
             <Row gutter={12}>
               <Col xs={24} md={12}>
-                <Space direction='vertical'>
-                  <Checkbox checked={handover} disabled={!handoverPreparations} onChange={(e) => setHandover(e.target.checked)}>✓ Təhvil ver</Checkbox>
-                  <Checkbox checked={handoverPreparations} onChange={(e) => setHandoverPreparations(e.target.checked)}>🏬 Anbara yönəlt</Checkbox>
-                  <Checkbox checked={redirectToBalance} onChange={(e) => setRedirectToBalance(e.target.checked)}>💰 Balans artır</Checkbox>
+                <Space direction="vertical">
+                  <Checkbox checked={handover} disabled={!handoverPreparations} onChange={(e) => setHandover(e.target.checked)}>
+                    ✓ Təhvil ver
+                  </Checkbox>
+                  <Checkbox checked={handoverPreparations} onChange={(e) => setHandoverPreparations(e.target.checked)}>
+                    🏬 Anbara yönəlt
+                  </Checkbox>
+                  <Checkbox checked={redirectToBalance} onChange={(e) => setRedirectToBalance(e.target.checked)}>
+                    💰 Balans artır
+                  </Checkbox>
                 </Space>
-                {!handoverPreparations && <Alert message='Təhvil sənədi avtomatik çap ediləcək' type='info' showIcon style={{ marginTop: 12, fontSize: 12 }} />}
+                {!handoverPreparations && <Alert message="Təhvil sənədi avtomatik çap ediləcək" type="info" showIcon style={{ marginTop: 12, fontSize: 12 }} />}
               </Col>
               <Col xs={24} md={12}>
                 <div style={{ background: '#fafafa', padding: '8px 12px', borderRadius: 4 }}>
-                  <Typography.Text strong style={{ display: 'block', marginBottom: 8, fontSize: 13 }}>Paket sayı</Typography.Text>
-                  {([['Böyük', bigPackage, setBigPackage], ['Orta', mediumPackage, setMediumPackage], ['Kiçik', smallPackage, setSmallPackage]] as [string, number, (v: number) => void][]).map(([label, val, setter]) => (
-                    <Row key={label} align='middle' gutter={8} style={{ marginBottom: 6 }}>
-                      <Col flex='55px'><Typography.Text strong style={{ fontSize: 12 }}>{label}:</Typography.Text></Col>
-                      <Col flex='auto'>
+                  <Typography.Text strong style={{ display: 'block', marginBottom: 8, fontSize: 13 }}>
+                    Paket sayı
+                  </Typography.Text>
+                  {(
+                    [
+                      ['Böyük', bigPackage, setBigPackage],
+                      ['Orta', mediumPackage, setMediumPackage],
+                      ['Kiçik', smallPackage, setSmallPackage],
+                    ] as [string, number, (v: number) => void][]
+                  ).map(([label, val, setter]) => (
+                    <Row key={label} align="middle" gutter={8} style={{ marginBottom: 6 }}>
+                      <Col flex="55px">
+                        <Typography.Text strong style={{ fontSize: 12 }}>
+                          {label}:
+                        </Typography.Text>
+                      </Col>
+                      <Col flex="auto">
                         <Space size={0} style={{ display: 'flex' }}>
-                          <Button size='small' icon={<MinusOutlined />} disabled={val <= 0} onClick={() => setter(val - 1)} style={{ borderRadius: '4px 0 0 4px' }} />
-                          <InputNumber min={0} max={20} value={val} onChange={(v) => setter(v ?? 0)} size='small' style={{ width: 60, borderRadius: 0, textAlign: 'center' }} />
-                          <Button size='small' icon={<PlusOutlined />} disabled={val >= 20} onClick={() => setter(val + 1)} style={{ borderRadius: '0 4px 4px 0' }} />
+                          <Button size="small" icon={<MinusOutlined />} disabled={val <= 0} onClick={() => setter(val - 1)} style={{ borderRadius: '4px 0 0 4px' }} />
+                          <InputNumber min={0} max={20} value={val} onChange={(v) => setter(v ?? 0)} size="small" style={{ width: 60, borderRadius: 0, textAlign: 'center' }} />
+                          <Button size="small" icon={<PlusOutlined />} disabled={val >= 20} onClick={() => setter(val + 1)} style={{ borderRadius: '0 4px 4px 0' }} />
                         </Space>
                       </Col>
                     </Row>
