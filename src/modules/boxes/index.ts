@@ -1,2 +1,2 @@
 export type { IBox, ITinyBox } from './interfaces';
-export { useTinyBoxes } from './hooks';
+export { useTinyBoxes, useBoxes, useMyBox, useSelectBox, useCloseBox, useTransferBox } from './hooks';

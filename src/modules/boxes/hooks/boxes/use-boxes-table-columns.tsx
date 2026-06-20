@@ -21,6 +21,7 @@ export const useBoxesTableColumns = (): Column<IBox>[] => {
       Cell: ({ row: { original } }: any) => {
         const items: MenuProps['items'] = [
           { key: 'edit', label: 'Düzəliş et', icon: <Icons.EditOutlined />, onClick: () => navigate(`/boxes/${original.id}/update`, { withBackground: true }) },
+          { key: 'history', label: 'Tarixçə', icon: <Icons.HistoryOutlined />, onClick: () => navigate(`/box-transfers/${original.id}/container`) },
           { type: 'divider' },
           {
             key: 'delete',
@@ -73,7 +74,7 @@ export const useBoxesTableColumns = (): Column<IBox>[] => {
         ),
       },
       { accessor: (r) => r.user?.name || '—', id: 'user_id', Header: 'İstifadəçi' },
-      { ...nextTableColumns.small, accessor: (r) => r.declarationCount, id: 'declaration_count', Header: 'Bağlama sayı', filterable: false },
+      { ...nextTableColumns.small, accessor: (r) => r.declarationCount, id: 'declaration_count', Header: 'Bağlama sayı', filterable: false, Cell: ({ cell: { value } }: any) => `${value} ədəd` },
       { ...nextTableColumns.date, accessor: (r) => r.createdAt, id: 'created_at', Header: 'Tarix' },
     ],
     [branches.data],

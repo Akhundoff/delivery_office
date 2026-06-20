@@ -14,6 +14,7 @@ const SystemSettingsRouter = lazy(() => import('../modules/system-settings/route
 const CouponsRouter = lazy(() => import('../modules/coupons/router/page.router'));
 const RefundsRouter = lazy(() => import('../modules/refunds/router/page.router'));
 const CashbacksRouter = lazy(() => import('../modules/cashbacks/router/page.router'));
+const CashbacksModalRouter = lazy(() => import('../modules/cashbacks/router/modal.router'));
 const CargoesRouter = lazy(() => import('../modules/cargoes/router/page.router'));
 const BoxesRouter = lazy(() => import('../modules/boxes/router/page.router'));
 const ShopNamesRouter = lazy(() => import('../modules/shop-names/router/page.router'));
@@ -212,6 +213,7 @@ export const MainRouter: FC = () => {
           <Route path="/orders/*" element={<OrdersModalRouter />} />
           <Route path="/statistics/*" element={<StatisticsModalRouter />} />
           <Route path="/sorting/*" element={<SortingModalRouter />} />
+          <Route path="/cashback/*" element={<CashbacksModalRouter />} />
         </Routes>
       </Suspense>
     </AppLayout>

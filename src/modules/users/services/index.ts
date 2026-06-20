@@ -1,7 +1,6 @@
-import { ApiResult, caller, urlMaker } from '@shared/utils';
+import { ApiResult, caller, urlMaker, appendToFormData, formDataFlat } from '@shared/utils';
 import { IUser, IUserPersistence, IDetailedUser, IDetailedUserPersistence, CreateUserDto, CreateDiscountDto, IOperationGroup, IUserPermissions } from '../interfaces';
 import { UserMapper, DetailedUserMapper } from '../mappers';
-import dayjs from 'dayjs';
 
 export const UsersService = {
   getUsers: async (query: Record<string, any> = {}): Promise<ApiResult<200, { data: IUser[]; total: number }> | ApiResult<400, string>> => {
@@ -46,20 +45,7 @@ export const UsersService = {
   createUser: async (dto: CreateUserDto): Promise<ApiResult<200, null> | ApiResult<400 | 422 | 500, string>> => {
     const url = urlMaker('/api/admin/client/create');
     const body = new FormData();
-    body.append('name', dto.firstname);
-    body.append('surname', dto.lastname);
-    body.append('email', dto.email);
-    body.append('number', dto.phoneNumber);
-    body.append('gender', dto.gender);
-    body.append('birth_date', dto.birthDate ? dayjs(dto.birthDate).format('YYYY-MM-DD') : '');
-    body.append('address', dto.address);
-    body.append('branch_id', dto.branchId);
-    body.append('passport_number', dto.passport.number);
-    body.append('passport_secret', dto.passport.secret);
-    body.append('password', dto.password);
-    body.append('password_confirmation', dto.passwordConfirmation);
-    body.append('send_mail', dto.sendEmail ? '1' : '0');
-    body.append('send_sms', dto.sendSms ? '1' : '0');
+    appendToFormData(UserMapper.toPersistence(dto), body);
     try {
       const response = await caller(url, { method: 'POST', body });
       if (response.ok) return new ApiResult(200, null, null);
@@ -79,21 +65,7 @@ export const UsersService = {
   updateUser: async (id: string | number, dto: CreateUserDto): Promise<ApiResult<200, null> | ApiResult<400 | 422 | 500, string>> => {
     const url = urlMaker('/api/admin/client/update');
     const body = new FormData();
-    body.append('user_id', String(id));
-    body.append('name', dto.firstname);
-    body.append('surname', dto.lastname);
-    body.append('email', dto.email);
-    body.append('number', dto.phoneNumber);
-    body.append('gender', dto.gender);
-    body.append('birth_date', dto.birthDate ? dayjs(dto.birthDate).format('YYYY-MM-DD') : '');
-    body.append('address', dto.address);
-    body.append('branch_id', dto.branchId);
-    body.append('passport_number', dto.passport.number);
-    body.append('passport_secret', dto.passport.secret);
-    if (dto.password) body.append('password', dto.password);
-    if (dto.passwordConfirmation) body.append('password_confirmation', dto.passwordConfirmation);
-    body.append('send_mail', dto.sendEmail ? '1' : '0');
-    body.append('send_sms', dto.sendSms ? '1' : '0');
+    appendToFormData(UserMapper.toPersistence(dto, id), body);
     try {
       const response = await caller(url, { method: 'POST', body });
       if (response.ok) return new ApiResult(200, null, null);
@@ -149,11 +121,7 @@ export const UsersService = {
   createDiscount: async (userId: string | number, dto: CreateDiscountDto): Promise<ApiResult<200, null> | ApiResult<400 | 422 | 500, string>> => {
     const url = urlMaker('/api/admin/users/discount');
     const body = new FormData();
-    body.append('user_id', String(userId));
-    body.append('discount', dto.discount);
-    body.append('discount_date', dto.discountDate ? dayjs(dto.discountDate).format('YYYY-MM-DD') : '');
-    if (dto.countryId) body.append('country_id', dto.countryId);
-    if (dto.descr) body.append('descr', dto.descr);
+    appendToFormData(UserMapper.discountToPersistence(userId, dto), body);
     try {
       const response = await caller(url, { method: 'POST', body });
       if (response.ok) return new ApiResult(200, null, null);
@@ -211,10 +179,8 @@ export const UsersService = {
   updateUserPermissions: async (userId: string | number, operationIds: number[], cashboxId?: number, adminBranchId?: number): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
     const url = urlMaker('/api/admin/permissions/edit');
     const body = new FormData();
-    body.append('user_id', String(userId));
+    appendToFormData(formDataFlat({ user_id: userId, cashbox_id: cashboxId, admin_branch_id: adminBranchId }), body);
     operationIds.forEach((id) => body.append('operation_id[]', String(id)));
-    if (cashboxId) body.append('cashbox_id', String(cashboxId));
-    if (adminBranchId) body.append('admin_branch_id', String(adminBranchId));
     try {
       const response = await caller(url, { method: 'POST', body });
       if (response.ok) return new ApiResult(200, null, null);
@@ -301,10 +267,35 @@ export const UsersService = {
     }
   },
 
+  exportDiscountUsersExcel: async (query: Record<string, any> = {}): Promise<ApiResult<200, Blob> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/user_discounts_export', query);
+    try {
+      const response = await caller(url);
+      if (response.ok) return new ApiResult(200, await response.blob(), null);
+      return new ApiResult(400, 'Export xətası baş verdi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  getAppUsers: async (query: Record<string, any> = {}): Promise<ApiResult<200, { data: import('../interfaces').IAppUser[]; total: number }> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/users/app/options', query);
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, { data: result.data ?? [], total: result.total ?? 0 }, null);
+      }
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
   removeDiscount: async (discountId: string | number): Promise<ApiResult<200, null> | ApiResult<400 | 500, string>> => {
     const url = urlMaker('/api/admin/users/discountCancel');
     const body = new FormData();
-    body.append('user_discount_id', String(discountId));
+    appendToFormData(formDataFlat({ user_discount_id: discountId }), body);
     try {
       const response = await caller(url, { method: 'POST', body });
       if (response.ok) return new ApiResult(200, null, null);

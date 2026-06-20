@@ -1,11 +1,11 @@
 import React, { useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { NextTable } from '@shared/modules/next-table/containers';
+import { useBackgroundNavigate } from '@shared/hooks';
 import { TinyDeclarationsTableContext } from '../context';
 import { useTinyDeclarationsTableColumns } from '../hooks/tinyDeclarations/use-tiny-declarations-table-columns';
 
 export const TinyDeclarationsTable: React.FC = () => {
-  const navigate = useNavigate();
+  const navigate = useBackgroundNavigate();
   const columns = useTinyDeclarationsTableColumns();
 
   const getRowProps = useCallback(

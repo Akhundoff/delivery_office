@@ -18,6 +18,73 @@ export type ICourier = {
   courierPrice: number;
 };
 
+export type IDetailedCourierDeclaration = {
+  id: number;
+  trackCode: number;
+  globalTrackCode: string;
+  weight: number;
+  quantity: number;
+  productPrice: number;
+  deliveryPrice: number;
+  penaltyPrice: number;
+  paid: boolean;
+  shop: string;
+  createdAt: string;
+};
+
+export type IDetailedCourier = {
+  id: number;
+  documentNumber: string;
+  postBranch: string;
+  user: { id: number; name: string };
+  branch: { id: number; name: string };
+  status: { id: number; name: string };
+  region: { id: number | null; name: string };
+  recipient: string;
+  address: string;
+  phoneNumber: string;
+  price: number;
+  totalPrice: number;
+  courierPrice: number;
+  paid: boolean;
+  declarations: { quantity: number; weight: number; items: IDetailedCourierDeclaration[] };
+  read: boolean;
+  description: string;
+  isAzerpost: boolean;
+  createdAt: string;
+  azerpost?: {
+    orderId: string;
+    vendorId: string;
+    packageId: string;
+    deliveryPostCode: string;
+    packageWeight: string;
+    customerAddress: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phoneNo: string;
+    deliveryType: string;
+    charge: string;
+    orderStatus: string;
+    createdAt: string;
+    history: { createdAt: string; details: string }[];
+  };
+};
+
+export type IAzerpostBranch = {
+  id: number;
+  name: string;
+  branch_index: string;
+  region_id: number;
+};
+
+export type ICourierCost = {
+  region_price: string;
+  total_declaration_count: number;
+  total_price: number;
+  total_weight: number;
+};
+
 export type IDelivererAssignment = {
   id: number;
   client: { id: number; name: string };
@@ -40,6 +107,8 @@ export type CreateCourierDto = {
   address: string;
   paid: boolean;
   description: string;
+  postBranch?: string;
+  documentNumber?: string;
 };
 
 export type ICourierPaymentDetails = {

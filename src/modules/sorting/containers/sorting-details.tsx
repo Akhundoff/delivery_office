@@ -1,5 +1,5 @@
 import { FC, useCallback, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from 'react-query';
 import { Card, Col, Descriptions, Radio, Result, Row, Space, Spin, Table, message } from 'antd';
 import * as Icons from '@ant-design/icons';
@@ -27,8 +27,7 @@ const DeclarationsTable: FC<{ id: string; view: SortingDeclarationsView }> = ({ 
 
 export const SortingDetails: FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const backgroundNavigate = useBackgroundNavigate();
+  const navigate = useBackgroundNavigate();
   const [sending, setSending] = useState(false);
   const [view, setView] = useState<SortingDeclarationsView>('total');
   const queryClient = useQueryClient();
@@ -96,7 +95,7 @@ export const SortingDetails: FC = () => {
               </StyledHeaderButton>
             )}
             {!data.isSendAzeriExpress && (
-              <StyledHeaderButton type="text" onClick={() => backgroundNavigate(`/sorting/${id}/send`, { withBackground: true })} icon={<Icons.TransactionOutlined />}>
+              <StyledHeaderButton type="text" onClick={() => navigate(`/sorting/${id}/send`, { withBackground: true })} icon={<Icons.TransactionOutlined />}>
                 AzəriExpress API
               </StyledHeaderButton>
             )}
@@ -168,8 +167,11 @@ export const SortingDetails: FC = () => {
             <Radio.Button value="another">
               <Icons.CheckOutlined /> Digər uçuşa aid
             </Radio.Button>
+            <Radio.Button value="sorting">
+              <Icons.CheckOutlined /> Yalnız uçuşa aid
+            </Radio.Button>
             <Radio.Button value="missing">
-              <Icons.CloseOutlined /> Əskik bağlamalar
+              <Icons.CloseOutlined /> Göndərilməyən bağlamalar
             </Radio.Button>
           </Radio.Group>
           <DeclarationsTable id={id!} view={view} />

@@ -1,4 +1,4 @@
-import { ApiResult, caller, urlMaker } from '@shared/utils';
+import { ApiResult, caller, urlMaker, appendToFormData, formDataFlat } from '@shared/utils';
 import {
   IDeclaration,
   IDeclarationPersistence,
@@ -217,25 +217,7 @@ export const DeclarationsService = {
   createDeclaration: async (values: IDeclarationFormValues, combinedIds?: (string | number)[]): Promise<ApiResult<200, null> | ApiResult<400 | 422, any>> => {
     const url = urlMaker('/api/admin/declaration/create');
     const body = new FormData();
-    body.append('user_id', values.userId);
-    body.append('measure_id', '1');
-    body.append('global_track_code', values.globalTrackCode);
-    body.append('product_type_id', values.productTypeId);
-    body.append('quantity', values.quantity);
-    body.append('is_special', Number(values.isSpecial).toString());
-    body.append('is_commercial', Number(values.isCommercial).toString());
-    body.append('tariff_category_id', values.planTypeId || '');
-    body.append('type', values.isLiquid ? '1' : '2');
-    body.append('descr', values.description);
-    body.append('weight', values.weight);
-    body.append('country_id', values.countryId);
-    body.append('branch_id', values.branchId);
-    body.append('price', values.price);
-    body.append('voen', values.voen);
-    body.append('wardrobe_number', values.wardrobeNumber);
-    body.append('delivery_price', values.deliveryPrice);
-    body.append('shop_name', values.shop);
-    if (values.file) body.append('document_file', values.file);
+    appendToFormData(DeclarationMapper.toPersistence(values), body);
     combinedIds?.forEach((id) => body.append('combined_id[]', String(id)));
     try {
       const response = await caller(url, { method: 'POST', body });
@@ -255,27 +237,7 @@ export const DeclarationsService = {
   updateDeclaration: async (id: string | number, values: IDeclarationFormValues): Promise<ApiResult<200, null> | ApiResult<400 | 422, any>> => {
     const url = urlMaker('/api/admin/declaration/edit');
     const body = new FormData();
-    body.append('declaration_id', String(id));
-    body.append('user_id', values.userId);
-    body.append('measure_id', '1');
-    body.append('global_track_code', values.globalTrackCode);
-    body.append('product_type_id', values.productTypeId);
-    body.append('quantity', values.quantity);
-    body.append('is_special', Number(values.isSpecial).toString());
-    body.append('is_commercial', Number(values.isCommercial).toString());
-    body.append('tariff_category_id', values.planTypeId || '');
-    body.append('type', values.isLiquid ? '1' : '2');
-    body.append('descr', values.description);
-    body.append('weight', values.weight);
-    body.append('country_id', values.countryId);
-    body.append('branch_id', values.branchId);
-    body.append('price', values.price);
-    body.append('voen', values.voen);
-    body.append('container_id', values.boxId);
-    body.append('wardrobe_number', values.wardrobeNumber);
-    body.append('delivery_price', values.deliveryPrice);
-    body.append('shop_name', values.shop);
-    if (values.file) body.append('document_file', values.file);
+    appendToFormData(DeclarationMapper.toPersistence(values, id), body);
     try {
       const response = await caller(url, { method: 'POST', body });
       if (response.ok) {
@@ -308,9 +270,7 @@ export const DeclarationsService = {
     const url = urlMaker('/api/admin/declaration/pay');
     const body = new FormData();
     ids.forEach((id) => body.append('declaration_id[]', String(id)));
-    body.append('amount', amount);
-    body.append('payment_type_id', paymentTypeId);
-    body.append('cashbox_id', cashboxId);
+    appendToFormData({ amount, payment_type_id: paymentTypeId, cashbox_id: cashboxId }, body);
     try {
       const response = await caller(url, { method: 'POST', body });
       if (response.ok) return new ApiResult(200, null, null);
@@ -325,8 +285,7 @@ export const DeclarationsService = {
   bulkHandover: async (stateId: string, tariffCategoryId: string): Promise<ApiResult<200, null> | ApiResult<400 | 422, any>> => {
     const url = urlMaker('/api/admin/declaration/handover');
     const body = new FormData();
-    body.append('state_id', stateId);
-    body.append('tariff_category_id', tariffCategoryId);
+    appendToFormData({ state_id: stateId, tariff_category_id: tariffCategoryId }, body);
     try {
       const response = await caller(url, { method: 'POST', body });
       if (response.ok) return new ApiResult(200, null, null);
@@ -503,8 +462,7 @@ export const DeclarationsService = {
     const url = urlMaker('/api/admin/declaration/trendyol/updateState');
     const body = new FormData();
     ids.forEach((id) => body.append('declaration_id[]', String(id)));
-    body.append('trendyol_state_id', String(statusId));
-    body.append('filter', String(filter));
+    appendToFormData(formDataFlat({ trendyol_state_id: statusId, filter }), body);
     try {
       const response = await caller(url, { method: 'POST', body });
       if (response.ok) return new ApiResult(200, null, null);
@@ -530,7 +488,7 @@ export const DeclarationsService = {
   changeTemuPincode: async (id: string | number, values: { pincode: string }): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
     const url = urlMaker(`/api/admin/declaration/trendyol/fin_change/${id}`);
     const body = new FormData();
-    body.append('pincode', values.pincode);
+    appendToFormData({ pincode: values.pincode }, body);
     try {
       const response = await caller(url, { method: 'POST', body });
       if (response.ok) return new ApiResult(200, null, null);
@@ -544,9 +502,7 @@ export const DeclarationsService = {
   addCommercial: async (values: { declarationId: string; awb: string; voen: string }): Promise<ApiResult<200, null> | ApiResult<422, Record<string, string[]>> | ApiResult<400, string>> => {
     const url = urlMaker('/api/admin/declaration/commercial');
     const body = new FormData();
-    body.append('declaration_id', values.declarationId);
-    body.append('awb', values.awb);
-    body.append('voen', values.voen);
+    appendToFormData({ declaration_id: values.declarationId, awb: values.awb, voen: values.voen }, body);
     try {
       const response = await caller(url, { method: 'POST', body });
       if (response.ok) return new ApiResult(200, null, null);
@@ -566,11 +522,7 @@ export const DeclarationsService = {
   ): Promise<ApiResult<200, IHandoverDetails> | ApiResult<400, string>> => {
     const url = urlMaker('/api/admin/declaration/pay', { declaration_id: ids });
     const body = new FormData();
-    if (packages) {
-      if (packages.small_package) body.append('small_package', packages.small_package);
-      if (packages.medium_package) body.append('medium_package', packages.medium_package);
-      if (packages.big_package) body.append('big_package', packages.big_package);
-    }
+    if (packages) appendToFormData(packages, body);
     try {
       const response = await caller(url, { method: 'POST', body });
       if (response.ok) {
@@ -617,15 +569,20 @@ export const DeclarationsService = {
     const url = urlMaker('/api/admin/declaration/pay');
     const body = new FormData();
     ids.forEach((id) => body.append('declaration_id[]', String(id)));
-    body.append('cash', data.cash);
-    body.append('terminal', data.terminal);
-    body.append('accepted', data.accepted ? '1' : '0');
-    body.append('handover_task', data.handover_task ? '1' : '0');
-    body.append('redirect_to_balance', data.redirect_to_balance ? '1' : '0');
-    body.append('small_package', data.small_package);
-    body.append('medium_package', data.medium_package);
-    body.append('big_package', data.big_package);
-    body.append('confirm', data.confirm ? '1' : '0');
+    appendToFormData(
+      formDataFlat({
+        cash: data.cash,
+        terminal: data.terminal,
+        accepted: data.accepted,
+        handover_task: data.handover_task,
+        redirect_to_balance: data.redirect_to_balance,
+        small_package: data.small_package,
+        medium_package: data.medium_package,
+        big_package: data.big_package,
+        confirm: data.confirm,
+      }),
+      body,
+    );
     try {
       const response = await caller(url, { method: 'POST', body });
       if (response.ok) {
@@ -677,11 +634,16 @@ export const DeclarationsService = {
   ): Promise<ApiResult<200, null> | ApiResult<400 | 422, any>> => {
     const url = urlMaker('/api/admin/returns/run');
     const body = new FormData();
-    body.append('declaration_id', String(id));
-    body.append('return_reason_id', data.typeId);
-    body.append('return_order_extra', data.returnOrderExtra ? '1' : '0');
-    body.append('return_declaration_price', data.returnDeclarationPrice ? '1' : '0');
-    body.append('return_delivery_price', data.returnDeliveryPrice ? '1' : '0');
+    appendToFormData(
+      formDataFlat({
+        declaration_id: id,
+        return_reason_id: data.typeId,
+        return_order_extra: data.returnOrderExtra,
+        return_declaration_price: data.returnDeclarationPrice,
+        return_delivery_price: data.returnDeliveryPrice,
+      }),
+      body,
+    );
     try {
       const response = await caller(url, { method: 'POST', body });
       if (response.ok) return new ApiResult(200, null, null);
@@ -879,10 +841,7 @@ export const DeclarationsService = {
   acceptDeclaration: async (id: string | number, data: { wardrobeNumber: string; description: string; updateStatus: boolean }): Promise<ApiResult<200, null> | ApiResult<400 | 422, any>> => {
     const url = urlMaker('/api/admin/declaration/update');
     const body = new FormData();
-    body.append('declaration_id', String(id));
-    body.append('wardrobe_number', data.wardrobeNumber);
-    body.append('descr', data.description);
-    body.append('change_state', Number(data.updateStatus).toString());
+    appendToFormData(formDataFlat({ declaration_id: id, wardrobe_number: data.wardrobeNumber, descr: data.description, change_state: data.updateStatus }), body);
     try {
       const response = await caller(url, { method: 'POST', body });
       if (response.ok) return new ApiResult(200, null, null);
@@ -986,7 +945,7 @@ export const DeclarationsService = {
     }
   },
 
-  getTinyDeclarations: async (query: Record<string, any> = {}): Promise<ApiResult<200, { data: any[]; total: number }> | ApiResult<400, string>> => {
+  getTinyDeclarations: async (query: Record<string, any> = {}): Promise<ApiResult<200, { data: IDeclaration[]; total: number }> | ApiResult<400, string>> => {
     const url = urlMaker('/api/admin/declaration/minilist', {
       page: 1,
       per_page: 20,
@@ -996,7 +955,7 @@ export const DeclarationsService = {
       const response = await caller(url);
       if (response.ok) {
         const result = await response.json();
-        return new ApiResult(200, { data: result.data || [], total: result.total || 0 }, null);
+        return new ApiResult(200, { data: (result.data || []).map((d: IDeclarationPersistence) => DeclarationMapper.toDomain(d)), total: result.total || 0 }, null);
       }
       return new ApiResult(400, 'Xəta baş verdi.', null);
     } catch {
@@ -1083,7 +1042,7 @@ export const UnknownDeclarationsService = {
   accept: async (id: string | number): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
     const url = urlMaker('/api/admin/conflicted_declaration/accept');
     const body = new FormData();
-    body.append('conflicted_declaration_id', String(id));
+    appendToFormData(formDataFlat({ conflicted_declaration_id: id }), body);
     try {
       const response = await caller(url, { method: 'POST', body });
       if (response.ok) return new ApiResult(200, null, null);

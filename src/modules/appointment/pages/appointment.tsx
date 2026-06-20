@@ -54,7 +54,12 @@ export const AppointmentPage: FC = () => {
             <Statistic title="Balans" value={user.balance.try} prefix="₺" precision={2} />
           </Card>
         </Col>
-        <Col span={24} lg={8} xl={18}>
+        <Col span={24} lg={8} xl={3}>
+          <Card size="small" bodyStyle={{ paddingTop: 3, paddingBottom: 2 }}>
+            <Statistic title="Borc" value={user.debt.try} prefix="₺" precision={2} />
+          </Card>
+        </Col>
+        <Col span={24} lg={24} xl={15}>
           <UserDescriptions layout="vertical" column={4}>
             <Descriptions.Item label="Ş.V Nömrəsi">{user.passport.number || '—'}</Descriptions.Item>
             <Descriptions.Item label="FİN Kod">{user.passport.secret || '—'}</Descriptions.Item>
@@ -70,10 +75,10 @@ export const AppointmentPage: FC = () => {
               <DeclarationsAppointmentTable userId={userId!} />
             </Fragment>
           )}
-          {section === 'orders' && <OrdersAppointmentTable userId={userId!} />}
-          {section === 'couriers' && <CouriersAppointmentTable userId={userId!} />}
-          {section === 'transactions' && <TransactionsAppointmentTable userId={userId!} />}
-          {section === 'customsDeclarations' && <CustomsDeclarationsAppointmentTable userId={userId!} />}
+          <Col span={24}>{section === 'orders' && <OrdersAppointmentTable userId={userId!} />}</Col>
+          <Col span={24}>{section === 'couriers' && <CouriersAppointmentTable userId={userId!} />}</Col>
+          <Col span={24}>{section === 'transactions' && <TransactionsAppointmentTable userId={userId!} />}</Col>
+          <Col span={24}>{section === 'customsDeclarations' && <CustomsDeclarationsAppointmentTable userId={userId!} />}</Col>
         </Col>
       </Row>
     </PageContent>

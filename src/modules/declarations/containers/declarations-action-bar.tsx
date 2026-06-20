@@ -1,7 +1,6 @@
-import React, { useCallback, useContext, useMemo } from 'react';
+import { useCallback, useContext, useMemo } from 'react';
 import * as Icons from '@ant-design/icons';
 import { Dropdown, MenuProps, Modal, Space, message } from 'antd';
-import { useNavigate } from 'react-router-dom';
 import { CSVLink } from 'react-csv';
 import { HeadPortal } from '@modules/layout/components/head-portal';
 import { StyledHeaderButton } from '@modules/layout/styled';
@@ -15,8 +14,7 @@ import { printProformaInvoiceForIds } from '../hooks/declarationDetail/use-print
 import { DeclarationsService } from '../services';
 
 export const DeclarationsActionBar = () => {
-  const backgroundNavigate = useBackgroundNavigate();
-  const navigate = useNavigate();
+  const navigate = useBackgroundNavigate();
   const { can } = useContext(MeContext);
   const { state, handleFetch, handleReset, handleSelectAll, handleResetSelection } = useContext(DeclarationsTableContext);
   const selectionCount = Object.values(state.selectedRowIds).filter(Boolean).length;
@@ -44,8 +42,8 @@ export const DeclarationsActionBar = () => {
   }, [handleExport, state.filters]);
 
   const openCountsByStatus = useCallback(() => {
-    backgroundNavigate('/statistics/status/declaration-counts', { withBackground: true });
-  }, [backgroundNavigate]);
+    navigate('/statistics/status/declaration-counts', { withBackground: true });
+  }, [navigate]);
 
   const exportAsExcel = useCallback(async () => {
     message.loading({ key: 'declarations-export', content: 'Sənəd hazırlanır...', duration: 0 });
@@ -94,15 +92,15 @@ export const DeclarationsActionBar = () => {
     const result = await DeclarationsService.combine(selectedIds);
     message.destroy('declarations-combine');
     if (result.status === 200) {
-      backgroundNavigate('/declarations/create', { withBackground: true, state: { combined: { ids: selectedIds, declaration: result.data } } });
+      navigate('/declarations/create', { withBackground: true, state: { combined: { ids: selectedIds, declaration: result.data } } });
     } else {
       message.error(result.data as string);
     }
-  }, [backgroundNavigate, selectedIds]);
+  }, [navigate, selectedIds]);
 
   const handoverSelected = useCallback(() => {
-    backgroundNavigate(`/declarations/${selectedIds.join(',')}/handover`, { withBackground: true });
-  }, [backgroundNavigate, selectedIds]);
+    navigate(`/declarations/${selectedIds.join(',')}/handover`, { withBackground: true });
+  }, [navigate, selectedIds]);
 
   const printProformaSelected = useCallback(() => {
     printProformaInvoiceForIds(selectedIds);
@@ -181,13 +179,13 @@ export const DeclarationsActionBar = () => {
       key: 'handover-export',
       label: 'Təhvil Excel',
       icon: <Icons.FileExcelOutlined />,
-      onClick: () => backgroundNavigate('/declarations/handover-export', { withBackground: true }),
+      onClick: () => navigate('/declarations/handover-export', { withBackground: true }),
     },
     {
       key: 'import',
       label: 'Excel Filter',
       icon: <Icons.ImportOutlined />,
-      onClick: () => backgroundNavigate('/declarations/import', { withBackground: true }),
+      onClick: () => navigate('/declarations/import', { withBackground: true }),
     },
   ];
 
@@ -195,7 +193,7 @@ export const DeclarationsActionBar = () => {
     <HeadPortal>
       <StyledActionBar $flex={true}>
         <Space>
-          <StyledHeaderButton type="text" onClick={() => backgroundNavigate('/declarations/create', { withBackground: true })} icon={<Icons.PlusCircleOutlined />}>
+          <StyledHeaderButton type="text" onClick={() => navigate('/declarations/create', { withBackground: true })} icon={<Icons.PlusCircleOutlined />}>
             Yeni
           </StyledHeaderButton>
           {!selectionCount ? (
