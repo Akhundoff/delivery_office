@@ -43,6 +43,18 @@ export const getCurrencySymbol = (currency: string | null | undefined): string =
   }
 };
 
+const COUNTRY_NAMES: Record<number, string> = {
+  [CountryIds.TURKIYE]: 'Türkiyə',
+  [CountryIds.AMERICA]: 'Amerika',
+  [CountryIds.CHINA]: 'Çin',
+  [CountryIds.SPAIN]: 'İspaniya',
+};
+
+export const getCountryName = (id: string | number | null | undefined): string => {
+  if (!id) return '';
+  return COUNTRY_NAMES[Number(id)] ?? '';
+};
+
 // Status that represents a rejected/cancelled order — opens the rejection-reason modal.
 export const REJECTED_STATUS_ID = 4;
 

@@ -1,6 +1,27 @@
-import { ApiResult, caller, urlMaker } from "@shared/utils";
-import { IDeclaration, IDeclarationPersistence, IDeclarationFormValues, IDeclarationPost, IDeclarationPostPersistence, IUnknownDeclaration, IUnknownDeclarationPersistence, IPartnerDeclaration, IPartnerDeclarationPersistence, IWaybill, IWaybillPersistence, IProformaInvoice, IProformaInvoicePersistence, IStatusMapItem, IStatusMapItemPersistence, IDeclarationCustomsStatus, IDeclarationCustomsStatusPersistence, IParcelStates, IParcelStatesPersistence } from "../interfaces";
-import { DeclarationMapper } from "../mappers";
+import { ApiResult, caller, urlMaker, appendToFormData, formDataFlat } from '@shared/utils';
+import {
+  IDeclaration,
+  IDeclarationPersistence,
+  IDeclarationFormValues,
+  IDeclarationPost,
+  IDeclarationPostPersistence,
+  IUnknownDeclaration,
+  IUnknownDeclarationPersistence,
+  IPartnerDeclaration,
+  IPartnerDeclarationPersistence,
+  IWaybill,
+  IWaybillPersistence,
+  IProformaInvoice,
+  IProformaInvoicePersistence,
+  IStatusMapItem,
+  IStatusMapItemPersistence,
+  IDeclarationCustomsStatus,
+  IDeclarationCustomsStatusPersistence,
+  IParcelStates,
+  IParcelStatesPersistence,
+  IExportDeclarationTask,
+} from '../interfaces';
+import { DeclarationMapper } from '../mappers';
 
 const round2 = (value: number) => Math.round(value * 100) / 100;
 
@@ -138,13 +159,8 @@ const declarationPostToDomain = (p: IDeclarationPostPersistence): IDeclarationPo
 });
 
 export const DeclarationsService = {
-  getDeclarations: async (
-    query: Record<string, any> = {},
-  ): Promise<
-    | ApiResult<200, { data: IDeclaration[]; total: number }>
-    | ApiResult<400, string>
-  > => {
-    const url = urlMaker("/api/admin/v2/declaration/list", {
+  getDeclarations: async (query: Record<string, any> = {}): Promise<ApiResult<200, { data: IDeclaration[]; total: number }> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/v2/declaration/list', {
       page: 1,
       per_page: 20,
       ...query,
@@ -156,40 +172,34 @@ export const DeclarationsService = {
         return new ApiResult(
           200,
           {
-            data: (result.data || []).map((d: IDeclarationPersistence) =>
-              DeclarationMapper.toDomain(d),
-            ),
+            data: (result.data || []).map((d: IDeclarationPersistence) => DeclarationMapper.toDomain(d)),
             total: result.total || 0,
           },
           null,
         );
       }
-      return new ApiResult(400, "Xəta baş verdi.", null);
+      return new ApiResult(400, 'Xəta baş verdi.', null);
     } catch {
-      return new ApiResult(400, "Şəbəkə xətası.", null);
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
     }
   },
 
-  getDeclarationById: async (
-    id: string | number,
-  ): Promise<ApiResult<200, IDeclaration> | ApiResult<400 | 500, string>> => {
-    const url = urlMaker("/api/admin/declaration/info", { declaration_id: id });
+  getDeclarationById: async (id: string | number): Promise<ApiResult<200, IDeclaration> | ApiResult<400 | 500, string>> => {
+    const url = urlMaker('/api/admin/declaration/info', { declaration_id: id });
     try {
       const response = await caller(url);
       if (response.ok) {
         const result = await response.json();
         return new ApiResult(200, DeclarationMapper.toDomain(result.data as IDeclarationPersistence), null);
       }
-      return new ApiResult(400, "Məlumatlar əldə edilə bilmədi", null);
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
     } catch {
-      return new ApiResult(500, "Şəbəkə xətası.", null);
+      return new ApiResult(500, 'Şəbəkə xətası.', null);
     }
   },
 
-  getDeclarationByTrackCode: async (
-    params: { trackCode: string; trendyol?: boolean },
-  ): Promise<ApiResult<200, IDeclaration> | ApiResult<400 | 500, string>> => {
-    const url = urlMaker("/api/admin/declaration/info_by_track_code", { track_code: params.trackCode, trendyol: params.trendyol ? "1" : undefined });
+  getDeclarationByTrackCode: async (params: { trackCode: string; trendyol?: boolean }): Promise<ApiResult<200, IDeclaration> | ApiResult<400 | 500, string>> => {
+    const url = urlMaker('/api/admin/declaration/info_by_track_code', { track_code: params.trackCode, trendyol: params.trendyol ? '1' : undefined });
     try {
       const response = await caller(url);
       if (response.ok) {
@@ -198,38 +208,19 @@ export const DeclarationsService = {
       }
       const result = await response.json();
       const trackCodeError = result?.errors?.track_code;
-      return new ApiResult(400, trackCodeError ? Object.values(result.errors).flat().join(", ") : "Məlumatlar əldə edilə bilmədi", null);
+      return new ApiResult(400, trackCodeError ? Object.values(result.errors).flat().join(', ') : 'Məlumatlar əldə edilə bilmədi', null);
     } catch {
-      return new ApiResult(500, "Şəbəkə ilə əlaqə qurula bilmədi.", null);
+      return new ApiResult(500, 'Şəbəkə ilə əlaqə qurula bilmədi.', null);
     }
   },
 
-  createDeclaration: async (
-    values: IDeclarationFormValues,
-  ): Promise<ApiResult<200, null> | ApiResult<400 | 422, any>> => {
-    const url = urlMaker("/api/admin/declaration/create");
+  createDeclaration: async (values: IDeclarationFormValues, combinedIds?: (string | number)[]): Promise<ApiResult<200, null> | ApiResult<400 | 422, any>> => {
+    const url = urlMaker('/api/admin/declaration/create');
     const body = new FormData();
-    body.append("user_id", values.userId);
-    body.append("measure_id", "1");
-    body.append("global_track_code", values.globalTrackCode);
-    body.append("product_type_id", values.productTypeId);
-    body.append("quantity", values.quantity);
-    body.append("is_special", Number(values.isSpecial).toString());
-    body.append("is_commercial", Number(values.isCommercial).toString());
-    body.append("tariff_category_id", values.planTypeId || "");
-    body.append("type", values.isLiquid ? "1" : "2");
-    body.append("descr", values.description);
-    body.append("weight", values.weight);
-    body.append("country_id", values.countryId);
-    body.append("branch_id", values.branchId);
-    body.append("price", values.price);
-    body.append("voen", values.voen);
-    body.append("wardrobe_number", values.wardrobeNumber);
-    body.append("delivery_price", values.deliveryPrice);
-    body.append("shop_name", values.shop);
-    if (values.file) body.append("document_file", values.file);
+    appendToFormData(DeclarationMapper.toPersistence(values), body);
+    combinedIds?.forEach((id) => body.append('combined_id[]', String(id)));
     try {
-      const response = await caller(url, { method: "POST", body });
+      const response = await caller(url, { method: 'POST', body });
       if (response.ok) {
         return new ApiResult(200, null, null);
       }
@@ -237,41 +228,18 @@ export const DeclarationsService = {
       if (response.status === 422) {
         return new ApiResult(422, result.errors || {}, null);
       }
-      return new ApiResult(400, "Xəta baş verdi.", null);
+      return new ApiResult(400, 'Xəta baş verdi.', null);
     } catch {
-      return new ApiResult(400, "Şəbəkə xətası.", null);
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
     }
   },
 
-  updateDeclaration: async (
-    id: string | number,
-    values: IDeclarationFormValues,
-  ): Promise<ApiResult<200, null> | ApiResult<400 | 422, any>> => {
-    const url = urlMaker("/api/admin/declaration/edit");
+  updateDeclaration: async (id: string | number, values: IDeclarationFormValues): Promise<ApiResult<200, null> | ApiResult<400 | 422, any>> => {
+    const url = urlMaker('/api/admin/declaration/edit');
     const body = new FormData();
-    body.append("declaration_id", String(id));
-    body.append("user_id", values.userId);
-    body.append("measure_id", "1");
-    body.append("global_track_code", values.globalTrackCode);
-    body.append("product_type_id", values.productTypeId);
-    body.append("quantity", values.quantity);
-    body.append("is_special", Number(values.isSpecial).toString());
-    body.append("is_commercial", Number(values.isCommercial).toString());
-    body.append("tariff_category_id", values.planTypeId || "");
-    body.append("type", values.isLiquid ? "1" : "2");
-    body.append("descr", values.description);
-    body.append("weight", values.weight);
-    body.append("country_id", values.countryId);
-    body.append("branch_id", values.branchId);
-    body.append("price", values.price);
-    body.append("voen", values.voen);
-    body.append("container_id", values.boxId);
-    body.append("wardrobe_number", values.wardrobeNumber);
-    body.append("delivery_price", values.deliveryPrice);
-    body.append("shop_name", values.shop);
-    if (values.file) body.append("document_file", values.file);
+    appendToFormData(DeclarationMapper.toPersistence(values, id), body);
     try {
-      const response = await caller(url, { method: "POST", body });
+      const response = await caller(url, { method: 'POST', body });
       if (response.ok) {
         return new ApiResult(200, null, null);
       }
@@ -279,24 +247,22 @@ export const DeclarationsService = {
       if (response.status === 422) {
         return new ApiResult(422, result.errors || {}, null);
       }
-      return new ApiResult(400, "Xəta baş verdi.", null);
+      return new ApiResult(400, 'Xəta baş verdi.', null);
     } catch {
-      return new ApiResult(400, "Şəbəkə xətası.", null);
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
     }
   },
 
-  cancelDeclarations: async (
-    ids: (string | number)[],
-  ): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
-    const url = urlMaker("/api/admin/declaration/cancel", { declaration_id: ids });
+  cancelDeclarations: async (ids: (string | number)[]): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/declaration/cancel', { declaration_id: ids });
     try {
-      const response = await caller(url, { method: "POST" });
+      const response = await caller(url, { method: 'POST' });
       if (response.ok) {
         return new ApiResult(200, null, null);
       }
-      return new ApiResult(400, "Xəta baş verdi.", null);
+      return new ApiResult(400, 'Xəta baş verdi.', null);
     } catch {
-      return new ApiResult(400, "Şəbəkə xətası.", null);
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
     }
   },
 
@@ -304,9 +270,7 @@ export const DeclarationsService = {
     const url = urlMaker('/api/admin/declaration/pay');
     const body = new FormData();
     ids.forEach((id) => body.append('declaration_id[]', String(id)));
-    body.append('amount', amount);
-    body.append('payment_type_id', paymentTypeId);
-    body.append('cashbox_id', cashboxId);
+    appendToFormData({ amount, payment_type_id: paymentTypeId, cashbox_id: cashboxId }, body);
     try {
       const response = await caller(url, { method: 'POST', body });
       if (response.ok) return new ApiResult(200, null, null);
@@ -321,8 +285,7 @@ export const DeclarationsService = {
   bulkHandover: async (stateId: string, tariffCategoryId: string): Promise<ApiResult<200, null> | ApiResult<400 | 422, any>> => {
     const url = urlMaker('/api/admin/declaration/handover');
     const body = new FormData();
-    body.append('state_id', stateId);
-    body.append('tariff_category_id', tariffCategoryId);
+    appendToFormData({ state_id: stateId, tariff_category_id: tariffCategoryId }, body);
     try {
       const response = await caller(url, { method: 'POST', body });
       if (response.ok) return new ApiResult(200, null, null);
@@ -340,7 +303,11 @@ export const DeclarationsService = {
       const response = await caller(url);
       if (response.ok) {
         const result = await response.json();
-        return new ApiResult(200, (result.data || []).map((p: any) => ({ id: p.id, name: p.name })), null);
+        return new ApiResult(
+          200,
+          (result.data || []).map((p: any) => ({ id: p.id, name: p.name })),
+          null,
+        );
       }
       return new ApiResult(400, 'Xəta baş verdi.', null);
     } catch {
@@ -349,105 +316,113 @@ export const DeclarationsService = {
   },
 
   getProductTypes: async (): Promise<ApiResult<200, { id: number; name: string }[]> | ApiResult<400, string>> => {
-    const url = urlMaker("/api/admin/product-types/getlist", { per_page: 1000 });
+    const url = urlMaker('/api/admin/product-types/getlist', { per_page: 1000 });
     try {
       const response = await caller(url);
       if (response.ok) {
         const result = await response.json();
-        return new ApiResult(200, (result.data || []).map((p: any) => ({ id: p.id, name: p.name })), null);
+        return new ApiResult(
+          200,
+          (result.data || []).map((p: any) => ({ id: p.id, name: p.name })),
+          null,
+        );
       }
-      return new ApiResult(400, "Xəta baş verdi.", null);
+      return new ApiResult(400, 'Xəta baş verdi.', null);
     } catch {
-      return new ApiResult(400, "Şəbəkə xətası.", null);
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
     }
   },
 
   getPlanCategories: async (): Promise<ApiResult<200, { id: number; name: string }[]> | ApiResult<400, string>> => {
-    const url = urlMaker("/api/admin/tariff/category_list", { per_page: 1000 });
+    const url = urlMaker('/api/admin/tariff/category_list', { per_page: 1000 });
     try {
       const response = await caller(url);
       if (response.ok) {
         const result = await response.json();
-        return new ApiResult(200, (result.data || []).map((p: any) => ({ id: p.id, name: p.name })), null);
+        return new ApiResult(
+          200,
+          (result.data || []).map((p: any) => ({ id: p.id, name: p.name })),
+          null,
+        );
       }
-      return new ApiResult(400, "Xəta baş verdi.", null);
+      return new ApiResult(400, 'Xəta baş verdi.', null);
     } catch {
-      return new ApiResult(400, "Şəbəkə xətası.", null);
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
     }
   },
 
   cancelDispatch: async (id: string | number): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
-    const url = urlMaker("/api/admin/flights/canceldepesh", { declaration_id: id });
+    const url = urlMaker('/api/admin/flights/canceldepesh', { declaration_id: id });
     try {
-      const response = await caller(url, { method: "POST" });
+      const response = await caller(url, { method: 'POST' });
       if (response.ok) return new ApiResult(200, null, null);
       const result = await response.json();
-      const errors = result?.errors ? Object.values(result.errors).flat().join(". ") : "Xəta baş verdi.";
+      const errors = result?.errors ? Object.values(result.errors).flat().join('. ') : 'Xəta baş verdi.';
       return new ApiResult(400, errors as string, null);
     } catch {
-      return new ApiResult(400, "Şəbəkə xətası.", null);
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
     }
   },
 
   removeFromFlight: async (id: string | number): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
-    const url = urlMaker("/api/warehouse/flights/remove_item", { declaration_id: id });
+    const url = urlMaker('/api/warehouse/flights/remove_item', { declaration_id: id });
     try {
-      const response = await caller(url, { method: "POST" });
+      const response = await caller(url, { method: 'POST' });
       if (response.ok) return new ApiResult(200, null, null);
       const result = await response.json();
-      const errors = result?.errors ? Object.values(result.errors).flat().join(". ") : "Xəta baş verdi.";
+      const errors = result?.errors ? Object.values(result.errors).flat().join('. ') : 'Xəta baş verdi.';
       return new ApiResult(400, errors as string, null);
     } catch {
-      return new ApiResult(400, "Şəbəkə xətası.", null);
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
     }
   },
 
   removeFromContainer: async (id: string | number): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
-    const url = urlMaker("/api/admin/containers-transfers/remove-from-container", { declaration_id: id });
+    const url = urlMaker('/api/admin/containers-transfers/remove-from-container', { declaration_id: id });
     try {
-      const response = await caller(url, { method: "POST" });
+      const response = await caller(url, { method: 'POST' });
       if (response.ok) return new ApiResult(200, null, null);
       const result = await response.json();
-      const errors = result?.errors ? Object.values(result.errors).flat().join(". ") : "Xəta baş verdi.";
+      const errors = result?.errors ? Object.values(result.errors).flat().join('. ') : 'Xəta baş verdi.';
       return new ApiResult(400, errors as string, null);
     } catch {
-      return new ApiResult(400, "Şəbəkə xətası.", null);
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
     }
   },
 
   toggleWanted: async (id: string | number, descr: string | null): Promise<ApiResult<200, { result: boolean; message?: string }> | ApiResult<400, string>> => {
-    const url = urlMaker("/api/admin/declaration/wanted/toggle", { declaration_id: id });
+    const url = urlMaker('/api/admin/declaration/wanted/toggle', { declaration_id: id });
     const body = new FormData();
-    if (descr) body.append("descr", descr);
+    if (descr) body.append('descr', descr);
     try {
-      const response = await caller(url, { method: "POST", body });
+      const response = await caller(url, { method: 'POST', body });
       if (response.ok) {
         const result = await response.json();
         return new ApiResult(200, result, null);
       }
       const result = await response.json();
-      return new ApiResult(400, result?.message || "Xəta baş verdi.", null);
+      return new ApiResult(400, result?.message || 'Xəta baş verdi.', null);
     } catch {
-      return new ApiResult(400, "Şəbəkə xətası.", null);
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
     }
   },
 
   getOrderIds: async (id: string | number): Promise<ApiResult<200, string[]> | ApiResult<400, string>> => {
-    const url = urlMaker("/api/admin/declaration/orders", { declaration_id: id });
+    const url = urlMaker('/api/admin/declaration/orders', { declaration_id: id });
     try {
       const response = await caller(url);
       if (response.ok) {
         const result = await response.json();
         return new ApiResult(200, result.data || [], null);
       }
-      return new ApiResult(400, "Xəta baş verdi.", null);
+      return new ApiResult(400, 'Xəta baş verdi.', null);
     } catch {
-      return new ApiResult(400, "Şəbəkə xətası.", null);
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
     }
   },
 
   getCustomsStatus: async (params: { trackCode: string }): Promise<ApiResult<200, IDeclarationCustomsStatus> | ApiResult<400 | 500, string>> => {
-    const url = urlMaker("/api/client/customs_status", { track_code: params.trackCode });
+    const url = urlMaker('/api/client/customs_status', { track_code: params.trackCode });
     try {
       const response = await caller(url);
       if (response.ok) {
@@ -455,9 +430,9 @@ export const DeclarationsService = {
         const data = result.data as IDeclarationCustomsStatusPersistence;
         return new ApiResult(200, { customsStatus: data?.customs_status ?? null, json: data?.json || {} }, null);
       }
-      return new ApiResult(400, "Məlumatlar əldə edilə bilmədi", null);
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
     } catch {
-      return new ApiResult(500, "Şəbəkə ilə əlaqə qurula bilmədi.", null);
+      return new ApiResult(500, 'Şəbəkə ilə əlaqə qurula bilmədi.', null);
     }
   },
 
@@ -477,25 +452,24 @@ export const DeclarationsService = {
         }));
         return new ApiResult(200, data, null);
       }
-      return new ApiResult(400, "Məlumatlar əldə edilə bilmədi", null);
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
     } catch {
-      return new ApiResult(500, "Şəbəkə ilə əlaqə qurula bilmədi.", null);
+      return new ApiResult(500, 'Şəbəkə ilə əlaqə qurula bilmədi.', null);
     }
   },
 
   changeTrendyolStatus: async (ids: (string | number)[], statusId: string | number, filter: string | number = 0): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
-    const url = urlMaker("/api/admin/declaration/trendyol/updateState");
+    const url = urlMaker('/api/admin/declaration/trendyol/updateState');
     const body = new FormData();
-    ids.forEach((id) => body.append("declaration_id[]", String(id)));
-    body.append("trendyol_state_id", String(statusId));
-    body.append("filter", String(filter));
+    ids.forEach((id) => body.append('declaration_id[]', String(id)));
+    appendToFormData(formDataFlat({ trendyol_state_id: statusId, filter }), body);
     try {
-      const response = await caller(url, { method: "POST", body });
+      const response = await caller(url, { method: 'POST', body });
       if (response.ok) return new ApiResult(200, null, null);
       const result = await response.json();
-      return new ApiResult(400, result?.errors ? Object.values(result.errors).flat().join(". ") : "Məlumatlar əldə edilə bilmədi", null);
+      return new ApiResult(400, result?.errors ? Object.values(result.errors).flat().join('. ') : 'Məlumatlar əldə edilə bilmədi', null);
     } catch {
-      return new ApiResult(400, "Şəbəkə ilə əlaqə qurula bilmədi.", null);
+      return new ApiResult(400, 'Şəbəkə ilə əlaqə qurula bilmədi.', null);
     }
   },
 
@@ -505,42 +479,40 @@ export const DeclarationsService = {
       const response = await caller(url);
       if (response.ok) return new ApiResult(200, null, null);
       const result = await response.json();
-      return new ApiResult(400, result?.errors ? Object.values(result.errors).flat().join(". ") : "Məlumatlar əldə edilə bilmədi", null);
+      return new ApiResult(400, result?.errors ? Object.values(result.errors).flat().join('. ') : 'Məlumatlar əldə edilə bilmədi', null);
     } catch {
-      return new ApiResult(400, "Şəbəkə ilə əlaqə qurula bilmədi.", null);
+      return new ApiResult(400, 'Şəbəkə ilə əlaqə qurula bilmədi.', null);
     }
   },
 
   changeTemuPincode: async (id: string | number, values: { pincode: string }): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
     const url = urlMaker(`/api/admin/declaration/trendyol/fin_change/${id}`);
     const body = new FormData();
-    body.append("pincode", values.pincode);
+    appendToFormData({ pincode: values.pincode }, body);
     try {
-      const response = await caller(url, { method: "POST", body });
+      const response = await caller(url, { method: 'POST', body });
       if (response.ok) return new ApiResult(200, null, null);
       const result = await response.json();
-      return new ApiResult(400, result?.errors ? Object.values(result.errors).flat().join(". ") : "Məlumatlar əldə edilə bilmədi", null);
+      return new ApiResult(400, result?.errors ? Object.values(result.errors).flat().join('. ') : 'Məlumatlar əldə edilə bilmədi', null);
     } catch {
-      return new ApiResult(400, "Şəbəkə ilə əlaqə qurula bilmədi.", null);
+      return new ApiResult(400, 'Şəbəkə ilə əlaqə qurula bilmədi.', null);
     }
   },
 
   addCommercial: async (values: { declarationId: string; awb: string; voen: string }): Promise<ApiResult<200, null> | ApiResult<422, Record<string, string[]>> | ApiResult<400, string>> => {
-    const url = urlMaker("/api/admin/declaration/commercial");
+    const url = urlMaker('/api/admin/declaration/commercial');
     const body = new FormData();
-    body.append("declaration_id", values.declarationId);
-    body.append("awb", values.awb);
-    body.append("voen", values.voen);
+    appendToFormData({ declaration_id: values.declarationId, awb: values.awb, voen: values.voen }, body);
     try {
-      const response = await caller(url, { method: "POST", body });
+      const response = await caller(url, { method: 'POST', body });
       if (response.ok) return new ApiResult(200, null, null);
       if (response.status === 400 || response.status === 422) {
         const result = await response.json();
         return new ApiResult(422, result?.errors || {}, null);
       }
-      return new ApiResult(400, "Məlumatlar əldə edilə bilmədi", null);
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
     } catch {
-      return new ApiResult(400, "Şəbəkə ilə əlaqə qurula bilmədi.", null);
+      return new ApiResult(400, 'Şəbəkə ilə əlaqə qurula bilmədi.', null);
     }
   },
 
@@ -550,27 +522,27 @@ export const DeclarationsService = {
   ): Promise<ApiResult<200, IHandoverDetails> | ApiResult<400, string>> => {
     const url = urlMaker('/api/admin/declaration/pay', { declaration_id: ids });
     const body = new FormData();
-    if (packages) {
-      if (packages.small_package) body.append('small_package', packages.small_package);
-      if (packages.medium_package) body.append('medium_package', packages.medium_package);
-      if (packages.big_package) body.append('big_package', packages.big_package);
-    }
+    if (packages) appendToFormData(packages, body);
     try {
       const response = await caller(url, { method: 'POST', body });
       if (response.ok) {
         const result = await response.json();
         const d = result.data;
-        return new ApiResult(200, {
-          user: { id: d.user_id, name: d.user_name },
-          ordersPrice: { try: d.values.credit_try, azn: d.converted.credit_try },
-          deliveryPrice: { usd: d.values.credit_delivery, azn: d.converted.credit_delivery },
-          balance: { usd: d.values.balance_usd, try: d.values.balance_try },
-          debt: {
-            total: { usd: d.values.credit_usd, azn: d.converted.credit_usd },
-            minimum: { azn: d.converted.minimal },
-            all: { azn: d.converted.all_credit, package: d.converted.package_amount },
+        return new ApiResult(
+          200,
+          {
+            user: { id: d.user_id, name: d.user_name },
+            ordersPrice: { try: d.values.credit_try, azn: d.converted.credit_try },
+            deliveryPrice: { usd: d.values.credit_delivery, azn: d.converted.credit_delivery },
+            balance: { usd: d.values.balance_usd, try: d.values.balance_try },
+            debt: {
+              total: { usd: d.values.credit_usd, azn: d.converted.credit_usd },
+              minimum: { azn: d.converted.minimal },
+              all: { azn: d.converted.all_credit, package: d.converted.package_amount },
+            },
           },
-        }, null);
+          null,
+        );
       }
       const result = await response.json();
       const errors = result?.errors ? Object.values(result.errors).flat().join('. ') : 'Xəta baş verdi.';
@@ -582,20 +554,35 @@ export const DeclarationsService = {
 
   handover: async (
     ids: (string | number)[],
-    data: { cash: string; terminal: string; accepted: boolean; handover_task: boolean; redirect_to_balance: boolean; small_package: string; medium_package: string; big_package: string; confirm: boolean },
+    data: {
+      cash: string;
+      terminal: string;
+      accepted: boolean;
+      handover_task: boolean;
+      redirect_to_balance: boolean;
+      small_package: string;
+      medium_package: string;
+      big_package: string;
+      confirm: boolean;
+    },
   ): Promise<ApiResult<200, { handover_task_id?: number }> | ApiResult<400 | 422, any>> => {
     const url = urlMaker('/api/admin/declaration/pay');
     const body = new FormData();
     ids.forEach((id) => body.append('declaration_id[]', String(id)));
-    body.append('cash', data.cash);
-    body.append('terminal', data.terminal);
-    body.append('accepted', data.accepted ? '1' : '0');
-    body.append('handover_task', data.handover_task ? '1' : '0');
-    body.append('redirect_to_balance', data.redirect_to_balance ? '1' : '0');
-    body.append('small_package', data.small_package);
-    body.append('medium_package', data.medium_package);
-    body.append('big_package', data.big_package);
-    body.append('confirm', data.confirm ? '1' : '0');
+    appendToFormData(
+      formDataFlat({
+        cash: data.cash,
+        terminal: data.terminal,
+        accepted: data.accepted,
+        handover_task: data.handover_task,
+        redirect_to_balance: data.redirect_to_balance,
+        small_package: data.small_package,
+        medium_package: data.medium_package,
+        big_package: data.big_package,
+        confirm: data.confirm,
+      }),
+      body,
+    );
     try {
       const response = await caller(url, { method: 'POST', body });
       if (response.ok) {
@@ -618,16 +605,20 @@ export const DeclarationsService = {
       if (response.ok) {
         const result = await response.json();
         const d = result.data;
-        return new ApiResult(200, {
-          id: d.declaration.id,
-          deliveryPrice: d.declaration.delivery_price ? parseFloat(d.declaration.delivery_price) : 0,
-          productPriceToBeRefunded: d.declaration.money_back_price ? parseFloat(String(d.declaration.money_back_price)) : 0,
-          deliveryPriceToBeRefunded: d.declaration.money_back ? parseFloat(String(d.declaration.money_back)) : 0,
-          paid: !!d.declaration.payed,
-          order: d.order?.exist
-            ? { id: d.order.id, amountToBeRefunded: d.order.money_back, amountToBeRefundedExtra: d.order.money_back_percent, amountToBeRefundedWithExtra: d.order.money_back_with_percent }
-            : null,
-        }, null);
+        return new ApiResult(
+          200,
+          {
+            id: d.declaration.id,
+            deliveryPrice: d.declaration.delivery_price ? parseFloat(d.declaration.delivery_price) : 0,
+            productPriceToBeRefunded: d.declaration.money_back_price ? parseFloat(String(d.declaration.money_back_price)) : 0,
+            deliveryPriceToBeRefunded: d.declaration.money_back ? parseFloat(String(d.declaration.money_back)) : 0,
+            paid: !!d.declaration.payed,
+            order: d.order?.exist
+              ? { id: d.order.id, amountToBeRefunded: d.order.money_back, amountToBeRefundedExtra: d.order.money_back_percent, amountToBeRefundedWithExtra: d.order.money_back_with_percent }
+              : null,
+          },
+          null,
+        );
       }
       const result = await response.json();
       const errors = result?.errors ? Object.values(result.errors).flat().join('. ') : 'Xəta baş verdi.';
@@ -643,11 +634,16 @@ export const DeclarationsService = {
   ): Promise<ApiResult<200, null> | ApiResult<400 | 422, any>> => {
     const url = urlMaker('/api/admin/returns/run');
     const body = new FormData();
-    body.append('declaration_id', String(id));
-    body.append('return_reason_id', data.typeId);
-    body.append('return_order_extra', data.returnOrderExtra ? '1' : '0');
-    body.append('return_declaration_price', data.returnDeclarationPrice ? '1' : '0');
-    body.append('return_delivery_price', data.returnDeliveryPrice ? '1' : '0');
+    appendToFormData(
+      formDataFlat({
+        declaration_id: id,
+        return_reason_id: data.typeId,
+        return_order_extra: data.returnOrderExtra,
+        return_declaration_price: data.returnDeclarationPrice,
+        return_delivery_price: data.returnDeliveryPrice,
+      }),
+      body,
+    );
     try {
       const response = await caller(url, { method: 'POST', body });
       if (response.ok) return new ApiResult(200, null, null);
@@ -665,7 +661,29 @@ export const DeclarationsService = {
       const response = await caller(url);
       if (response.ok) {
         const result = await response.json();
-        return new ApiResult(200, (result.data || []).map((w: IWaybillPersistence) => waybillToDomain(w)), null);
+        return new ApiResult(
+          200,
+          (result.data || []).map((w: IWaybillPersistence) => waybillToDomain(w)),
+          null,
+        );
+      }
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  getWaybillsByFlight: async (params: { flightId: string | number; partnerId?: string | number }): Promise<ApiResult<200, IWaybill[]> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/declaration/manifesto', { flight_id: params.flightId, partner_id: params.partnerId });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(
+          200,
+          (result.data || []).map((w: IWaybillPersistence) => waybillToDomain(w)),
+          null,
+        );
       }
       return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
     } catch {
@@ -695,7 +713,11 @@ export const DeclarationsService = {
       const response = await caller(url);
       if (response.ok) {
         const result = await response.json();
-        return new ApiResult(200, (result.data || []).map((s: IStatusMapItemPersistence) => statusMapToDomain(s)), null);
+        return new ApiResult(
+          200,
+          (result.data || []).map((s: IStatusMapItemPersistence) => statusMapToDomain(s)),
+          null,
+        );
       }
       return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
     } catch {
@@ -711,7 +733,11 @@ export const DeclarationsService = {
       const response = await caller(url);
       if (response.ok) {
         const result = await response.json();
-        return new ApiResult(200, (result.data || []).map((s: any) => ({ id: s.id, name: s.name, freely: s.freely === 1 })), null);
+        return new ApiResult(
+          200,
+          (result.data || []).map((s: any) => ({ id: s.id, name: s.name, freely: s.freely === 1 })),
+          null,
+        );
       }
       return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
     } catch {
@@ -745,6 +771,193 @@ export const DeclarationsService = {
       const result = await response.json();
       const errors = result?.errors ? Object.values(result.errors).flat().join('. ') : 'Məlumatlar əldə edilə bilmədi';
       return new ApiResult(400, errors as string, null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  updateRead: async (ids: (string | number)[], read: boolean): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/isnew', { model_id: 2, object_id: ids, is_new: read });
+    try {
+      const response = await caller(url, { method: 'POST' });
+      if (response.ok) return new ApiResult(200, null, null);
+      const result = await response.json().catch(() => ({}));
+      const reason = result?.errors ? Object.values(result.errors).flat().join('. ') : 'Əməliyyat uğursuz oldu';
+      return new ApiResult(400, reason, null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  getExcel: async (query: Record<string, any> = {}): Promise<ApiResult<200, Blob> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/declaration/export', { ...query, united: 0 });
+    try {
+      const response = await caller(url);
+      if (response.ok) return new ApiResult(200, await response.blob(), null);
+      return new ApiResult(400, 'Sənəd hazırlana bilmədi', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  getExcelMini: async (query: Record<string, any> = {}): Promise<ApiResult<200, Blob> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/declaration/export/mini', { ...query, united: 0 });
+    try {
+      const response = await caller(url);
+      if (response.ok) return new ApiResult(200, await response.blob(), null);
+      return new ApiResult(400, 'Sənəd hazırlana bilmədi', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  getWantedExcel: async (): Promise<ApiResult<200, Blob> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/declaration/wanted/export');
+    try {
+      const response = await caller(url);
+      if (response.ok) return new ApiResult(200, await response.blob(), null);
+      return new ApiResult(400, 'Sənəd hazırlana bilmədi', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  combine: async (ids: (string | number)[]): Promise<ApiResult<200, IDeclaration> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/declaration/combine', { combined_id: ids });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, DeclarationMapper.toDomain(result.data as IDeclarationPersistence), null);
+      }
+      const result = await response.json();
+      const errors = result?.errors ? Object.values(result.errors).flat().join('. ') : 'Bağlamalar birləşdirilə bilmədi';
+      return new ApiResult(400, errors as string, null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  acceptDeclaration: async (id: string | number, data: { wardrobeNumber: string; description: string; updateStatus: boolean }): Promise<ApiResult<200, null> | ApiResult<400 | 422, any>> => {
+    const url = urlMaker('/api/admin/declaration/update');
+    const body = new FormData();
+    appendToFormData(formDataFlat({ declaration_id: id, wardrobe_number: data.wardrobeNumber, descr: data.description, change_state: data.updateStatus }), body);
+    try {
+      const response = await caller(url, { method: 'POST', body });
+      if (response.ok) return new ApiResult(200, null, null);
+      const result = await response.json();
+      if (response.status === 422) return new ApiResult(422, result.errors || {}, null);
+      return new ApiResult(400, 'Xəta baş verdi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  importExcel: async (file: File): Promise<ApiResult<200, { message: string }> | ApiResult<400 | 422, any>> => {
+    const url = urlMaker('/api/admin/export/declaration/import');
+    const body = new FormData();
+    body.append('file', file);
+    try {
+      const response = await caller(url, { method: 'POST', body });
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, { message: result.data.message }, null);
+      }
+      const result = await response.json();
+      if (response.status === 422) return new ApiResult(422, result.errors || {}, null);
+      return new ApiResult(400, 'Xəta baş verdi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  getExportTasks: async (): Promise<ApiResult<200, IExportDeclarationTask[]> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/export/declaration/task_list', { sort_column: 'id', sort_order: 'desc' });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(
+          200,
+          (result.data || []).map((item: any) => ({
+            id: item.id,
+            type: item.type,
+            filePath: item.file_path,
+            createdAt: item.created_at,
+            updatedAt: item.updated_at,
+            user: { id: item.user?.id, name: item.user?.user_name || '' },
+            status: { id: item.status?.id || item.state_id, name: item.status?.name || '' },
+            model: { id: item.model?.id || item.model_id, name: item.model?.name || '' },
+          })),
+          null,
+        );
+      }
+      return new ApiResult(400, 'Xəta baş verdi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  downloadExportTask: async (id: string | number): Promise<ApiResult<200, Blob> | ApiResult<400, string>> => {
+    const url = urlMaker(`/api/admin/export/declaration/download/${id}`);
+    try {
+      const response = await caller(url);
+      if (response.ok) return new ApiResult(200, await response.blob(), null);
+      return new ApiResult(400, 'Sənəd hazırlana bilmədi', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  getHandoverExcel: async (query: Record<string, any>): Promise<ApiResult<200, Blob> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/declaration/handing_export', query);
+    try {
+      const response = await caller(url);
+      if (response.ok) return new ApiResult(200, await response.blob(), null);
+      return new ApiResult(400, 'Sənəd hazırlana bilmədi', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  getCurrentMonthDeclarations: async (query: Record<string, any> = {}): Promise<ApiResult<200, { data: IDeclaration[]; total: number }> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/declaration/this_month', {
+      page: 1,
+      per_page: 20,
+      ...query,
+    });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(
+          200,
+          {
+            data: (result.data || []).map((d: IDeclarationPersistence) => DeclarationMapper.toDomain(d)),
+            total: result.total || 0,
+          },
+          null,
+        );
+      }
+      return new ApiResult(400, 'Xəta baş verdi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  getTinyDeclarations: async (query: Record<string, any> = {}): Promise<ApiResult<200, { data: IDeclaration[]; total: number }> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/declaration/minilist', {
+      page: 1,
+      per_page: 20,
+      ...query,
+    });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, { data: (result.data || []).map((d: IDeclarationPersistence) => DeclarationMapper.toDomain(d)), total: result.total || 0 }, null);
+      }
+      return new ApiResult(400, 'Xəta baş verdi.', null);
     } catch {
       return new ApiResult(400, 'Şəbəkə xətası.', null);
     }
@@ -829,10 +1042,37 @@ export const UnknownDeclarationsService = {
   accept: async (id: string | number): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
     const url = urlMaker('/api/admin/conflicted_declaration/accept');
     const body = new FormData();
-    body.append('conflicted_declaration_id', String(id));
+    appendToFormData(formDataFlat({ conflicted_declaration_id: id }), body);
     try {
       const response = await caller(url, { method: 'POST', body });
       if (response.ok) return new ApiResult(200, null, null);
+      return new ApiResult(400, 'Xəta baş verdi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  create: async (values: FormData): Promise<ApiResult<200, null> | ApiResult<400 | 422, any>> => {
+    const url = urlMaker('/api/admin/conflicted_declaration/create');
+    try {
+      const response = await caller(url, { method: 'POST', body: values });
+      if (response.ok) return new ApiResult(200, null, null);
+      const result = await response.json();
+      if (response.status === 422) return new ApiResult(422, result.errors || {}, null);
+      return new ApiResult(400, 'Xəta baş verdi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  update: async (id: string | number, values: FormData): Promise<ApiResult<200, null> | ApiResult<400 | 422, any>> => {
+    const url = urlMaker('/api/admin/conflicted_declaration/edit');
+    values.append('conflicted_declaration_id', String(id));
+    try {
+      const response = await caller(url, { method: 'POST', body: values });
+      if (response.ok) return new ApiResult(200, null, null);
+      const result = await response.json();
+      if (response.status === 422) return new ApiResult(422, result.errors || {}, null);
       return new ApiResult(400, 'Xəta baş verdi.', null);
     } catch {
       return new ApiResult(400, 'Şəbəkə xətası.', null);
@@ -889,6 +1129,17 @@ export const ArchivedDeclarationsService = {
         return new ApiResult(200, { data: (result.data || []).map((d: IDeclarationPersistence) => DeclarationMapper.toDomain(d)), total: result.total || 0 }, null);
       }
       return new ApiResult(400, 'Xəta baş verdi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  getExcel: async (query: Record<string, any> = {}): Promise<ApiResult<200, Blob> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/declaration/archive_export', query);
+    try {
+      const response = await caller(url);
+      if (response.ok) return new ApiResult(200, await response.blob(), null);
+      return new ApiResult(400, 'Sənəd hazırlana bilmədi', null);
     } catch {
       return new ApiResult(400, 'Şəbəkə xətası.', null);
     }

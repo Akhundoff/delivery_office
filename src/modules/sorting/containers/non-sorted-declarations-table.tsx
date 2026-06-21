@@ -10,19 +10,30 @@ import { useNonSortedDeclarationsTableColumns } from '../hooks';
 
 export const NonSortedDeclarationsTable: FC = () => {
   const columns = useNonSortedDeclarationsTableColumns();
-  const { handleFetch, handleReset } = useContext(NonSortedDeclarationsTableContext);
+  const { handleFetch, handleReset, handleSelectAll, handleResetSelection, state } = useContext(NonSortedDeclarationsTableContext);
+  const selectionCount = Object.keys(state.selectedRowIds).length;
 
   return (
     <>
       <HeadPortal>
         <StyledActionBar $flex={true}>
-          <Space>
+          <Space size={0}>
+            {!selectionCount ? (
+              <StyledHeaderButton type="text" onClick={handleSelectAll} icon={<Icons.CheckCircleOutlined />}>
+                Hamısını seç
+              </StyledHeaderButton>
+            ) : (
+              <StyledHeaderButton type="text" onClick={handleResetSelection} icon={<Icons.CloseCircleOutlined />}>
+                {selectionCount} sətir
+              </StyledHeaderButton>
+            )}
             <StyledHeaderButton type="text" onClick={handleFetch} icon={<Icons.ReloadOutlined />}>
               Yenilə
             </StyledHeaderButton>
             <StyledHeaderButton type="text" onClick={handleReset} icon={<Icons.ClearOutlined />}>
               Sıfırla
             </StyledHeaderButton>
+            <StyledHeaderButton type="text">Cəmi: {state.total}</StyledHeaderButton>
           </Space>
         </StyledActionBar>
       </HeadPortal>

@@ -11,3 +11,8 @@ export type IBoxFormValues = {
   name: string;
   branchId: string;
 };
+
+export type ITinyBox = {
+  id: number;
+  name: string;
+};

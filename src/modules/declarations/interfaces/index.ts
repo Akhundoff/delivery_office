@@ -7,3 +7,4 @@ export * from './partner-declaration.interface';
 export * from './waybill.interface';
 export * from './proforma-invoice.interface';
 export * from './status-map.interface';
+export * from './export-declaration-task.interface';

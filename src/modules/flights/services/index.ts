@@ -1,6 +1,8 @@
 import { ApiResult, caller, urlMaker } from '@shared/utils';
-import { IFlight, IFlightById, IFlightPalet, IFlightAirWaybill, IFlightPackage, IFlightPackageExecution, CreateFlightDto, CloseFlightDto } from '../interfaces';
+import { IFlight, IFlightById, IFlightPalet, IFlightAirWaybill, IFlightPackage, IFlightPackageExecution, CreateFlightDto, CloseFlightDto, IFlightCounts, ITinyFlight } from '../interfaces';
 import { FlightMapper, CreateFlightDtoMapper, CloseFlightDtoMapper } from '../mappers';
+import { DeclarationMapper } from '@modules/declarations/mappers';
+import type { IDeclaration } from '@modules/declarations/interfaces';
 
 export const FlightsService = {
   getList: async (query: Record<string, any> = {}): Promise<ApiResult<200, { data: IFlight[]; total: number }> | ApiResult<400 | 500, string>> => {
@@ -147,11 +149,15 @@ export const FlightsService = {
         const result = await response.json();
         const data: IFlightPackage[] = (result.data || []).map((item: any) => {
           let parsedJSON: any[] = [];
-          try { parsedJSON = JSON.parse(item.json || '[]'); } catch {}
+          try {
+            parsedJSON = JSON.parse(item.json || '[]');
+          } catch {}
           const statusCode = parseInt(item.status_code || '500');
           let parsedResponse: any = { code: statusCode, data: {} };
           if (statusCode < 500 && item.response) {
-            try { parsedResponse = JSON.parse(item.response) || parsedResponse; } catch {}
+            try {
+              parsedResponse = JSON.parse(item.response) || parsedResponse;
+            } catch {}
           }
           return {
             id: item.id,
@@ -249,7 +255,10 @@ export const FlightsService = {
     }
   },
 
-  uploadManifest: async (flightId: string | number, file: File): Promise<ApiResult<200, { file: string; bags: { empty: number; full: number; all: number }; declarations: { found: number; notFound: number } }> | ApiResult<400 | 500, string>> => {
+  uploadManifest: async (
+    flightId: string | number,
+    file: File,
+  ): Promise<ApiResult<200, { file: string; bags: { empty: number; full: number; all: number }; declarations: { found: number; notFound: number } }> | ApiResult<400 | 500, string>> => {
     const url = urlMaker('/api/admin/flights/manifests');
     const body = new FormData();
     body.append('flight_id', String(flightId));
@@ -258,7 +267,15 @@ export const FlightsService = {
       const response = await caller(url, { method: 'POST', body });
       if (response.ok) {
         const result = await response.json();
-        return new ApiResult(200, { file: result.data.zip_url, bags: { empty: result.data.empty_bags, full: result.data.archived_bags, all: result.data.bags }, declarations: { found: result.data.found, notFound: result.data.not_found } }, null);
+        return new ApiResult(
+          200,
+          {
+            file: result.data.zip_url,
+            bags: { empty: result.data.empty_bags, full: result.data.archived_bags, all: result.data.bags },
+            declarations: { found: result.data.found, notFound: result.data.not_found },
+          },
+          null,
+        );
       }
       const result = await response.json().catch(() => ({}));
       const msg = result.errors ? (Object.values(result.errors) as string[][]).flat().join('. ') : 'Əməliyyat aparıla bilmədi.';
@@ -275,6 +292,117 @@ export const FlightsService = {
       if (response.ok) {
         const blob = await response.blob();
         return new ApiResult(200, blob, null);
+      }
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi.', null);
+    } catch {
+      return new ApiResult(500, 'Şəbəkə ilə əlaqə qurula bilmədi.', null);
+    }
+  },
+
+  getFlightCounts: async (flightId: string | number): Promise<ApiResult<200, IFlightCounts> | ApiResult<400 | 500, string>> => {
+    const url = urlMaker('/api/admin/flights/stats', { flight_id: flightId });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, { handovers: result.data.count, paidAmount: parseFloat(result.data.sum) || 0 }, null);
+      }
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi.', null);
+    } catch {
+      return new ApiResult(500, 'Şəbəkə ilə əlaqə qurula bilmədi.', null);
+    }
+  },
+
+  getFlightDimensionalWeight: async (flightId: string | number): Promise<ApiResult<200, { weight: number }> | ApiResult<400 | 500, string>> => {
+    const url = urlMaker('/api/admin/flights/calculate', { flight_id: flightId });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, { weight: result.data }, null);
+      }
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi.', null);
+    } catch {
+      return new ApiResult(500, 'Şəbəkə ilə əlaqə qurula bilmədi.', null);
+    }
+  },
+
+  getTinyFlights: async (): Promise<ApiResult<200, ITinyFlight[]> | ApiResult<400 | 500, string>> => {
+    const url = urlMaker('/api/admin/flights/options');
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(
+          200,
+          (result.data || []).map((f: any) => ({ id: f.id, name: f.name })),
+          null,
+        );
+      }
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi.', null);
+    } catch {
+      return new ApiResult(500, 'Şəbəkə ilə əlaqə qurula bilmədi.', null);
+    }
+  },
+
+  getManifestByParcel: async (
+    flightId: string | number,
+  ): Promise<ApiResult<200, { file: string; bags: { empty: number; full: number; all: number }; declarations: { found: number; notFound: number } }> | ApiResult<400 | 500, string>> => {
+    const url = urlMaker('/api/admin/flights/manifests_box', { flight_id: flightId });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(
+          200,
+          {
+            file: result.data.zip_url,
+            bags: { empty: result.data.empty_bags, full: result.data.archived_bags, all: result.data.bags },
+            declarations: { found: result.data.found, notFound: result.data.not_found },
+          },
+          null,
+        );
+      }
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi.', null);
+    } catch {
+      return new ApiResult(500, 'Şəbəkə ilə əlaqə qurula bilmədi.', null);
+    }
+  },
+
+  setCustomsClearance: async (flightId: string | number): Promise<ApiResult<200, null> | ApiResult<400 | 500, string>> => {
+    const url = urlMaker('/api/admin/flights/set-customs-clearance');
+    const body = new FormData();
+    body.append('flight_id', String(flightId));
+    try {
+      const response = await caller(url, { method: 'POST', body });
+      if (response.ok) return new ApiResult(200, null, null);
+      return new ApiResult(400, 'Əməliyyat aparıla bilmədi.', null);
+    } catch {
+      return new ApiResult(500, 'Şəbəkə ilə əlaqə qurula bilmədi.', null);
+    }
+  },
+
+  getFlightDeclarations: async (query: Record<string, any> = {}): Promise<ApiResult<200, { data: IDeclaration[]; total: number }> | ApiResult<400 | 500, string>> => {
+    const url = urlMaker('/api/admin/flights/info', { page: 1, per_page: 20, ...query });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, { data: (result.data || []).map((d: any) => DeclarationMapper.toDomain(d)), total: result.total || 0 }, null);
+      }
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi.', null);
+    } catch {
+      return new ApiResult(500, 'Şəbəkə ilə əlaqə qurula bilmədi.', null);
+    }
+  },
+
+  getBoxDeclarations: async (query: Record<string, any> = {}): Promise<ApiResult<200, { data: IDeclaration[]; total: number }> | ApiResult<400 | 500, string>> => {
+    const url = urlMaker('/api/admin/flights/box_declarations', { page: 1, per_page: 20, ...query });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, { data: (result.data || []).map((d: any) => DeclarationMapper.toDomain(d)), total: result.total || 0 }, null);
       }
       return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi.', null);
     } catch {

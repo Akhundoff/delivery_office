@@ -1,5 +1,13 @@
 export * from './customs-task.interface';
 
+export type ICustomsDeclarationsCounts = {
+  counts: {
+    declared: number;
+    undeclared: number;
+    nonExistUsers: number;
+  };
+};
+
 export type ICustomsStatus = {
   status: 'success' | 'error' | 'warning';
 };

@@ -2,7 +2,7 @@
 description: 'Fast post-migration sanity check for one module (build + routes + permissions). Usage: /verify-parity <module-name>'
 ---
 
-You are running a **fast** sanity check on one module after migration work — this is a smoke test, not a full audit. Use `/migration-report <module-name>` when you need the exhaustive deep-compare; use this when you just want to know "did I break anything / is this wired" right now.
+You are running a **fast** sanity check on one module after migration work — this is a smoke test, not a full audit. Use `/migration-report <module-name>` for exhaustive comparison; use this for quick "did I break anything / is everything wired" verification.
 
 Module: $ARGUMENTS
 
@@ -14,36 +14,70 @@ This command is **read-only** — it never edits code.
 
 ### 1. Type-check / build (blocking)
 
-Run the project's type-check:
-
 ```bash
 npx tsc --noEmit
 ```
 
-- If it fails with errors inside `src/modules/<module-name>/`, report them immediately as **blocking** — don't continue to the next checks.
-- Errors outside the module are worth noting but don't block the rest of this check.
+- Errors inside `src/modules/<module-name>/` → **blocking**, don't continue.
+- Errors outside → note but don't block.
 
-### 2. Route wiring
+### 2. Table Column Parity
 
-- Read `src/modules/<module-name>/router/*.router.tsx`.
-- Confirm every route is actually mounted — trace it up to the root router (`src/router/main.tsx`) or the parent module router that includes it.
-- Flag any route definition that exists but isn't reachable from the app shell (orphaned route).
+- Read old `use-*-table-columns.tsx` and new equivalent
+- Quick count: same number of columns?
+- Spot-check: first column, last column, and any custom-cell columns — same `id`, same `Header`, same `Cell` component?
+- Check column ORDER matches
 
-### 3. Permission guards
+### 3. Query Key Parity
 
-- Grep for `can(` / `canDisplay(` / guard checks inside the module.
-- Cross-check each permission key against what the **old** module (`../delivery_management/src/@next/modules/<module-name>/`) guards on the equivalent route/action — same key, same place?
-- Flag any route or action that the old module gated but the new one doesn't (or vice versa).
+- Compare old query keys object with new
+- Any missing keys = filters/sorting that won't work
 
-### 4. Dead-handler scan
+### 4. Row Menu Item Parity
 
-- Grep the module's components/containers for `onClick`, `onConfirm`, `onSubmit`, menu `items` arrays, and dropdown definitions.
-- Spot which of these are wired to a real handler vs. missing/`undefined`/empty-function — i.e. buttons that render but do nothing. This is the single most common "looks migrated but isn't" trap.
+- Read old `actionsColumn` row menu
+- Count menu items (excluding dividers)
+- Spot-check: every permission-guarded item exists, every navigation item points to correct route, every API-calling item calls the service
 
-### 5. Service ↔ hook ↔ component chain spot-check
+### 5. Action Bar Parity
 
-- Pick the 2-3 most user-facing flows in the module (e.g. list load, detail load, primary create/update action).
-- For each, trace `service method → hook → container/component` and confirm the chain is intact (hook actually calls the service, component actually calls the hook, no orphaned pieces).
+- Read old action bar hook/container
+- Count actions
+- Verify: create, export excel, bulk operations, selection-dependent buttons all present and wired
+
+### 6. API / Service Method Parity
+
+- Count old repo files vs new service methods
+- Spot-check 3-4 critical endpoints: same URL, same verb, same field names
+
+### 7. Route Wiring
+
+- Read `src/modules/<module-name>/router/*.router.tsx`
+- Count page routes and modal routes — must match old counts
+- Confirm every route is mounted — trace to root router
+- Flag orphaned routes
+
+### 8. Permission Guards
+
+- Grep for `can(` / `canDisplay(` in both old and new module
+- Same permission keys guarding same elements?
+- Flag any old guard missing in new
+
+### 9. Hook Parity
+
+- Count old hooks vs new hooks
+- Verify every old hook has a counterpart (by responsibility, not necessarily same filename)
+
+### 10. Dead-handler Scan
+
+- Grep module's components/containers for `onClick`, `onConfirm`, `onSubmit`, menu `items`
+- Flag handlers that are `undefined`, empty functions, or unconnected to any service/navigation
+
+### 11. Service → Hook → Component Chain Spot-check
+
+- Pick 3 most user-facing flows (list load, primary action, detail load)
+- Trace each: service method → hook → container/component
+- Confirm chain is intact
 
 ---
 
@@ -54,22 +88,35 @@ npx tsc --noEmit
 
 **Date:** YYYY-MM-DD
 
-| Check | Result | Notes |
-|---|---|---|
-| Type-check | ✅/❌ | |
-| Routes mounted | ✅/❌ | N routes checked, M orphaned |
-| Permission guards | ✅/❌ | |
-| Dead-handler scan | ✅/❌ | N buttons checked, M unwired |
-| Core flow chains | ✅/❌ | |
+| Check              | Result | Old count | New count | Notes                        |
+| ------------------ | ------ | --------- | --------- | ---------------------------- |
+| Type-check         | ✅/❌  | —         | —         |                              |
+| Table columns      | ✅/❌  | X         | Y         |                              |
+| Query keys         | ✅/❌  | X         | Y         |                              |
+| Row menu items     | ✅/❌  | X         | Y         |                              |
+| Action bar actions | ✅/❌  | X         | Y         |                              |
+| API methods        | ✅/❌  | X         | Y         |                              |
+| Routes (page)      | ✅/❌  | X         | Y         |                              |
+| Routes (modal)     | ✅/❌  | X         | Y         |                              |
+| Permission guards  | ✅/❌  | X         | Y         |                              |
+| Hooks              | ✅/❌  | X         | Y         |                              |
+| Dead handlers      | ✅/❌  | —         | —         | N buttons checked, M unwired |
+| Core flow chains   | ✅/❌  | —         | —         |                              |
 
-**Verdict:** <Looks healthy / Issues found — see below>
+**Verdict:** <All counts match, all wired / Issues found — see below>
 
 ### Issues found
-<numbered list with exact file:line references>
+
+<numbered list with exact file:line references, grouped by category>
+
+### Recommended next steps
+
+<if issues found, whether to use /migrate-module to fix them or manual intervention needed>
 ```
 
 ## Rules
 
-- This is a **smoke check**, not exhaustive — if you find more than a handful of issues, recommend running the full `/migration-report <module-name>` instead and stop here.
-- Don't fix anything — report only, the same way `/find-bug` does.
-- Be precise about file paths and line numbers so issues are immediately actionable.
+- This is a **smoke check** — if more than a handful of issues, recommend `/migration-report <module-name>` for full audit
+- Don't fix anything — report only
+- Always show old vs new counts so discrepancies are immediately visible
+- Be precise about file paths and line numbers

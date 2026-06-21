@@ -1,17 +1,17 @@
-import { IDetailedUser, IDetailedUserPersistence } from "../interfaces";
+import { IDetailedUser, IDetailedUserPersistence } from '../interfaces';
 
-const getRoleFromAdmin = (admin: number): IDetailedUser["role"] => {
+const getRoleFromAdmin = (admin: number): IDetailedUser['role'] => {
   switch (admin) {
     case 1:
-      return "admin";
+      return 'admin';
     case 2:
-      return "warehouseman";
+      return 'warehouseman';
     case 3:
-      return "back-office";
+      return 'back-office';
     case 4:
-      return "partner";
+      return 'partner';
     default:
-      return "user";
+      return 'user';
   }
 };
 
@@ -60,6 +60,30 @@ export class DetailedUserMapper {
           outcome: raw.data.out ?? 0,
         },
       },
+      debt: {
+        usd: raw.credit_usd ?? 0,
+        try: raw.credit ?? 0,
+      },
+      spending: {
+        currentMonth: {
+          usd: raw.widget?.this?.usd ?? 0,
+          try: raw.widget?.this?.try ?? 0,
+        },
+      },
+      cashback: {
+        currentCashback: raw.cashback?.currentCashback ?? 0,
+        totalCashbackApproved: raw.cashback?.totalCashbackApproved ?? 0,
+        totalCashbackPending: raw.cashback?.totalCashbackPending ?? 0,
+      },
+      discounts: (raw.discounts ?? []).map((d) => ({
+        id: d.id,
+        countryId: d.country_id,
+        countryName: d.country_name,
+        discount: d.discount,
+        causerName: d.causer_name,
+        descr: d.descr,
+        discountDate: d.discount_date,
+      })),
       role: getRoleFromAdmin(raw.data.admin),
       isBlocked: !!raw.data.blocked,
       createdAt: raw.data.created_at,

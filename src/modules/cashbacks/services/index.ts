@@ -1,5 +1,5 @@
-import { ApiResult, caller, urlMaker } from "@shared/utils";
-import { ICashback } from "../interfaces";
+import { ApiResult, caller, urlMaker } from '@shared/utils';
+import { ICashback } from '../interfaces';
 
 const toDomain = (item: any): ICashback => ({
   id: item.id,
@@ -11,7 +11,7 @@ const toDomain = (item: any): ICashback => ({
 
 export const CashbacksService = {
   getList: async (query: Record<string, any> = {}): Promise<ApiResult<200, { data: ICashback[]; total: number }> | ApiResult<400, string>> => {
-    const url = urlMaker("/api/admin/cashbacks", { page: 1, per_page: 20, ...query });
+    const url = urlMaker('/api/admin/cashbacks', { page: 1, per_page: 20, ...query });
     try {
       const response = await caller(url);
       if (response.ok) {
@@ -19,9 +19,24 @@ export const CashbacksService = {
         const data = (result.data || []).map(toDomain);
         return new ApiResult(200, { data, total: result.total || data.length }, null);
       }
-      return new ApiResult(400, "Xəta baş verdi.", null);
+      return new ApiResult(400, 'Xəta baş verdi.', null);
     } catch {
-      return new ApiResult(400, "Şəbəkə xətası.", null);
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  updateTransactionsStatus: async (transactionIds: (string | number)[]): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/cashbacks/changestate', { task_id: transactionIds, state_id: 56 });
+    try {
+      const response = await caller(url, { method: 'POST' });
+      if (response.ok) {
+        return new ApiResult(200, null, null);
+      }
+      const result = await response.json().catch(() => ({}));
+      const errors = result?.errors ? Object.values(result.errors).flat().join('. ') : 'Xəta baş verdi.';
+      return new ApiResult(400, errors as string, null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
     }
   },
 };

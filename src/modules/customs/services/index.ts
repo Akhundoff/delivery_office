@@ -1,5 +1,15 @@
 import { ApiResult, caller, urlMaker } from '@shared/utils';
-import { IDnsQueue, ICustomsDeclaration, ICustomsDeclarationPersistence, ICustomsPost, ICustomsPostPersistence, ICustomsStatus, ICustomsTask, ICustomsTaskPersistence } from '../interfaces';
+import {
+  IDnsQueue,
+  ICustomsDeclaration,
+  ICustomsDeclarationPersistence,
+  ICustomsDeclarationsCounts,
+  ICustomsPost,
+  ICustomsPostPersistence,
+  ICustomsStatus,
+  ICustomsTask,
+  ICustomsTaskPersistence,
+} from '../interfaces';
 
 type ListResponse = { data: IDnsQueue[]; total: number };
 
@@ -15,6 +25,7 @@ const customsTaskToDomain = (p: ICustomsTaskPersistence): ICustomsTask => ({
     globalTrackCode: p.global_track_code,
     weight: p.weight ? parseFloat(p.weight) : null,
     quantity: p.quantity,
+    basket: p.basket_id ? { id: p.basket_id, name: p.basket_name ?? null } : null,
     user: { id: p.user_id, name: p.user_name },
     status: { id: p.declaration_state_id, name: p.declaration_state_name },
     productType: { id: p.product_type_id, name: p.product_type_name },
@@ -81,6 +92,36 @@ export const CustomsDeclarationsService = {
         return new ApiResult(200, { data, total: result.total ?? data.length }, null);
       }
       return new ApiResult(400, 'Xəta baş verdi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  getCounts: async (query: Record<string, any> = {}): Promise<ApiResult<200, ICustomsDeclarationsCounts> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/customs/stats', query);
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, { counts: { declared: result.data?.declared ?? 0, undeclared: result.data?.unuser ?? 0, nonExistUsers: result.data?.nonExistUsers ?? 0 } }, null);
+      }
+      return new ApiResult(400, 'Xəta baş verdi.', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
+  uploadDocument: async (file: File): Promise<ApiResult<200, ICustomsDeclarationsCounts> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/customs/upload');
+    const body = new FormData();
+    body.append('document_file', file);
+    try {
+      const response = await caller(url, { method: 'POST', body });
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, { counts: { declared: result.data?.declared ?? 0, undeclared: result.data?.unuser ?? 0, nonExistUsers: result.data?.nonExistUsers ?? 0 } }, null);
+      }
+      return new ApiResult(400, 'Yükləmə zamanı xəta baş verdi.', null);
     } catch {
       return new ApiResult(400, 'Şəbəkə xətası.', null);
     }

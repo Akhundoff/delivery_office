@@ -4,7 +4,7 @@ import * as Icons from '@ant-design/icons';
 import { Column } from 'react-table';
 import { useQuery } from 'react-query';
 import { StopPropagation } from '@shared/components/stop-propagation';
-import { OverCell, CountryCell } from '@shared/components/cells';
+import { OverCell, CountryCell, CheckCell } from '@shared/components/cells';
 import { nextTableColumns } from '@shared/modules/next-table/helpers/next-table-columns';
 import { NextTableCheckboxFilter } from '@shared/modules/next-table/components/filters/checkbox';
 import { useBackgroundNavigate } from '@shared/hooks';
@@ -14,7 +14,7 @@ import { IOrder } from '../../interfaces';
 import { OrdersTableContext } from '../../context';
 import { OrderStateTag } from '../../components';
 import { OrdersService } from '../../services';
-import { getCurrencySymbolByCountryId } from '../../constants';
+import { REJECTED_STATUS_ID, getCurrencySymbolByCountryId } from '../../constants';
 
 export const useOrdersTableColumns = (): Column<IOrder>[] => {
   const { handleFetch } = useContext(OrdersTableContext);
@@ -31,16 +31,17 @@ export const useOrdersTableColumns = (): Column<IOrder>[] => {
         const statusItems: MenuProps['items'] = statuses.map((s) => ({
           key: `status-${s.id}`,
           label: s.name,
-          onClick: () =>
-            Modal.confirm({
-              title: 'Diqqət',
-              content: `Statusu "${s.name}" olaraq dəyişmək istədiyinizdən əminsinizmi?`,
-              onOk: async () => {
-                const result = await OrdersService.changeStatus([original.id], s.id);
-                if (result.status === 200) { message.success('Status dəyişdirildi.'); handleFetch(); }
-                else message.error(result.data as string);
-              },
-            }),
+          onClick: async () => {
+            if (Number(s.id) === REJECTED_STATUS_ID) {
+              navigate(`/orders/${original.id}/reject`, { withBackground: true });
+              return;
+            }
+            message.loading({ content: 'Status dəyişdirilir...', duration: 0 });
+            const result = await OrdersService.changeStatus([original.id], s.id);
+            message.destroy();
+            if (result.status === 200) handleFetch();
+            else message.error(result.data as string);
+          },
         }));
 
         const items: MenuProps['items'] = [
@@ -90,11 +91,12 @@ export const useOrdersTableColumns = (): Column<IOrder>[] => {
             icon: <Icons.BookOutlined />,
             onClick: async () => {
               const result = await OrdersService.updateRead([original.id], original.read);
-              if (result.status === 200) { handleFetch(); }
-              else message.error(result.data as string);
+              if (result.status === 200) {
+                handleFetch();
+              } else message.error(result.data as string);
             },
           },
-          { key: 'change-status', label: 'Statusu dəyiş', icon: <Icons.AppstoreOutlined />, children: statusItems },
+          { key: 'change-status', label: 'Status dəyiş', icon: <Icons.AppstoreOutlined />, children: statusItems },
           { type: 'divider' as const },
           {
             key: 'delete',
@@ -110,8 +112,10 @@ export const useOrdersTableColumns = (): Column<IOrder>[] => {
                 cancelText: 'Ləğv et',
                 onOk: async () => {
                   const result = await OrdersService.cancel([original.id]);
-                  if (result.status === 200) { message.success('Sifariş silindi.'); handleFetch(); }
-                  else message.error(result.data as string);
+                  if (result.status === 200) {
+                    message.success('Sifariş silindi.');
+                    handleFetch();
+                  } else message.error(result.data as string);
                 },
               }),
           },
@@ -120,7 +124,7 @@ export const useOrdersTableColumns = (): Column<IOrder>[] => {
         return (
           <StopPropagation>
             <Dropdown menu={{ items }} trigger={['hover']}>
-              <Button icon={<Icons.MoreOutlined />} size='small' />
+              <Button icon={<Icons.MoreOutlined />} size="small" />
             </Dropdown>
           </StopPropagation>
         );
@@ -154,7 +158,12 @@ export const useOrdersTableColumns = (): Column<IOrder>[] => {
         accessor: (r) => r.trackCode,
         id: 'track_code',
         Header: 'İzləmə kodu',
-        Cell: ({ cell: { value }, row: { original } }: any) => <Tag color={!original.read ? 'green' : 'default'}>{value}</Tag>,
+        Cell: ({ cell: { value }, row: { original } }: any) => (
+          <Tag color={!original.read ? 'green' : 'default'}>
+            {value}&nbsp;
+            <Icons.LinkOutlined />
+          </Tag>
+        ),
       },
       { ...nextTableColumns.normal, accessor: (r) => r.product.shop, id: 'shop_name', Header: 'Mağaza', Cell: OverCell },
       {
@@ -164,7 +173,7 @@ export const useOrdersTableColumns = (): Column<IOrder>[] => {
         Header: 'Link',
         filterable: false,
         Cell: ({ row: { original } }: any) => (
-          <a target='_blank' rel='noreferrer' href={original.product.url}>
+          <a target="_blank" rel="noreferrer" href={original.product.url}>
             <Tag color={!original.read ? 'green' : 'default'}>
               <Icons.LinkOutlined /> Keçid et
             </Tag>
@@ -175,13 +184,13 @@ export const useOrdersTableColumns = (): Column<IOrder>[] => {
         ...nextTableColumns.normal,
         accessor: (r) => r.product.price,
         id: 'price',
-        Header: 'Qiymət',
+        Header: 'Məhsulun qiyməti',
         filterable: false,
         Cell: ({ cell: { value }, row: { original } }: any) => (
           <div>
             {value.toFixed(2)} {getCurrencySymbolByCountryId(original.countryId)}
             {!!original.debts.productPrice && (
-              <Typography.Text type='danger'>
+              <Typography.Text type="danger">
                 &nbsp;+&nbsp;
                 {original.debts.productPrice.toFixed(2)} {getCurrencySymbolByCountryId(original.countryId)}
               </Typography.Text>
@@ -199,7 +208,7 @@ export const useOrdersTableColumns = (): Column<IOrder>[] => {
           <div>
             {value.toFixed(2)} {getCurrencySymbolByCountryId(original.countryId)}
             {!!original.debts.internalShippingPrice && (
-              <Typography.Text type='danger'>
+              <Typography.Text type="danger">
                 &nbsp;+&nbsp;
                 {original.debts.internalShippingPrice.toFixed(2)} {getCurrencySymbolByCountryId(original.countryId)}
               </Typography.Text>
@@ -225,12 +234,12 @@ export const useOrdersTableColumns = (): Column<IOrder>[] => {
         ),
       },
       {
-        ...nextTableColumns.small,
+        ...nextTableColumns.smaller,
         accessor: (r) => r.paid,
         id: 'payed',
-        Header: 'Ödənilib',
+        Header: 'Ödəniş',
         Filter: NextTableCheckboxFilter,
-        Cell: ({ row: { original } }: any) => <Tag color={original.paid ? 'green' : 'red'}>{original.paid ? 'Bəli' : 'Xeyr'}</Tag>,
+        Cell: CheckCell,
       },
       {
         ...nextTableColumns.small,
@@ -238,12 +247,12 @@ export const useOrdersTableColumns = (): Column<IOrder>[] => {
         id: 'urgent',
         Header: 'Təcili',
         filterable: false,
-        Cell: ({ row: { original } }: any) => original.isUrgent ? <Tag color='red'>Bəli</Tag> : null,
+        Cell: ({ row: { original } }: any) => (original.isUrgent ? <Tag color="red">Bəli</Tag> : null),
       },
-      { ...nextTableColumns.normal, accessor: (r) => r.executor?.name || '—', id: 'executive', Header: 'İcraçı', filterable: false },
+      { ...nextTableColumns.small, accessor: (r) => r.executor?.name, id: 'executive', Header: 'Düzəliş edən', Cell: OverCell },
       { ...nextTableColumns.normal, accessor: (r) => r.declaration?.trackCode || '—', id: 'declaration_id', Header: 'Bağlama', filterable: false },
       { ...nextTableColumns.date, accessor: (r) => r.expectedAt, id: 'waiting', Header: 'Gözlənilən tarix' },
-      { ...nextTableColumns.date, accessor: (r) => r.createdAt, id: 'created_at', Header: 'Tarix' },
+      { ...nextTableColumns.date, accessor: (r) => r.createdAt, id: 'created_at', Header: 'Yaradılma tarixi' },
     ],
     [settings.data?.countries, statuses],
   );

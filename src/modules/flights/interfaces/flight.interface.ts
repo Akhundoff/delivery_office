@@ -100,3 +100,13 @@ export type UpdateCurrentMonthDto = {
   id: string;
   currentMonth: import('dayjs').Dayjs | null;
 };
+
+export type IFlightCounts = {
+  handovers: number;
+  paidAmount: number;
+};
+
+export type ITinyFlight = {
+  id: number;
+  name: string;
+};

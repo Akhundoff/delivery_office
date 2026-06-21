@@ -23,8 +23,7 @@ export const nonSortedDeclarationsTableFetchUseCase = (flightId?: string) => (pa
 export const sortingDeclarationsTableFetchUseCase = (parcelSortingId: string, view: SortingDeclarationsView) => (params: NextTableFetchParams) => async (dispatch: Dispatch<NextTableActions>) => {
   dispatch(nextTableFetchDataStartedAction());
   const query = { ...tableQueryMaker(params), parcel_sorting_id: parcelSortingId };
-  const fetcher =
-    view === 'another' ? SortingService.getAnotherDeclarations : view === 'missing' ? SortingService.getMissingDeclarations : SortingService.getDeclarations;
+  const fetcher = view === 'another' ? SortingService.getAnotherDeclarations : view === 'missing' || view === 'sorting' ? SortingService.getMissingDeclarations : SortingService.getDeclarations;
   const result = await fetcher(query);
   if (result.status === 200) dispatch(nextTableFetchDataSucceedAction({ data: result.data.data, total: result.data.total }));
   else dispatch(nextTableFetchDataFailedAction('Xəta baş verdi.'));

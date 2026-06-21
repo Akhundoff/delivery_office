@@ -11,24 +11,34 @@ import { FlightsTableContext } from '../context';
 export const FlightsActionBar = () => {
   const backgroundNavigate = useBackgroundNavigate();
   const navigate = useNavigate();
-  const { handleFetch, handleReset } = useContext(FlightsTableContext);
+  const { handleFetch, handleReset, handleSelectAll, handleResetSelection, state } = useContext(FlightsTableContext);
+  const selectionCount = Object.keys(state.selectedRowIds).length;
 
   return (
     <HeadPortal>
       <StyledActionBar $flex={true}>
         <Space>
-          <StyledHeaderButton type='text' onClick={() => backgroundNavigate('/flights/create', { withBackground: true })} icon={<Icons.PlusCircleOutlined />}>
+          <StyledHeaderButton type="text" onClick={() => backgroundNavigate('/flights/create', { withBackground: true })} icon={<Icons.PlusCircleOutlined />}>
             Yeni
           </StyledHeaderButton>
-          <StyledHeaderButton type='text' onClick={handleFetch} icon={<Icons.ReloadOutlined />}>
+          {!selectionCount ? (
+            <StyledHeaderButton type="text" onClick={handleSelectAll} icon={<Icons.CheckCircleOutlined />}>
+              Hamısını seç
+            </StyledHeaderButton>
+          ) : (
+            <StyledHeaderButton type="text" onClick={handleResetSelection} icon={<Icons.CloseCircleOutlined />}>
+              {selectionCount} sətir seçilib
+            </StyledHeaderButton>
+          )}
+          <StyledHeaderButton type="text" onClick={handleFetch} icon={<Icons.ReloadOutlined />}>
             Yenilə
           </StyledHeaderButton>
-          <StyledHeaderButton type='text' onClick={handleReset} icon={<Icons.ClearOutlined />}>
+          <StyledHeaderButton type="text" onClick={handleReset} icon={<Icons.ClearOutlined />}>
             Sıfırla
           </StyledHeaderButton>
         </Space>
         <Space>
-          <StyledHeaderButton type='text' onClick={() => navigate('/flights/trendyol-cari')} icon={<Icons.RocketOutlined />}>
+          <StyledHeaderButton type="text" onClick={() => navigate('/flights/trendyol-cari')} icon={<Icons.RocketOutlined />}>
             Trendyol Cari
           </StyledHeaderButton>
         </Space>

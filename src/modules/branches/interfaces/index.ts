@@ -29,6 +29,24 @@ export type IBranchListItem = {
   createdAt: string;
 };
 
+export type IBranchDetail = IBranchListItem & {
+  mapAddress: string;
+  openHour: string;
+  closeHour: string;
+  openHourSaturday: string;
+  closeHourSaturday: string;
+  cityName: string;
+  provinceName: string;
+  postCode: string;
+  warehouseMan: string;
+};
+
+export type IBranchWithDeliveryPoint = {
+  id: number;
+  name: string;
+  companyId: number;
+};
+
 export type IBranchFormValues = {
   name: string;
   descr: string;
@@ -42,10 +60,17 @@ export type IBranchFormValues = {
   latitude: string;
   longitude: string;
   mapUrl: string;
+  mapAddress: string;
   parentId: string;
   stateId: string;
   companyId: string;
   sortingLetter: string;
   openHour: string;
   closeHour: string;
+  openHourSaturday: string;
+  closeHourSaturday: string;
+  cityName: string;
+  provinceName: string;
+  postCode: string;
+  warehouseMan: string;
 };

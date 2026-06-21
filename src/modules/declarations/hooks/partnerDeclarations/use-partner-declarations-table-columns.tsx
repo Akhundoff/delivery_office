@@ -34,6 +34,19 @@ export const usePartnerDeclarationsTableColumns = (): Column<IPartnerDeclaration
             icon: <Icons.EditOutlined />,
             onClick: () => navigate(`/declarations/${original.id}/update`, { withBackground: true }),
           },
+          {
+            key: 'toggle-read',
+            label: original.read ? 'Oxunmamış et' : 'Oxunmuş et',
+            icon: <Icons.BookOutlined />,
+            onClick: async () => {
+              const result = await DeclarationsService.updateRead([original.id], !original.read);
+              if (result.status === 200) {
+                handleFetch();
+              } else {
+                message.error(result.data as string);
+              }
+            },
+          },
           { type: 'divider' },
           {
             key: 'delete',
@@ -63,7 +76,7 @@ export const usePartnerDeclarationsTableColumns = (): Column<IPartnerDeclaration
         return (
           <StopPropagation>
             <Dropdown menu={{ items }} trigger={['hover']}>
-              <Button icon={<Icons.MoreOutlined />} size='small' />
+              <Button icon={<Icons.MoreOutlined />} size="small" />
             </Dropdown>
           </StopPropagation>
         );
@@ -106,9 +119,7 @@ export const usePartnerDeclarationsTableColumns = (): Column<IPartnerDeclaration
         accessor: (row) => row.trackCode,
         id: 'track_code',
         Header: 'İzləmə kodu',
-        Cell: ({ cell: { value }, row: { original } }: any) => (
-          <Tag color={!original.read ? 'green' : 'default'}>{value}</Tag>
-        ),
+        Cell: ({ cell: { value }, row: { original } }: any) => <Tag color={!original.read ? 'green' : 'default'}>{value}</Tag>,
       },
       {
         ...nextTableColumns.normal,
@@ -130,8 +141,7 @@ export const usePartnerDeclarationsTableColumns = (): Column<IPartnerDeclaration
         id: 'customs',
         Header: 'Bəyan',
         Filter: NextTableCheckboxFilter,
-        Cell: ({ cell: { value } }: any) =>
-          value ? <Icons.CheckOutlined style={{ color: '#52c41a' }} /> : <Icons.CloseOutlined style={{ color: '#ff4d4f' }} />,
+        Cell: ({ cell: { value } }: any) => (value ? <Icons.CheckOutlined style={{ color: '#52c41a' }} /> : <Icons.CloseOutlined style={{ color: '#ff4d4f' }} />),
       },
       {
         ...nextTableColumns.smaller,
@@ -139,8 +149,7 @@ export const usePartnerDeclarationsTableColumns = (): Column<IPartnerDeclaration
         id: 'payed',
         Header: 'Ödəniş',
         Filter: NextTableCheckboxFilter,
-        Cell: ({ cell: { value } }: any) =>
-          value ? <Icons.CheckOutlined style={{ color: '#52c41a' }} /> : <Icons.CloseOutlined style={{ color: '#ff4d4f' }} />,
+        Cell: ({ cell: { value } }: any) => (value ? <Icons.CheckOutlined style={{ color: '#52c41a' }} /> : <Icons.CloseOutlined style={{ color: '#ff4d4f' }} />),
       },
       {
         ...nextTableColumns.normal,
@@ -183,8 +192,8 @@ export const usePartnerDeclarationsTableColumns = (): Column<IPartnerDeclaration
         Header: 'Tərkib',
         Filter: ({ column: { filterValue, setFilter } }: any) => (
           <Select allowClear={true} style={{ width: '100%' }} onChange={setFilter} value={filterValue}>
-            <Select.Option value='1'>Maye</Select.Option>
-            <Select.Option value='2'>Digər</Select.Option>
+            <Select.Option value="1">Maye</Select.Option>
+            <Select.Option value="2">Digər</Select.Option>
           </Select>
         ),
         Cell: ({ cell: { value } }: any) => (value === 'liquid' ? 'Maye' : 'Digər'),

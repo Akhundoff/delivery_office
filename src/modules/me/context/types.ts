@@ -1,4 +1,4 @@
-import { Dispatch } from "react";
+import { Dispatch } from 'react';
 
 export interface IMeUser {
   id: number;
@@ -7,11 +7,14 @@ export interface IMeUser {
   email: string;
   permissions: string[];
   adminBranchId: number | null;
+  deliveryPointId: number | null;
+  admin: number | null;
 }
 
 export interface LoginFormData {
   email: string;
   password: string;
+  rememberMe: boolean;
 }
 
 export type LoginFormErrors = Partial<Record<keyof LoginFormData | string, string[]>>;
@@ -40,13 +43,15 @@ export interface IMeState {
 }
 
 export type MeAction =
-  | { type: "SET_LOADING"; payload: boolean }
-  | { type: "SET_USER"; payload: IMeUser | null }
-  | { type: "SET_AUTH_LOADING"; payload: boolean }
-  | { type: "SET_AUTH_ERROR"; payload: string | null };
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SET_USER'; payload: IMeUser | null }
+  | { type: 'SET_AUTH_LOADING'; payload: boolean }
+  | { type: 'SET_AUTH_ERROR'; payload: string | null };
 
 export interface IMeContext {
   state: IMeState;
   dispatch: Dispatch<MeAction>;
   can: (permission: string) => boolean;
+  canDisplay: (route: '*' | 'partner') => boolean;
+  hasAnyPermission: (group: 'settings' | 'declarations' | 'queues' | 'notify' | 'content') => boolean;
 }

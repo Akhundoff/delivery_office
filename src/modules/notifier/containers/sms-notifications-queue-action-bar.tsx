@@ -9,46 +9,56 @@ import { SmsNotificationsQueueTableContext } from '../context';
 import { SmsNotificationsQueueService } from '../services';
 
 export const SmsNotificationsQueueActionBar = () => {
-    const { handleFetch, handleReset } = useContext(SmsNotificationsQueueTableContext);
+  const { handleFetch, handleReset, handleSelectAll, handleResetSelection, state } = useContext(SmsNotificationsQueueTableContext);
+  const selectionCount = Object.keys(state.selectedRowIds).length;
 
-    const sendAll = useCallback(() => {
-        Modal.confirm({
-            title: 'Diqqət',
-            content: 'Növbədəki mesajları göndərməyə əminsinizmi?',
-            onOk: async () => {
-                const result = await SmsNotificationsQueueService.sendAll();
-                if (result.status === 200) {
-                    message.success('Növbədəki mesajlar müvəffəqiyyətlə göndərildi.');
-                    handleFetch();
-                } else {
-                    message.error('Xəta baş verdi.');
-                }
-            },
-        });
-    }, [handleFetch]);
+  const sendAll = useCallback(() => {
+    Modal.confirm({
+      title: 'Diqqət',
+      content: 'Növbədəki mesajları göndərməyə əminsinizmi?',
+      onOk: async () => {
+        const result = await SmsNotificationsQueueService.sendAll();
+        if (result.status === 200) {
+          message.success('Növbədəki mesajlar müvəffəqiyyətlə göndərildi.');
+          handleFetch();
+        } else {
+          message.error('Xəta baş verdi.');
+        }
+      },
+    });
+  }, [handleFetch]);
 
-    return (
-        <HeadPortal>
-            <StyledActionBar $flex={true}>
-                <Space>
-                    <NavLink to='/notifier/sms/bulk/send'>
-                        <StyledHeaderButton type='text' icon={<Icons.PlusCircleOutlined />}>
-                            Toplu sms göndər
-                        </StyledHeaderButton>
-                    </NavLink>
-                    <StyledHeaderButton type='text' onClick={handleFetch} icon={<Icons.ReloadOutlined />}>
-                        Yenilə
-                    </StyledHeaderButton>
-                    <StyledHeaderButton type='text' onClick={handleReset} icon={<Icons.ClearOutlined />}>
-                        Sıfırla
-                    </StyledHeaderButton>
-                </Space>
-                <Space>
-                    <StyledHeaderButton type='text' icon={<Icons.FieldTimeOutlined />} onClick={sendAll}>
-                        Növbədəkiləri göndər
-                    </StyledHeaderButton>
-                </Space>
-            </StyledActionBar>
-        </HeadPortal>
-    );
+  return (
+    <HeadPortal>
+      <StyledActionBar $flex={true}>
+        <Space>
+          <NavLink to="/notifier/sms/bulk/send">
+            <StyledHeaderButton type="text" icon={<Icons.PlusCircleOutlined />}>
+              Toplu sms göndər
+            </StyledHeaderButton>
+          </NavLink>
+          {!selectionCount ? (
+            <StyledHeaderButton type="text" onClick={handleSelectAll} icon={<Icons.CheckCircleOutlined />}>
+              Hamısını seç
+            </StyledHeaderButton>
+          ) : (
+            <StyledHeaderButton type="text" onClick={handleResetSelection} icon={<Icons.CloseCircleOutlined />}>
+              {selectionCount} sətir seçilib
+            </StyledHeaderButton>
+          )}
+          <StyledHeaderButton type="text" onClick={handleFetch} icon={<Icons.ReloadOutlined />}>
+            Yenilə
+          </StyledHeaderButton>
+          <StyledHeaderButton type="text" onClick={handleReset} icon={<Icons.ClearOutlined />}>
+            Sıfırla
+          </StyledHeaderButton>
+        </Space>
+        <Space>
+          <StyledHeaderButton type="text" icon={<Icons.FieldTimeOutlined />} onClick={sendAll}>
+            Növbədəkiləri göndər
+          </StyledHeaderButton>
+        </Space>
+      </StyledActionBar>
+    </HeadPortal>
+  );
 };

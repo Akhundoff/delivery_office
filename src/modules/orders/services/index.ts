@@ -1,5 +1,6 @@
 import { ApiResult, appendToFormData, caller, urlMaker } from '@shared/utils';
-import { ICreateOrderValues, IDetailedOrder, IOrder, IOrderStateExecution } from '../interfaces';
+import { ICreateOrderValues, IDetailedOrder, IOrder, IOrderExcel, IOrderStateExecution } from '../interfaces';
+import { getCountryName } from '../constants';
 
 const toDomain = (p: any): IOrder => ({
   id: p.id,
@@ -34,6 +35,22 @@ const toDomain = (p: any): IOrder => ({
 
 // Reused by statistics drill-down modals to map getlist rows into IOrder.
 export const orderRowToDomain = toDomain;
+
+const toExcel = (p: any): IOrderExcel => ({
+  'M.kodu': p.user_id,
+  Müştəri: p.user_name,
+  Ölkə: getCountryName(p.country_id),
+  'İzləmə kodu': p.track_code,
+  Qiymət: parseFloat(p.price) || 0,
+  'D.K qiyməti': p.cargo_price ? parseFloat(p.cargo_price) : 0,
+  Ödəniş: !!p.payed,
+  Say: p.quantity,
+  Status: p.state_name,
+  'Düzəliş edən': p.executive,
+  Gözlənilir: p.waiting,
+  Yaradıldı: p.created_at,
+  Url: p.url,
+});
 
 const toDetailedDomain = (p: any): IDetailedOrder => ({
   ...toDomain(p),
@@ -192,6 +209,20 @@ export const OrdersService = {
       const result = await response.json().catch(() => ({}));
       const reason = result.errors ? Object.values(result.errors).flat().join('. ') : 'Əməliyyat uğursuz oldu';
       return new ApiResult(400, reason, null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası', null);
+    }
+  },
+
+  getListForExport: async (query: Record<string, any> = {}): Promise<ApiResult<200, { data: IOrderExcel[]; total: number }> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/v2/orders/getlist', { page: 1, per_page: 500, ...query });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, { data: (result.data || []).map(toExcel), total: result.total || 0 }, null);
+      }
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
     } catch {
       return new ApiResult(400, 'Şəbəkə xətası', null);
     }

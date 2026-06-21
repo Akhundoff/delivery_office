@@ -9,3 +9,5 @@ export * from './update-air-waybill-modal';
 export * from './update-current-month-modal';
 export * from './upload-manifest-modal';
 export * from './close-flight-modal';
+export * from './flight-declarations-action-bar';
+export * from './flight-declarations-table';

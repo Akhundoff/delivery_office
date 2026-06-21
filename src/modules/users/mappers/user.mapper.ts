@@ -1,6 +1,37 @@
-import { IUser, IUserExcel, IUserPersistence } from "../interfaces";
+import dayjs from 'dayjs';
+import { IUser, IUserExcel, IUserPersistence, CreateUserDto, CreateDiscountDto } from '../interfaces';
 
 export class UserMapper {
+  public static toPersistence(dto: CreateUserDto, id?: string | number): Record<string, any> {
+    return {
+      ...(id != null ? { user_id: String(id) } : {}),
+      name: dto.firstname,
+      surname: dto.lastname,
+      email: dto.email,
+      number: dto.phoneNumber,
+      gender: dto.gender,
+      birth_date: dto.birthDate ? dayjs(dto.birthDate).format('YYYY-MM-DD') : undefined,
+      address: dto.address,
+      branch_id: dto.branchId,
+      passport_number: dto.passport.number,
+      passport_secret: dto.passport.secret,
+      password: dto.password,
+      password_confirmation: dto.passwordConfirmation,
+      send_mail: Number(dto.sendEmail).toString(),
+      send_sms: Number(dto.sendSms).toString(),
+    };
+  }
+
+  public static discountToPersistence(userId: string | number, dto: CreateDiscountDto): Record<string, any> {
+    return {
+      user_id: String(userId),
+      discount: dto.discount,
+      discount_date: dto.discountDate ? dayjs(dto.discountDate).format('YYYY-MM-DD') : undefined,
+      country_id: dto.countryId,
+      descr: dto.descr,
+    };
+  }
+
   public static toDomain(user: IUserPersistence): IUser {
     return {
       id: user.id,
@@ -34,13 +65,13 @@ export class UserMapper {
       Email: user.email,
       Telefon: user.number,
       Cins: user.gender,
-      "Dogum gunu": user.birth_date,
+      'Dogum gunu': user.birth_date,
       BalansTry: parseFloat(user.balance_try) || 0,
       BalansUsd: parseFloat(user.balance_usd) || 0,
-      "S.V. nomresi": user.passport_number,
-      "FIN kod": user.passport_secret,
-      Shirket: user.admin_company_name?.replaceAll('"', "") || null,
-      Filial: user.branch_name?.replaceAll('"', "") || null,
+      'S.V. nomresi': user.passport_number,
+      'FIN kod': user.passport_secret,
+      Shirket: user.admin_company_name?.replaceAll('"', '') || null,
+      Filial: user.branch_name?.replaceAll('"', '') || null,
     };
   }
 }

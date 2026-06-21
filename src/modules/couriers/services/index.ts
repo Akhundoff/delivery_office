@@ -1,5 +1,5 @@
 import { ApiResult, caller, urlMaker } from '@shared/utils';
-import { ICourier, IDelivererAssignment, CreateCourierDto, ICourierPaymentDetails, IDelivererReason, ICourierStatusExecution } from '../interfaces';
+import { ICourier, IDetailedCourier, IDelivererAssignment, CreateCourierDto, ICourierPaymentDetails, IDelivererReason, ICourierStatusExecution, IAzerpostBranch, ICourierCost } from '../interfaces';
 
 const toDomain = (p: any): ICourier => ({
   id: p.id,
@@ -146,13 +146,70 @@ export const CouriersService = {
     }
   },
 
-  getById: async (id: string | number): Promise<ApiResult<200, ICourier> | ApiResult<400, string>> => {
+  getById: async (id: string | number): Promise<ApiResult<200, IDetailedCourier> | ApiResult<400, string>> => {
     const url = urlMaker('/api/admin/couriers/info', { courier_id: id });
     try {
       const response = await caller(url);
       if (response.ok) {
         const result = await response.json();
-        return new ApiResult(200, toDomain(result.data), null);
+        const p = result.data;
+        const detailed: IDetailedCourier = {
+          id: p.id,
+          documentNumber: p.document_number || '',
+          postBranch: p.post_branch || '',
+          user: { id: p.user_id, name: p.user_name || '' },
+          branch: { id: p.branch_index, name: p.branch_name || '' },
+          status: { id: p.state_id, name: p.state_name || '' },
+          region: { id: p.region_id ?? null, name: p.region_name || '' },
+          recipient: p.recipient || '',
+          address: p.address || '',
+          phoneNumber: p.phone || '',
+          price: parseFloat(p.price) || 0,
+          totalPrice: p.all_price || parseFloat(p.price) || 0,
+          courierPrice: parseFloat(p.courier_price) || 0,
+          paid: !!p.payed,
+          declarations: {
+            quantity: p.quantity || 0,
+            weight: parseFloat(p.weight) || 0,
+            items: (p.declarations || []).map((d: any) => ({
+              id: d.id,
+              trackCode: d.track_code,
+              globalTrackCode: d.global_track_code || '',
+              weight: parseFloat(d.weight || '0'),
+              quantity: d.quantity,
+              productPrice: parseFloat(d.price || '0'),
+              deliveryPrice: d.delivery_price || 0,
+              penaltyPrice: parseFloat(d.penalty_price || '0'),
+              paid: !!d.payed,
+              shop: d.shop_name || '',
+              createdAt: d.created_at || '',
+            })),
+          },
+          read: !p.is_new,
+          description: p.descr || '',
+          isAzerpost: !!p.is_azerpost,
+          createdAt: p.created_at || '',
+          azerpost: p.azerpost_data?.data
+            ? {
+                orderId: p.azerpost_data.data.order_id || '',
+                vendorId: p.azerpost_data.data.vendor_id || '',
+                packageId: p.azerpost_data.data.package_id || '',
+                deliveryPostCode: p.azerpost_data.data.delivery_post_code || '',
+                packageWeight: p.azerpost_data.data.package_weight || '',
+                customerAddress: p.azerpost_data.data.customer_address || '',
+                firstName: p.azerpost_data.data.first_name || '',
+                lastName: p.azerpost_data.data.last_name || '',
+                email: p.azerpost_data.data.email || '',
+                phoneNo: p.azerpost_data.data.phone_no || '',
+                deliveryType: p.azerpost_data.data.delivery_type || '',
+                charge: p.azerpost_data.data.charge || '',
+                orderStatus: p.azerpost_data.data.order_status || '',
+                createdAt: p.azerpost_data.data.created_at || '',
+                history: (p.azerpost_data.data.history || []).map((h: any) => ({ createdAt: h.created_at || '', details: h.details || '' })),
+              }
+            : undefined,
+        };
+        return new ApiResult(200, detailed, null);
       }
       return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
     } catch {
@@ -250,6 +307,106 @@ export const CouriersService = {
         return new ApiResult(200, data, null);
       }
       return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası', null);
+    }
+  },
+
+  updateRead: async (ids: (string | number)[], read: boolean): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/isnew', { model_id: 3, object_id: ids, is_new: read ? 1 : 0 });
+    try {
+      const response = await caller(url, { method: 'POST' });
+      if (response.ok) return new ApiResult(200, null, null);
+      return new ApiResult(400, 'Əməliyyat uğursuz oldu', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası', null);
+    }
+  },
+
+  bulkChangeStatus: async (query: Record<string, any>, statusId: string | number): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/v2/couriers/edit/state', { ...query, new_state_id: statusId });
+    try {
+      const response = await caller(url, { method: 'POST' });
+      if (response.ok) return new ApiResult(200, null, null);
+      return new ApiResult(400, 'Status dəyişdirilə bilmədi', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası', null);
+    }
+  },
+
+  azerpostChangeStatus: async (ids: (string | number)[], statusId: string | number): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/azerpost/status', { courier_id: ids, charge_status: statusId });
+    try {
+      const response = await caller(url, { method: 'POST' });
+      if (response.ok) return new ApiResult(200, null, null);
+      return new ApiResult(400, 'Əməliyyat uğursuz oldu', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası', null);
+    }
+  },
+
+  azerpostCreate: async (ids: (string | number)[]): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/azerpost/create', { courier_id: ids });
+    try {
+      const response = await caller(url, { method: 'POST' });
+      if (response.ok) return new ApiResult(200, null, null);
+      return new ApiResult(400, 'Əməliyyat uğursuz oldu', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası', null);
+    }
+  },
+
+  azerpostDelete: async (ids: (string | number)[]): Promise<ApiResult<200, null> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/azerpost/delete', { courier_id: ids });
+    try {
+      const response = await caller(url, { method: 'POST' });
+      if (response.ok) return new ApiResult(200, null, null);
+      return new ApiResult(400, 'Əməliyyat uğursuz oldu', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası', null);
+    }
+  },
+
+  getAzerpostBranches: async (regionId: string | number): Promise<ApiResult<200, IAzerpostBranch[]> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/client/azerpost/branches', { region_id: regionId });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, result.data || [], null);
+      }
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası', null);
+    }
+  },
+
+  getCourierCost: async (declarationIds: (string | number)[], regionId: string | number, shipping: 0 | 1, postBranch?: string): Promise<ApiResult<200, ICourierCost> | ApiResult<400, string>> => {
+    const params: Record<string, any> = { region_id: regionId };
+    if (shipping && postBranch) params.post_branch = postBranch;
+    const queryString = declarationIds.map((id) => `declaration_id[]=${id}`).join('&');
+    const url = urlMaker('/api/admin/couriers/get_courier_cost', params) + (queryString ? `&${queryString}` : '');
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        return new ApiResult(200, result.data, null);
+      }
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası', null);
+    }
+  },
+
+  getPriceExcel: async (query: Record<string, any> = {}): Promise<ApiResult<200, Blob> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/couriers/courier_price', query);
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const blob = await response.blob();
+        return new ApiResult(200, blob, null);
+      }
+      return new ApiResult(400, 'Export uğursuz oldu', null);
     } catch {
       return new ApiResult(400, 'Şəbəkə xətası', null);
     }
