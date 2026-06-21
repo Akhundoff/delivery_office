@@ -54,4 +54,22 @@ export type ITransferBarcode = {
   checked?: boolean;
 };
 
-export type SortingDeclarationsView = 'total' | 'another' | 'missing';
+export type SortingDeclarationsView = 'total' | 'another' | 'sorting' | 'missing';
+
+export type IAzeriExpressInfo = {
+  senderName: string;
+  senderEmail: string;
+  formattedSenderMobile: string;
+  receiverName: string;
+  receiverEmail: string;
+  formattedReceiverMobile: string;
+  barcodeFullNumber: string;
+  statusText: string;
+  priorityText: string;
+  weight: string;
+  distance: string;
+  packageContents: string;
+  pickupInstructions: string;
+  deliveryInstructions: string;
+  createdAt: string;
+};

@@ -18,3 +18,5 @@ export { ReturnDeclarationModal } from './return-declaration-modal';
 export { ArchivedDeclarationsActionBar } from './archived-declarations-action-bar';
 export { ArchivedDeclarationsTable } from './archived-declarations-table';
 export { DeclarationTimeline } from './declaration-timeline';
+export { DeclarationAcceptance } from './declaration-acceptance';
+export { TinyDeclarationsTable } from './tiny-declarations-table';

@@ -1,5 +1,5 @@
 import React, { useCallback, useContext, useMemo } from 'react';
-import { Button, Dropdown, MenuProps, Modal, Tag, message } from 'antd';
+import { Button, Dropdown, MenuProps, Modal, Select, Tag, message } from 'antd';
 import * as Icons from '@ant-design/icons';
 import { Column } from 'react-table';
 import { useNavigate } from 'react-router-dom';
@@ -8,14 +8,19 @@ import { StopPropagation } from '@shared/components/stop-propagation';
 import { nextTableColumns } from '@shared/modules/next-table/helpers/next-table-columns';
 import { useBackgroundNavigate } from '@shared/hooks';
 import { StatusesService } from '@modules/statuses/services';
+import { SettingsContext } from '@modules/settings';
+import { printFlightWaybill } from '@modules/declarations/hooks';
 import { IFlight } from '../../interfaces';
 import { FlightsTableContext } from '../../context';
 import { FlightsService } from '../../services';
+import { FlightCountsCell } from '../../components/flight-counts-cell';
+import { FlightDimensionalWeightCell } from '../../components/flight-dimensional-weight-cell';
 
 export const useFlightsTableColumns = (): Column<IFlight>[] => {
   const { handleFetch } = useContext(FlightsTableContext);
   const navigate = useNavigate();
   const backgroundNavigate = useBackgroundNavigate();
+  const settings = useContext(SettingsContext);
 
   const { data: statusesResult } = useQuery(['statuses-for-flight-columns', 8], () => StatusesService.getList({ per_page: 500, model_id: 8 }));
   const { data: trendyolStatusesResult } = useQuery(['trendyol-statuses-for-flight-columns', 43], () => StatusesService.getList({ per_page: 500, model_id: 43 }));
@@ -37,7 +42,7 @@ export const useFlightsTableColumns = (): Column<IFlight>[] => {
         }, []);
 
         const exportXML = useCallback(
-          async (options: { onlyLiquids?: boolean } = {}) => {
+          async (options: { onlyLiquids?: boolean; partnerId?: number } = {}) => {
             message.loading({ key: 'xml', content: 'Sənəd hazırlanır...', duration: 0 });
             const result = await FlightsService.getXML(original.id, options);
             if (result.status === 200) {
@@ -50,6 +55,31 @@ export const useFlightsTableColumns = (): Column<IFlight>[] => {
           [downloadFile, original.id],
         );
 
+        const exportManifest = useCallback(
+          async (partnerId?: number) => {
+            message.loading({ key: 'manifest', content: 'Sənəd hazırlanır...', duration: 0 });
+            const result = await FlightsService.getExcel(original.id);
+            if (result.status === 200) {
+              message.success({ key: 'manifest', content: 'Sənəd yüklənir.' });
+              downloadFile(result.data as Blob, `flight_${original.id}_manifest.xls`);
+            } else {
+              message.error({ key: 'manifest', content: result.data as string });
+            }
+          },
+          [downloadFile, original.id],
+        );
+
+        const exportManifestByParcels = useCallback(async () => {
+          message.loading({ key: 'manifest-box', content: 'Yüklənir...', duration: 0 });
+          const result = await FlightsService.getManifestByParcel(original.id);
+          message.destroy('manifest-box');
+          if (result.status === 200) {
+            window.open(result.data.file, '_blank');
+          } else {
+            message.error(result.data as string);
+          }
+        }, [original.id]);
+
         const statusItems: MenuProps['items'] = statuses.map((s) => ({
           key: `status-${s.id}`,
           label: s.name,
@@ -59,8 +89,10 @@ export const useFlightsTableColumns = (): Column<IFlight>[] => {
               content: `Statusu "${s.name}" olaraq dəyişmək istədiyinizdən əminsinizmi?`,
               onOk: async () => {
                 const result = await FlightsService.changeStatus(original.id, s.id);
-                if (result.status === 200) { message.success('Status dəyişdirildi'); handleFetch(); }
-                else message.error(result.data as string);
+                if (result.status === 200) {
+                  message.success('Status dəyişdirildi');
+                  handleFetch();
+                } else message.error(result.data as string);
               },
             }),
         }));
@@ -74,8 +106,10 @@ export const useFlightsTableColumns = (): Column<IFlight>[] => {
               content: `Trendyol statusunu "${s.name}" olaraq dəyişmək istədiyinizdən əminsinizmi?`,
               onOk: async () => {
                 const result = await FlightsService.changeTrendyolStatus(original.id, s.id);
-                if (result.status === 200) { message.success('Status dəyişdirildi'); handleFetch(); }
-                else message.error(result.data as string);
+                if (result.status === 200) {
+                  message.success('Status dəyişdirildi');
+                  handleFetch();
+                } else message.error(result.data as string);
               },
             }),
         }));
@@ -87,18 +121,29 @@ export const useFlightsTableColumns = (): Column<IFlight>[] => {
             icon: <Icons.FileSearchOutlined />,
             onClick: () => navigate(`/flights/${original.id}`),
           },
-          { type: 'divider' },
           {
-            key: 'airwaybills',
-            label: 'Depeşlər',
-            icon: <Icons.FieldTimeOutlined />,
-            onClick: () => navigate(`/flights/${original.id}/air-waybills`),
+            key: 'declarations',
+            label: 'Bağlamalar',
+            icon: <Icons.OrderedListOutlined />,
+            onClick: () => navigate(`/flights/${original.id}/declarations`),
+          },
+          {
+            key: 'non-sorted',
+            label: 'Çeşidlənməmiş Bağlamalar',
+            icon: <Icons.SortDescendingOutlined />,
+            onClick: () => navigate(`/sorting/${original.id}/non-sorted-declarations`),
           },
           {
             key: 'packages',
             label: 'Bağlanma prosesi',
             icon: <Icons.UnorderedListOutlined />,
             onClick: () => navigate(`/flights/${original.id}/packages`),
+          },
+          {
+            key: 'airwaybills',
+            label: 'Göndərilən depeşlər',
+            icon: <Icons.FieldTimeOutlined />,
+            onClick: () => navigate(`/flights/${original.id}/air-waybills`),
           },
           ...(original.trendyol === 1
             ? [
@@ -137,6 +182,7 @@ export const useFlightsTableColumns = (): Column<IFlight>[] => {
             key: 'update-airwaybill',
             label: 'Aviaqaimə nömrəsini dəyiş',
             icon: <Icons.EditOutlined />,
+            disabled: original.status.id !== 30,
             onClick: () => backgroundNavigate(`/flights/${original.id}/air-waybills/update`, { withBackground: true }),
           },
           {
@@ -150,27 +196,25 @@ export const useFlightsTableColumns = (): Column<IFlight>[] => {
             key: 'manifest',
             label: 'Manifest',
             icon: <Icons.FileExcelOutlined />,
-            onClick: async () => {
-              message.loading({ key: 'manifest', content: 'Sənəd hazırlanır...', duration: 0 });
-              const result = await FlightsService.getExcel(original.id);
-              if (result.status === 200) {
-                message.success({ key: 'manifest', content: 'Sənəd yüklənir.' });
-                const objectURL = URL.createObjectURL(result.data as Blob);
-                const a = document.createElement('a');
-                a.href = objectURL;
-                a.download = `flight_${original.id}_manifest.xls`;
-                a.click();
-                URL.revokeObjectURL(objectURL);
-              } else {
-                message.error({ key: 'manifest', content: (result.data as string) || 'Xəta baş verdi.' });
-              }
-            },
+            onClick: () => exportManifest(),
           },
           {
             key: 'upload-manifest',
-            label: 'Kisələrlə toplu manifest',
+            label: 'Kisələrlə toplu manifest (Excel ilə)',
             icon: <Icons.UploadOutlined />,
             onClick: () => backgroundNavigate(`/flights/${original.id}/manifest/upload`, { withBackground: true }),
+          },
+          {
+            key: 'manifest-by-parcels',
+            label: 'Kisələrlə toplu manifest',
+            icon: <Icons.FileExcelOutlined />,
+            onClick: exportManifestByParcels,
+          },
+          {
+            key: 'waybill',
+            label: 'Yol vərəqəsi',
+            icon: <Icons.PrinterOutlined />,
+            onClick: () => printFlightWaybill({ flightId: original.id }),
           },
           {
             key: 'xml-export',
@@ -182,40 +226,43 @@ export const useFlightsTableColumns = (): Column<IFlight>[] => {
               { key: 'xml-all', label: 'Bütün məhsullar', onClick: () => exportXML({}) },
             ],
           },
+          {
+            key: 'modafun',
+            label: 'Modafun',
+            icon: <Icons.ControlOutlined />,
+            children: [
+              { key: 'modafun-manifest', label: 'Manifest', icon: <Icons.FileExcelOutlined />, onClick: () => exportManifest(1) },
+              { key: 'modafun-waybill', label: 'Yol vərəqəsi', icon: <Icons.PrinterOutlined />, onClick: () => printFlightWaybill({ flightId: original.id, partnerId: 1 }) },
+              {
+                key: 'modafun-xml',
+                label: 'XML export',
+                icon: <Icons.FileOutlined />,
+                children: [
+                  { key: 'modafun-xml-liquids', label: 'Yalnız maye məhsullar', onClick: () => exportXML({ onlyLiquids: true, partnerId: 1 }) },
+                  { key: 'modafun-xml-non-liquids', label: 'Yalnız adi məhsullar', onClick: () => exportXML({ onlyLiquids: false, partnerId: 1 }) },
+                  { key: 'modafun-xml-all', label: 'Bütün məhsullar', onClick: () => exportXML({ partnerId: 1 }) },
+                ],
+              },
+            ],
+          },
           { type: 'divider' as const },
           {
             key: 'close',
-            label: 'Bağla',
+            label: 'Uçuşu bağla',
             icon: <Icons.LockOutlined />,
-            onClick: () =>
-              Modal.confirm({
-                title: 'Diqqət',
-                content: `"${original.name}" uçuşunu bağlamaq istədiyinizə əminsinizmi?`,
-                okText: 'Bağla',
-                okType: 'danger',
-                cancelText: 'Ləğv et',
-                onOk: async () => {
-                  const result = await FlightsService.close({
-                    id: String(original.id),
-                    type: 'all',
-                    airWaybillNumber: original.airwaybill || '',
-                    packagingLimit: '',
-                  });
-                  if (result.status === 200) {
-                    message.success('Uçuş bağlandı.');
-                    handleFetch();
-                  } else {
-                    message.error((result.data as string) || 'Xəta baş verdi.');
-                  }
-                },
-              }),
+            disabled: original.status.id !== 29,
+            children: [
+              { key: 'close-with-dispatch', label: 'Depeşli', onClick: () => navigate(`/flights/${original.id}/close/with-dispatch`) },
+              { key: 'close-without-dispatch', label: 'Depeşsiz', onClick: () => navigate(`/flights/${original.id}/close/without-dispatch`) },
+              { key: 'close-all', label: 'Hamısı', onClick: () => navigate(`/flights/${original.id}/close/all`) },
+            ],
           },
         ];
 
         return (
           <StopPropagation>
             <Dropdown menu={{ items }} trigger={['hover']}>
-              <Button icon={<Icons.MoreOutlined />} size='small' />
+              <Button icon={<Icons.MoreOutlined />} size="small" />
             </Dropdown>
           </StopPropagation>
         );
@@ -228,28 +275,76 @@ export const useFlightsTableColumns = (): Column<IFlight>[] => {
     () => [
       { ...nextTableColumns.small, Header: 'Kod', id: 'id', accessor: (r) => r.id },
       { accessor: (r) => r.name, id: 'name', Header: 'Ad' },
-      { accessor: (r) => r.flightProvider || '—', id: 'flight_provider', Header: 'Provayder' },
+      {
+        ...nextTableColumns.small,
+        accessor: (r) => r.flightProvider || '—',
+        id: 'flight_provider',
+        Header: 'Provayder',
+        Filter: ({ column: { filterValue, setFilter } }: any) => (
+          <Select allowClear={true} style={{ width: '100%' }} onChange={setFilter} value={filterValue}>
+            <Select.Option value="0">Daxili</Select.Option>
+            <Select.Option value="1">Trendyol</Select.Option>
+            <Select.Option value="2">Temu</Select.Option>
+          </Select>
+        ),
+      },
       { accessor: (r) => r.airwaybill || '—', id: 'airwaybill', Header: 'Airwaybill' },
-      { ...nextTableColumns.date, accessor: (r) => r.startedAt, id: 'start_date', Header: 'Başlama tarixi' },
+      { ...nextTableColumns.date, accessor: (r) => r.startedAt, id: 'start_date', Header: 'Başlanğıc tarixi' },
       { ...nextTableColumns.date, accessor: (r) => r.endedAt || '—', id: 'end_date', Header: 'Bitmə tarixi' },
-      { accessor: (r) => r.country?.name || '—', id: 'country_id', Header: 'Ölkə' },
+      {
+        accessor: (r) => r.country?.name || '—',
+        id: 'country_id',
+        Header: 'Ölkə',
+        Filter: ({ column: { filterValue, setFilter } }: any) => (
+          <Select allowClear={true} style={{ width: '100%' }} onChange={setFilter} value={filterValue}>
+            {(settings.data?.countries || []).map((c) => (
+              <Select.Option key={c.id} value={c.id.toString()}>
+                {c.name}
+              </Select.Option>
+            ))}
+          </Select>
+        ),
+      },
       {
         accessor: (r) => r.status?.name || '—',
         id: 'state_id',
         Header: 'Status',
+        Filter: ({ column: { filterValue, setFilter } }: any) => (
+          <Select allowClear={true} style={{ width: '100%' }} onChange={setFilter} value={filterValue}>
+            {statuses.map((s) => (
+              <Select.Option key={s.id} value={s.id.toString()}>
+                {s.name}
+              </Select.Option>
+            ))}
+          </Select>
+        ),
         Cell: ({ value }: any) => <Tag>{value}</Tag>,
       },
-      { ...nextTableColumns.small, accessor: (r) => r.count, id: 'count', Header: 'Say', filterable: false },
+      {
+        ...nextTableColumns.small,
+        accessor: (r) => r.count,
+        id: 'count',
+        Header: 'Bağlama sayı',
+        filterable: false,
+        Cell: FlightCountsCell,
+      },
       {
         ...nextTableColumns.small,
         id: 'finished',
         Header: 'Tamamlanma',
         filterable: false,
         accessor: (r) => r,
-        Cell: ({ value: r }: { value: IFlight }) =>
-          r.status?.id === 29 ? `${r.declarationCount}` : `${r.completedDeclarations}/${r.declarationCount}`,
+        Cell: ({ value: r }: { value: IFlight }) => (r.status?.id === 29 ? `${r.declarationCount}` : `${r.completedDeclarations}/${r.declarationCount}`),
       },
       { ...nextTableColumns.small, accessor: (r) => r.weight, id: 'weight', Header: 'Çəki (kq)', filterable: false },
+      {
+        ...nextTableColumns.small,
+        id: 'dimensional_weight',
+        Header: 'Həcmi çəki',
+        filterable: false,
+        accessor: (r) => r,
+        Cell: FlightDimensionalWeightCell,
+      },
       {
         ...nextTableColumns.small,
         accessor: (r) => r.productPrice,
@@ -267,7 +362,7 @@ export const useFlightsTableColumns = (): Column<IFlight>[] => {
         Cell: ({ value }: { value: number }) => (value ? `${value.toFixed(2)} $` : '—'),
       },
     ],
-    [],
+    [settings.data?.countries, statuses],
   );
 
   return useMemo(() => [actionsColumn, ...baseColumns], [actionsColumn, baseColumns]);

@@ -7,6 +7,7 @@ import { message } from 'antd';
 import { useBackgroundNavigate } from '@shared/hooks';
 import { localURLMaker } from '@shared/utils';
 import { SettingsContext } from '@modules/settings';
+import { MeContext } from '@modules/me';
 import { UsersService } from '@modules/users/services';
 
 import { IDeclaration, IDeclarationFormValues } from '../../interfaces';
@@ -17,6 +18,7 @@ export const useDeclarationForm = () => {
   const location = useLocation();
   const navigate = useBackgroundNavigate();
   const settings = useContext(SettingsContext);
+  const { can } = useContext(MeContext);
 
   const combined = (location.state as { combined?: { ids: (string | number)[]; declaration: IDeclaration } } | null)?.combined;
 
@@ -121,7 +123,11 @@ export const useDeclarationForm = () => {
 
   const onSubmit = useCallback(
     async (values: IDeclarationFormValues, helpers: FormikHelpers<IDeclarationFormValues>) => {
-      const result = id ? await DeclarationsService.updateDeclaration(id, values) : await DeclarationsService.createDeclaration(values, combined?.ids);
+      const submittedValues = { ...values };
+      if (!can('changedeliveryprice')) {
+        delete (submittedValues as any).deliveryPrice;
+      }
+      const result = id ? await DeclarationsService.updateDeclaration(id, submittedValues) : await DeclarationsService.createDeclaration(submittedValues, combined?.ids);
 
       if (result.status === 200) {
         message.success(id ? 'Dəyişikliklər saxlanıldı' : 'Bəyannamə yaradıldı');
@@ -155,7 +161,7 @@ export const useDeclarationForm = () => {
       }
       helpers.setSubmitting(false);
     },
-    [id, navigate, combined],
+    [id, navigate, combined, can],
   );
 
   return {

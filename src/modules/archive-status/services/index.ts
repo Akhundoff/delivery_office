@@ -1,5 +1,5 @@
-import { ApiResult, caller, urlMaker } from "@shared/utils";
-import { IArchiveStatus } from "../interfaces";
+import { ApiResult, caller, urlMaker } from '@shared/utils';
+import { IArchiveStatus } from '../interfaces';
 
 type ListResponse = { data: IArchiveStatus[]; total: number };
 
@@ -14,7 +14,7 @@ const toDomain = (p: any): IArchiveStatus => ({
 
 export const ArchiveStatusService = {
   getList: async (query: Record<string, any> = {}): Promise<ApiResult<200, ListResponse> | ApiResult<400, string>> => {
-    const url = urlMaker("/api/admin/states/archive", { page: 1, per_page: 20, ...query });
+    const url = urlMaker('/api/admin/states/archive', query);
     try {
       const response = await caller(url);
       if (response.ok) {
@@ -22,9 +22,9 @@ export const ArchiveStatusService = {
         const data = (result.data || []).map(toDomain);
         return new ApiResult(200, { data, total: result.total ?? data.length }, null);
       }
-      return new ApiResult(400, "Xəta baş verdi.", null);
+      return new ApiResult(400, 'Xəta baş verdi.', null);
     } catch {
-      return new ApiResult(400, "Şəbəkə xətası.", null);
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
     }
   },
 };

@@ -10,11 +10,12 @@ const CancelDelivererPage = React.lazy(() => import('../containers/cancel-delive
 const CouriersModalRouter: FC = () => (
   <React.Suspense fallback={null}>
     <Routes>
-      <Route path='create' element={<CreateCourierPage />} />
-      <Route path=':id/timeline' element={<CourierTimelinePage />} />
-      <Route path=':id/handover' element={<HandoverCouriersPage />} />
-      <Route path=':id/assign-deliverer' element={<AssignDelivererPage />} />
-      <Route path='deliverer-assignments/cancel' element={<CancelDelivererPage />} />
+      <Route path="create" element={<CreateCourierPage />} />
+      <Route path=":id/update" element={<CreateCourierPage />} />
+      <Route path=":id/timeline" element={<CourierTimelinePage />} />
+      <Route path=":id/handover" element={<HandoverCouriersPage />} />
+      <Route path=":id/assign-deliverer" element={<AssignDelivererPage />} />
+      <Route path="deliverer-assignments/cancel" element={<CancelDelivererPage />} />
     </Routes>
   </React.Suspense>
 );

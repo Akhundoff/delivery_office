@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useQuery } from 'react-query';
 import { FormikHelpers } from 'formik';
 import { message } from 'antd';
+import dayjs from 'dayjs';
 
 import { useBackgroundNavigate } from '@shared/hooks';
 import { localURLMaker } from '@shared/utils';
@@ -18,6 +19,17 @@ const emptyValues: ICouponFormValues = {
   count: '',
   stateId: '',
   description: '',
+  platform: '',
+  periodFrom: null,
+  periodTo: null,
+  userRegisterFrom: null,
+  userRegisterTo: null,
+  userGender: '',
+  singleUse: false,
+  countryId: '',
+  branchId: '',
+  regionId: '',
+  userIds: [],
 };
 
 export const useCouponForm = () => {
@@ -46,6 +58,17 @@ export const useCouponForm = () => {
         count: String(d.count),
         stateId: d.state ? String(d.state.id) : '',
         description: d.description,
+        platform: d.platform || '',
+        periodFrom: d.period?.from ? dayjs(d.period.from) : null,
+        periodTo: d.period?.to ? dayjs(d.period.to) : null,
+        userRegisterFrom: d.userRegister?.from ? dayjs(d.userRegister.from) : null,
+        userRegisterTo: d.userRegister?.to ? dayjs(d.userRegister.to) : null,
+        userGender: d.userRegister?.gender ? String(d.userRegister.gender) : '',
+        singleUse: d.count === 1,
+        countryId: d.country ? String(d.country.id) : '',
+        branchId: '',
+        regionId: d.region ? String(d.region.id) : '',
+        userIds: [],
       };
     }
     return emptyValues;
@@ -53,9 +76,7 @@ export const useCouponForm = () => {
 
   const onSubmit = useCallback(
     async (values: ICouponFormValues, helpers: FormikHelpers<ICouponFormValues>) => {
-      const result = id
-        ? await CouponsService.update(id, values)
-        : await CouponsService.create(values);
+      const result = id ? await CouponsService.update(id, values) : await CouponsService.create(values);
 
       if (result.status === 200) {
         message.success(id ? 'Dəyişikliklər saxlanıldı' : 'Kupon yaradıldı');

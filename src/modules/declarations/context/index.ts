@@ -6,3 +6,5 @@ export const PostDeclarationsTableContext = createNextTableContext();
 export const UnknownDeclarationsTableContext = createNextTableContext();
 export const PartnerDeclarationsTableContext = createNextTableContext();
 export const ArchivedDeclarationsTableContext = createNextTableContext();
+export const CurrentMonthDeclarationsTableContext = createNextTableContext();
+export const TinyDeclarationsTableContext = createNextTableContext();

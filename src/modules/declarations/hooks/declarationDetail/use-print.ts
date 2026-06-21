@@ -49,6 +49,29 @@ export const printProformaInvoiceForIds = async (ids: (string | number)[]) => {
   openPrintWindow(html);
 };
 
+export const printFlightWaybill = async (params: { flightId: string | number; partnerId?: string | number }) => {
+  const { DeclarationsService } = await import('../../services');
+  const hide = message.loading('Yol vərəqəsi hazırlanır.', 0);
+  const result = await DeclarationsService.getWaybillsByFlight(params);
+  hide();
+  if (result.status !== 200) {
+    message.error(result.data as string);
+    return;
+  }
+  registerHelpers();
+  const html = handlebars.compile(waybillTemplate)({
+    declarations: result.data.map((elem) => ({
+      ...elem,
+      oneCol: elem.currency === 'USD',
+      trackCode: elem.provider === 2 ? elem.barcode : elem.trackCode,
+    })),
+    company: process.env.REACT_APP_COMPANY_NAME?.toUpperCase(),
+    shipper: process.env.REACT_APP_SHIPPER,
+    address: process.env.REACT_APP_SHIPPER_ADDRESS,
+  });
+  openPrintWindow(html);
+};
+
 export const usePrint = (id: string) => {
   const me = useContext(MeContext);
 

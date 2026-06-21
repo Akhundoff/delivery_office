@@ -1,5 +1,6 @@
 import { useContext, useMemo } from 'react';
 import { Column } from 'react-table';
+import { useQuery } from 'react-query';
 import { Button, Dropdown, MenuProps, Modal, Select, Tag, message } from 'antd';
 import * as Icons from '@ant-design/icons';
 
@@ -12,10 +13,13 @@ import { useBackgroundNavigate } from '@shared/hooks';
 
 import { useBranches } from '@modules/branches';
 import { useParcels } from '@modules/parcels';
+import { SettingsContext } from '@modules/settings';
+import { BoxesService } from '@modules/boxes/services';
 import { IDeclaration } from '../../interfaces';
 import { declarationQueryKeys } from '../../utils';
 import { DeclarationsService } from '../../services';
 import { DeclarationsTableContext } from '../../context';
+import { DeclarationStatusTag } from '../../components/declaration-status-tag';
 import { useDeclarationStatusChange } from './use-declaration-status-change';
 
 // Quick row-level status options (model-2 declaration states).
@@ -29,9 +33,46 @@ const ROW_STATUS_OPTIONS = [
 export const useDeclarationsTableColumns = (): Column<IDeclaration>[] => {
   const { handleFetch } = useContext(DeclarationsTableContext);
   const navigate = useBackgroundNavigate();
+  const settings = useContext(SettingsContext);
   const branches = useBranches();
   const parcels = useParcels();
   const { updateStatus } = useDeclarationStatusChange();
+
+  const { data: productTypes } = useQuery(
+    ['declarations-product-types-filter'],
+    async () => {
+      const result = await DeclarationsService.getProductTypes();
+      return result.status === 200 ? result.data : [];
+    },
+    { staleTime: 5 * 60 * 1000 },
+  );
+
+  const { data: planCategories } = useQuery(
+    ['declarations-plan-categories-filter'],
+    async () => {
+      const result = await DeclarationsService.getPlanCategories();
+      return result.status === 200 ? result.data : [];
+    },
+    { staleTime: 5 * 60 * 1000 },
+  );
+
+  const { data: boxes } = useQuery(
+    ['declarations-boxes-filter'],
+    async () => {
+      const result = await BoxesService.getList({ per_page: 1000 });
+      return result.status === 200 ? result.data.data : [];
+    },
+    { staleTime: 5 * 60 * 1000 },
+  );
+
+  const { data: statuses } = useQuery(
+    ['declarations-statuses-filter'],
+    async () => {
+      const result = await DeclarationsService.getStatuses();
+      return result.status === 200 ? result.data : [];
+    },
+    { staleTime: 5 * 60 * 1000 },
+  );
 
   const actionsColumn = useMemo<Column<IDeclaration>>(
     () => ({
@@ -126,6 +167,25 @@ export const useDeclarationsTableColumns = (): Column<IDeclaration>[] => {
         Cell: OverCell,
       },
       {
+        ...nextTableColumns.small,
+        accessor: (row) => row.countryId,
+        id: declarationQueryKeys.countryId,
+        Header: 'Ölkə',
+        Filter: ({ column: { filterValue, setFilter } }: any) => (
+          <Select allowClear style={{ width: '100%' }} onChange={setFilter} value={filterValue}>
+            {(settings.data?.countries || []).map((c) => (
+              <Select.Option key={c.id} value={c.id.toString()}>
+                {c.name}
+              </Select.Option>
+            ))}
+          </Select>
+        ),
+        Cell: ({ cell: { value } }: any) => {
+          const country = settings.data?.countries.find((c) => c.id.toString() === value?.toString());
+          return country?.name || '';
+        },
+      },
+      {
         ...nextTableColumns.smaller,
         accessor: (row) => row.trackCode,
         id: declarationQueryKeys.trackCode,
@@ -144,7 +204,16 @@ export const useDeclarationsTableColumns = (): Column<IDeclaration>[] => {
         accessor: (row) => row.status?.name,
         id: declarationQueryKeys.statusId,
         Header: 'Status',
-        Cell: OverCell,
+        Filter: ({ column: { filterValue, setFilter } }: any) => (
+          <Select allowClear style={{ width: '100%' }} onChange={setFilter} value={filterValue}>
+            {(statuses || []).map((s) => (
+              <Select.Option key={s.id} value={s.id.toString()}>
+                {s.name}
+              </Select.Option>
+            ))}
+          </Select>
+        ),
+        Cell: ({ row: { original } }: any) => <DeclarationStatusTag id={original.status.id} name={original.status.name} />,
       },
       {
         ...nextTableColumns.smaller,
@@ -219,9 +288,41 @@ export const useDeclarationsTableColumns = (): Column<IDeclaration>[] => {
       },
       {
         ...nextTableColumns.normal,
+        accessor: (row) => row.planCategory?.name,
+        id: declarationQueryKeys.planCategoryId,
+        Header: 'Tarif',
+        Filter: ({ column: { filterValue, setFilter } }: any) => (
+          <Select allowClear style={{ width: '100%' }} onChange={setFilter} value={filterValue}>
+            {(planCategories || []).map((p) => (
+              <Select.Option key={p.id} value={p.id.toString()}>
+                {p.name}
+              </Select.Option>
+            ))}
+          </Select>
+        ),
+        Cell: OverCell,
+      },
+      {
+        ...nextTableColumns.normal,
         accessor: (row) => row.shop,
         id: declarationQueryKeys.shopName,
         Header: 'Mağaza',
+        Cell: OverCell,
+      },
+      {
+        ...nextTableColumns.normal,
+        accessor: (row) => row.productType?.name,
+        id: declarationQueryKeys.productTypeId,
+        Header: 'Məhsulun tipi',
+        Filter: ({ column: { filterValue, setFilter } }: any) => (
+          <Select showSearch filterOption={filterOption} allowClear style={{ width: '100%' }} onChange={setFilter} value={filterValue}>
+            {(productTypes || []).map((p) => (
+              <Select.Option key={p.id} value={p.id.toString()}>
+                {p.name}
+              </Select.Option>
+            ))}
+          </Select>
+        ),
         Cell: OverCell,
       },
       {
@@ -257,13 +358,28 @@ export const useDeclarationsTableColumns = (): Column<IDeclaration>[] => {
         ),
       },
       {
+        ...nextTableColumns.normal,
+        accessor: (row) => row.box?.name,
+        id: declarationQueryKeys.boxId,
+        Header: 'Yeşik',
+        Filter: ({ column: { filterValue, setFilter } }: any) => (
+          <Select showSearch filterOption={filterOption} allowClear style={{ width: '100%' }} onChange={setFilter} value={filterValue}>
+            {(boxes || []).map((b) => (
+              <Select.Option key={b.id} value={b.id.toString()}>
+                {b.name}
+              </Select.Option>
+            ))}
+          </Select>
+        ),
+      },
+      {
         ...nextTableColumns.date,
         accessor: (row) => row.createdAt,
         id: declarationQueryKeys.createdAt,
         Header: 'Yaradılma tarixi',
       },
     ],
-    [branches.data, parcels.data],
+    [branches.data, parcels.data, settings.data, productTypes, planCategories, boxes, statuses],
   );
 
   return useMemo(() => [actionsColumn, ...baseColumns], [actionsColumn, baseColumns]);

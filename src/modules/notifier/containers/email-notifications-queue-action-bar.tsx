@@ -9,46 +9,56 @@ import { EmailNotificationsQueueTableContext } from '../context';
 import { EmailNotificationsQueueService } from '../services';
 
 export const EmailNotificationsQueueActionBar = () => {
-    const { handleFetch, handleReset } = useContext(EmailNotificationsQueueTableContext);
+  const { handleFetch, handleReset, handleSelectAll, handleResetSelection, state } = useContext(EmailNotificationsQueueTableContext);
+  const selectionCount = Object.keys(state.selectedRowIds).length;
 
-    const sendAll = useCallback(() => {
-        Modal.confirm({
-            title: 'Diqqət',
-            content: 'Növbədəki emailləri göndərməyə əminsinizmi?',
-            onOk: async () => {
-                const result = await EmailNotificationsQueueService.sendAll();
-                if (result.status === 200) {
-                    message.success('Növbədəki emaillər müvəffəqiyyətlə göndərildi.');
-                    handleFetch();
-                } else {
-                    message.error('Xəta baş verdi.');
-                }
-            },
-        });
-    }, [handleFetch]);
+  const sendAll = useCallback(() => {
+    Modal.confirm({
+      title: 'Diqqət',
+      content: 'Növbədəki emailləri göndərməyə əminsinizmi?',
+      onOk: async () => {
+        const result = await EmailNotificationsQueueService.sendAll();
+        if (result.status === 200) {
+          message.success('Növbədəki emaillər müvəffəqiyyətlə göndərildi.');
+          handleFetch();
+        } else {
+          message.error('Xəta baş verdi.');
+        }
+      },
+    });
+  }, [handleFetch]);
 
-    return (
-        <HeadPortal>
-            <StyledActionBar $flex={true}>
-                <Space>
-                    <NavLink to='/notifier/email/bulk/send'>
-                        <StyledHeaderButton type='text' icon={<Icons.PlusCircleOutlined />}>
-                            Toplu email göndər
-                        </StyledHeaderButton>
-                    </NavLink>
-                    <StyledHeaderButton type='text' onClick={handleFetch} icon={<Icons.ReloadOutlined />}>
-                        Yenilə
-                    </StyledHeaderButton>
-                    <StyledHeaderButton type='text' onClick={handleReset} icon={<Icons.ClearOutlined />}>
-                        Sıfırla
-                    </StyledHeaderButton>
-                </Space>
-                <Space>
-                    <StyledHeaderButton type='text' icon={<Icons.FieldTimeOutlined />} onClick={sendAll}>
-                        Növbədəkiləri göndər
-                    </StyledHeaderButton>
-                </Space>
-            </StyledActionBar>
-        </HeadPortal>
-    );
+  return (
+    <HeadPortal>
+      <StyledActionBar $flex={true}>
+        <Space>
+          <NavLink to="/notifier/email/bulk/send">
+            <StyledHeaderButton type="text" icon={<Icons.PlusCircleOutlined />}>
+              Toplu email göndər
+            </StyledHeaderButton>
+          </NavLink>
+          {!selectionCount ? (
+            <StyledHeaderButton type="text" onClick={handleSelectAll} icon={<Icons.CheckCircleOutlined />}>
+              Hamısını seç
+            </StyledHeaderButton>
+          ) : (
+            <StyledHeaderButton type="text" onClick={handleResetSelection} icon={<Icons.CloseCircleOutlined />}>
+              {selectionCount} sətir seçilib
+            </StyledHeaderButton>
+          )}
+          <StyledHeaderButton type="text" onClick={handleFetch} icon={<Icons.ReloadOutlined />}>
+            Yenilə
+          </StyledHeaderButton>
+          <StyledHeaderButton type="text" onClick={handleReset} icon={<Icons.ClearOutlined />}>
+            Sıfırla
+          </StyledHeaderButton>
+        </Space>
+        <Space>
+          <StyledHeaderButton type="text" icon={<Icons.FieldTimeOutlined />} onClick={sendAll}>
+            Növbədəkiləri göndər
+          </StyledHeaderButton>
+        </Space>
+      </StyledActionBar>
+    </HeadPortal>
+  );
 };

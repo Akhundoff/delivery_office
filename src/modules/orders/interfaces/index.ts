@@ -69,3 +69,19 @@ export type ICreateOrderValues = {
 export type IRejectOrdersValues = {
   description: string;
 };
+
+export type IOrderExcel = {
+  'M.kodu': number;
+  Müştəri: string;
+  Ölkə: string;
+  'İzləmə kodu': string;
+  Qiymət: number;
+  'D.K qiyməti': number;
+  Ödəniş: boolean;
+  Say: number;
+  Status: string;
+  'Düzəliş edən': string;
+  Gözlənilir: string | null;
+  Yaradıldı: string;
+  Url: string;
+};
