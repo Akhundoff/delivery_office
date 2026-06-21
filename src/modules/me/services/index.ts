@@ -68,9 +68,23 @@ export class MeService {
     }
   }
 
-  public static async logout(): Promise<void> {
+  public static async logout(): Promise<ApiResult<200> | ApiResult<400 | 500, string>> {
+    const url = urlMaker('/api/warehouse/logout');
+
     Cookies.remove('refreshToken');
     Cookies.remove('accessToken');
     Cookies.remove('tokenType');
+
+    try {
+      const response = await caller(url, { method: 'POST' });
+
+      if (response.ok) {
+        return new ApiResult(200, null, null);
+      }
+
+      return new ApiResult(400, 'Məlumatlar yalnış daxil edilib.', null);
+    } catch {
+      return new ApiResult(500, 'Şəbəkə ilə əlaqə qurula bilmədi.', null);
+    }
   }
 }
