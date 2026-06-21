@@ -292,6 +292,21 @@ export const UsersService = {
     }
   },
 
+  getLimitedUsers: async (query: Record<string, any> = {}): Promise<ApiResult<200, { data: IUser[]; total: number }> | ApiResult<400, string>> => {
+    const url = urlMaker('/api/admin/users/select', { page: 1, per_page: 500, ...query });
+    try {
+      const response = await caller(url);
+      if (response.ok) {
+        const result = await response.json();
+        const data = (result.data || []).map((item: IUserPersistence) => UserMapper.toDomain(item));
+        return new ApiResult(200, { data, total: result.total || data.length }, null);
+      }
+      return new ApiResult(400, 'Məlumatlar əldə edilə bilmədi', null);
+    } catch {
+      return new ApiResult(400, 'Şəbəkə xətası.', null);
+    }
+  },
+
   removeDiscount: async (discountId: string | number): Promise<ApiResult<200, null> | ApiResult<400 | 500, string>> => {
     const url = urlMaker('/api/admin/users/discountCancel');
     const body = new FormData();

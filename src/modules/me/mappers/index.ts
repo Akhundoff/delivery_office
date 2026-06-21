@@ -11,6 +11,7 @@ export class MeMappers {
       email: userData.email,
       permissions: Array.isArray(raw?.permissions) ? raw.permissions.map(({ code_name }: any) => code_name) : [],
       adminBranchId: userData.admin_branch_id ?? null,
+      deliveryPointId: userData.delivery_point_id ?? null,
       admin: userData.admin ?? null,
     };
   }

@@ -2,7 +2,7 @@ import { useCallback, useContext, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { message } from 'antd';
 import { TinyDeclarationsTableContext } from '@modules/declarations/context';
-import { AppointmentService } from '../services';
+import { AppointmentService } from '../../services';
 
 export const useAppointmentDeclarationsActionBar = () => {
   const navigate = useNavigate();

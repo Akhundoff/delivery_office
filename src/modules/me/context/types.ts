@@ -7,12 +7,14 @@ export interface IMeUser {
   email: string;
   permissions: string[];
   adminBranchId: number | null;
+  deliveryPointId: number | null;
   admin: number | null;
 }
 
 export interface LoginFormData {
   email: string;
   password: string;
+  rememberMe: boolean;
 }
 
 export type LoginFormErrors = Partial<Record<keyof LoginFormData | string, string[]>>;

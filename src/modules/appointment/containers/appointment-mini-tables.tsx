@@ -62,7 +62,7 @@ export const OrdersAppointmentTable: FC<TableProps> = ({ userId }) => {
 };
 
 export const CouriersAppointmentTable: FC<TableProps> = ({ userId }) => {
-  const defaultState = useMemo(() => ({ filters: [{ id: 'user_id', value: userId }] }), [userId]);
+  const defaultState = useMemo(() => ({ filters: [{ id: 'user_id', value: userId }], hiddenColumns: ['user_id', 'user_name'] }), [userId]);
   return (
     <NextTableProvider context={CouriersTableContext} onFetch={couriersTableFetchUseCase} name={`appointment-couriers-${userId}`} defaultState={defaultState} useCache={false}>
       <CouriersTable />
@@ -71,7 +71,7 @@ export const CouriersAppointmentTable: FC<TableProps> = ({ userId }) => {
 };
 
 export const CustomsDeclarationsAppointmentTable: FC<TableProps> = ({ userId }) => {
-  const defaultState = useMemo(() => ({ filters: [{ id: 'user_id', value: userId }] }), [userId]);
+  const defaultState = useMemo(() => ({ filters: [{ id: 'user_id', value: userId }], hiddenColumns: ['user_id', 'user_name'] }), [userId]);
   return (
     <NextTableProvider context={CustomsDeclarationsTableContext} onFetch={customsDeclarationsTableFetchUseCase} name={`appointment-customs-${userId}`} defaultState={defaultState} useCache={false}>
       <CustomsDeclarationsTable />
@@ -80,7 +80,7 @@ export const CustomsDeclarationsAppointmentTable: FC<TableProps> = ({ userId }) 
 };
 
 export const TransactionsAppointmentTable: FC<TableProps> = ({ userId }) => {
-  const defaultState = useMemo(() => ({ filters: [{ id: 'user_id', value: userId }] }), [userId]);
+  const defaultState = useMemo(() => ({ filters: [{ id: 'user_id', value: userId }], hiddenColumns: ['user_id', 'user_name'] }), [userId]);
   return (
     <NextTableProvider context={TransactionsTableContext} onFetch={transactionsTableFetchUseCase} name={`appointment-transactions-${userId}`} defaultState={defaultState} useCache={false}>
       <TransactionsTable />
