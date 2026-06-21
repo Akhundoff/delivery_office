@@ -112,7 +112,8 @@ export const MainRouter: FC = () => {
     return (
       <Suspense fallback={<SuspenseSpin />}>
         <Routes>
-          <Route path="/*" element={<MeRouter />} />
+          <Route path="/login" element={<MeRouter />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Suspense>
     );
