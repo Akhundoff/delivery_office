@@ -6,45 +6,64 @@ You are producing a quick aggregate view of migration progress, using only the a
 
 Arguments (ignored — this command takes none): $ARGUMENTS
 
-This command is **read-only** and does not write or update any docs (that's what `/migration-report` is for). It only prints a summary to the user.
+This command is **read-only** and does not write or update any docs.
 
 ---
 
 ## Steps
 
-1. Find every audit/comparison doc already on disk:
-   - `docs/migration-status-summary.md` (project-wide table from `/migration-report`, if present)
-   - `docs/*-migration-audit.md` (per-module audits from `/migration-report <module>`)
-   - `docs/compare-*-vs-*.md` (1-vs-1 comparisons from `/compare-modules`)
-2. Read each one and extract:
+1. Find every audit/comparison doc on disk:
+   - `docs/migration-status-summary.md`
+   - `docs/*-migration-audit.md`
+   - `docs/compare-*-vs-*.md`
+2. Read each and extract:
    - Module name(s) covered
-   - Verdict (✅ Fully migrated / 🟡 Partially migrated / ❌ Not migrated, or the comparison verdict)
-   - The doc's **Date** (so stale entries can be flagged)
-   - Count of remaining gaps (size of the "Missing / not migrated" or "➖/🔁" sections)
-3. Cross-reference against the full module list in `../delivery_management/src/@next/modules/` to see which old modules have **no** audit doc at all yet — these are "unknown" status, not "not migrated" (don't conflate the two).
-4. Print a compact aggregate report:
+   - Verdict (✅/🟡/❌)
+   - Doc's **Date** (flag if stale)
+   - Count of remaining gaps — broken down by category where available:
+     - Missing columns
+     - Missing API methods
+     - Missing hooks
+     - Missing routes
+     - Missing row menu items
+     - Missing action bar actions
+     - Missing permissions
+3. Cross-reference against full module list in `../delivery_management/src/@next/modules/` — modules with no audit doc = "unknown" status.
+4. Print compact aggregate:
 
 ```markdown
 # Migration Status — Aggregate (from existing audits)
 
 **Generated:** YYYY-MM-DD · sources: N audit docs (oldest: YYYY-MM-DD, newest: YYYY-MM-DD)
 
-| Status | Count | Modules |
-|---|---|---|
-| ✅ Fully migrated | X | orders, flights, ... |
-| 🟡 Partially migrated | Y | declarations (12 gaps, audited 2026-06-02), ... |
-| ❌ Not migrated | Z | ... |
-| ❔ No audit yet | W | ... |
+| Status                | Count | Modules                                                            |
+| --------------------- | ----- | ------------------------------------------------------------------ |
+| ✅ Fully migrated     | X     | orders, flights, ...                                               |
+| 🟡 Partially migrated | Y     | couriers (gaps: 3 cols, 5 APIs, 2 hooks), declarations (gaps: ...) |
+| ❌ Not migrated       | Z     | ...                                                                |
+| ❔ No audit yet       | W     | ...                                                                |
 
 **Total old modules:** N
 
-⚠️ Stale audits (>14 days old — re-run `/migration-report <module>` to refresh):
+## Gap Breakdown for Partial Modules
+
+| Module   | Columns | APIs | Hooks | Routes | Menu items | Actions | Permissions | Total gaps |
+| -------- | ------- | ---- | ----- | ------ | ---------- | ------- | ----------- | ---------- |
+| couriers | 1       | 5    | 4     | 3      | 4          | 4       | 1           | 22         |
+| ...      | ...     | ...  | ...   | ...    | ...        | ...     | ...         | ...        |
+
+⚠️ Stale audits (>14 days old):
+
 - declarations — last audited 2026-06-02
 ```
 
-5. Recommend next actions: which 🟡/❌/❔ module to audit or migrate next, prioritizing by user-facing impact (list/detail pages over admin/back-office tooling) and by how stale its last audit is.
+5. Recommend next actions: which module to audit/migrate next, prioritizing by:
+   - User-facing impact (list/detail pages over admin tooling)
+   - Gap count (fewer gaps = quicker to complete)
+   - Staleness of last audit
 
 ## Rules
 
-- **Do not** re-derive verdicts by reading source code — trust the docs as the source of truth for this command. If the user wants a fresh check, point them at `/migration-report <module>`.
-- If no audit docs exist yet, say so plainly and suggest running `/migration-report` (no arg) to generate the first project-wide summary.
+- **Do not** re-derive verdicts by reading source code — trust the docs
+- If no audit docs exist, say so and suggest running `/migration-report` first
+- When showing gap counts, always break down by category (columns, APIs, hooks, etc.) — never just a total number

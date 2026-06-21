@@ -1,3 +1,3 @@
-export { useBranches } from './hooks';
+export { useBranches, useAzerpostBranches, useBranchesWithDeliveryPoints } from './hooks';
 export type { IBranch } from './hooks';
-export type { IBranchListItem } from "./interfaces";
+export type { IBranchListItem, IBranchWithDeliveryPoint } from './interfaces';

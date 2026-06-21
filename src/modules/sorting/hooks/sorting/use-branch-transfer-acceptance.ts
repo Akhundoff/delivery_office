@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { InputRef, Modal, message } from 'antd';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useBranches } from '@modules/branches';
+import { useBackgroundNavigate } from '@shared/hooks';
 import { useSelectFlights } from './use-select-flights';
 import { SortingService } from '../../services';
 import { ITransferBarcode } from '../../interfaces';
@@ -13,7 +14,7 @@ export const parcelTypeOptions = [
 ];
 
 export const useBranchTransferAcceptance = () => {
-  const navigate = useNavigate();
+  const navigate = useBackgroundNavigate();
   const location = useLocation();
   const stateId = (location.state as { id?: number | string } | null)?.id;
 
@@ -45,14 +46,11 @@ export const useBranchTransferAcceptance = () => {
     })();
   }, [stateId]);
 
-  const tableData = useMemo(
-    () => barcodes.map((b, index) => ({ id: index + 1, barcode: b.barcode, parcel_sorting_id: b.parcel_sorting_id, checked: b.checked })),
-    [barcodes],
-  );
+  const tableData = useMemo(() => barcodes.map((b, index) => ({ id: index + 1, barcode: b.barcode, parcel_sorting_id: b.parcel_sorting_id, checked: b.checked })), [barcodes]);
 
   const openSortingInfo = useCallback(() => {
     if (!parcelSortingId) return;
-    navigate(`/sorting/${parcelSortingId}`);
+    navigate(`/sorting/${parcelSortingId}/info`);
   }, [navigate, parcelSortingId]);
 
   const onCreateTransfer = useCallback(async () => {
@@ -103,19 +101,16 @@ export const useBranchTransferAcceptance = () => {
     [parcelTypeId, barcodes, parcelSortingId],
   );
 
-  const removeBarcode = useCallback(
-    async (row: { barcode: string; parcel_sorting_id: number }) => {
-      message.loading({ key: 'st-remove', content: 'Əməliyyat aparılır...', duration: 0 });
-      const result = await SortingService.removeFromTransfer(row.parcel_sorting_id, row.barcode);
-      if (result.status === 200) {
-        message.success({ key: 'st-remove', content: result.data.message });
-        setBarcodes((prev) => prev.filter((b) => b.barcode !== row.barcode));
-      } else {
-        message.error({ key: 'st-remove', content: result.data as string });
-      }
-    },
-    [],
-  );
+  const removeBarcode = useCallback(async (row: { barcode: string; parcel_sorting_id: number }) => {
+    message.loading({ key: 'st-remove', content: 'Əməliyyat aparılır...', duration: 0 });
+    const result = await SortingService.removeFromTransfer(row.parcel_sorting_id, row.barcode);
+    if (result.status === 200) {
+      message.success({ key: 'st-remove', content: result.data.message });
+      setBarcodes((prev) => prev.filter((b) => b.barcode !== row.barcode));
+    } else {
+      message.error({ key: 'st-remove', content: result.data as string });
+    }
+  }, []);
 
   const resetBarcodes = useCallback(() => {
     if (!parcelSortingId) return;
