@@ -1,32 +1,43 @@
-# CLAUDE.md — delivery_office
+# CLAUDE.md
 
-## Purpose
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-This project is a **rewrite of `delivery_management`** using the **architecture of `delivery_warehouse`**.
+> delivery_office
 
-- **Business logic, API endpoints, field names, and constants** → same as `delivery_management`  
-  (reference `../delivery_management/src` for domain knowledge)
-- **Project structure, routing, HTTP, state patterns** → same as `delivery_warehouse`  
-  (reference `../delivery_warehouse/src` for architecture patterns)
+## Overview
 
-Never copy architectural patterns from `delivery_management`. Never copy business logic / API URLs / field mappings from a place other than `delivery_management`.
+`delivery_office` is the admin/back-office web app for a logistics & parcel-delivery platform (orders, declarations, couriers, warehouses, cashflow, partners, notifications, etc.). It is a React 18 + TypeScript single-page app talking to a REST admin API.
+
+The codebase is organized as **feature modules** (`src/modules/*`) sitting on top of **shared infrastructure** (`src/shared/*`). The conventions below are what keep the ~60 modules consistent — follow them when adding or changing features.
 
 ---
 
 ## Commands
 
+Package manager is **Yarn 4 (Berry)** via Corepack; Node **>= 22**. The build is **CRA + `react-app-rewired`** (config in `config-overrides.js`), not plain `react-scripts`.
+
 ```bash
-npm start          # Dev server on localhost:3000
-npm run build      # Production build
+yarn start          # Dev server on localhost:3000
+yarn build          # Production build
+yarn test           # Jest (react-app-rewired) in watch mode
+yarn test --watchAll=false src/path/to/file.test.tsx   # Run a single test file once
+yarn lint           # eslint src --ext .ts,.tsx
+yarn lint:fix       # eslint --fix
+yarn format         # prettier --write over src
+yarn format:check   # prettier --check (CI-style)
 ```
 
-Prettier config (via `delivery_warehouse` style): `singleQuote: true`, `trailingComma: all`, `printWidth: 200`.
+- The API host comes from the `REACT_APP_API_HOST` env var (consumed by `urlMaker`); set it in `.env`.
+- **Husky + lint-staged** run `eslint --fix` + `prettier` on staged files pre-commit.
+- **Commit messages must be Conventional Commits** (`@commitlint/config-conventional`), e.g. `feat:`, `fix:`, `chore:`.
+
+Prettier config: `singleQuote: true`, `trailingComma: all`, `printWidth: 200`.
 
 ---
 
 ## Architecture
 
-React 18 + TypeScript. No Redux. No Inversify. Context-first, hooks-first.
+React 18 + TypeScript, Ant Design v5, styled-components. State is **Context + useReducer per module** — no Redux, no dependency injection. Context-first, hooks-first.
 
 ### Directory Layout
 
@@ -46,54 +57,55 @@ src/
 
 ### Module Structure
 
-Every module under `src/modules/{name}/` follows this layout (mirror of `delivery_warehouse`):
+Every module under `src/modules/{name}/` follows this layout:
 
 ```
 components/   → pure presentational components
 containers/   → context-connected smart components
 context/      → React context + reducer (types.ts, context.ts, reducer.ts)
-hooks/        → custom hooks (data fetching, UI logic)
+hooks/        → custom hooks (data fetching, UI logic) — camelCase subfolders, see below
 pages/        → top-level page components (compose containers)
 router/       → lazy-loaded route definitions
 services/     → static-method service classes (API calls)
+interfaces/   → domain types/DTOs for the module (optional)
+constants/    → enums, status maps, column defs (optional)
+use-cases/    → composed table/data-fetch logic, e.g. table-fetch.ts (optional)
 index.ts      → barrel export
 ```
 
+Not every module has all folders; `interfaces/`, `constants/`, and `use-cases/` appear where the feature needs them (e.g. `modules/orders`).
+
 ### HTTP & Service Pattern
 
-API calls go through `src/shared/utils/caller.ts` (fetch wrapper, reads `accessToken` cookie, sets `Authorization` header and `lang` from localStorage). **Never use `fetch()` directly.**
+API calls go through `src/shared/utils/caller.ts` (fetch wrapper). It reads the `accessToken` cookie → `Authorization: Bearer …`, sets `Accept: application/json`, and — when present — adds a `country-id` header from `localStorage['warehouse.country_id']`. **Never use `fetch()` directly.**
 
 Services are **static-method classes** returning `ApiResult<Status, Data, Meta>`:
 
 ```typescript
-import { ApiResult, caller, urlMaker } from "@shared/utils";
+import { ApiResult, caller, urlMaker } from '@shared/utils';
 
 export class OrdersService {
-  public static async getOrders(): Promise<
-    ApiResult<200, IOrder[]> | ApiResult<400 | 500, string>
-  > {
-    const url = urlMaker("/api/admin/orders");
+  public static async getOrders(): Promise<ApiResult<200, IOrder[]> | ApiResult<400 | 500, string>> {
+    const url = urlMaker('/api/admin/orders');
     try {
       const response = await caller(url);
       if (response.ok) {
         const data = await response.json();
         return new ApiResult(200, data, null);
       }
-      return new ApiResult(400, "Operation failed", null);
+      return new ApiResult(400, 'Operation failed', null);
     } catch {
-      return new ApiResult(500, "Network request failed", null);
+      return new ApiResult(500, 'Network request failed', null);
     }
   }
 }
 ```
 
-Use `urlMaker(path, queryParams?)` for all URLs. Use `objectToSearch(params)` to build query strings.
+Use `urlMaker(path, queryParams?)` for all URLs — it prepends `REACT_APP_API_HOST` and appends the query string. Related helpers in `url-maker.ts`: `localURLMaker(path, pathParams, query)` for `:param` route interpolation and `staticFileUrl(fileName)`. Use `object2Search(params)` (from `object-to-search.ts`) to build query strings.
 
 ### State Management
 
-Context + useReducer per module. No Redux, no react-query.
-
-Pattern from `delivery_warehouse`:
+Context + useReducer per module. Each module's `context/` folder holds:
 
 - `context/types.ts` — interfaces for state and actions
 - `context/context.ts` — createContext + Provider wrapping useReducer
@@ -112,6 +124,15 @@ Root router (`src/router/main.tsx`) checks auth state from `MeContext`:
 
 Each module defines its own router file. Routes use `<Routes>` + `<Route>` (not the legacy v5 `<Switch>`).
 
+### Shared Infrastructure (`src/shared/modules`)
+
+Most list pages and forms are built on shared, reusable systems — prefer these over hand-rolling:
+
+- **`next-table`** — the table framework (own `context/`, `containers/`, `hooks/`, `use-cases/table-fetch.ts`). Provides server-side pagination/sorting/filtering and column rendering. Module list pages compose a `*-table` container on top of it.
+- **`form`** — Formik-based field components (`TextField`, `SelectField`, `DateField`, `CheckboxField`, `RadioField`, `TextAreaField`, `UploadField`, `MultiUploadField`, `RichTextField` (CKEditor), `SwitchField`). Build forms from these rather than raw Ant Design inputs.
+- **`antd`**, **`progress`**, **`rating`** — additional shared wrappers/helpers.
+- Reusable table cells live in `src/shared/components/cells` (`country-cell`, `price-cell`, `tag-cell`, `switch-cell`, etc.).
+
 ### Auth
 
 `MeContext` provides `state.user.data` (the logged-in user) and `state.user.loading`.  
@@ -123,40 +144,32 @@ Auth tokens stored in cookies via `js-cookie` (`accessToken`, `refreshToken`, `t
 ```
 @shared/*  → src/shared/*
 @modules/* → src/modules/*
+@assets/*  → src/assets/*
 ```
 
----
-
-## Key Differences from delivery_management
-
-| Concern        | delivery_management (old)           | delivery_management_new           |
-| -------------- | ----------------------------------- | --------------------------------- |
-| HTTP           | `HttpClient` via Inversify DI       | `caller()` utility function       |
-| State          | Redux + react-query                 | Context + useReducer              |
-| DI             | Inversify (`@bind`, `useInjection`) | None                              |
-| Routing        | React Router v5 (`<Switch>`)        | React Router v6 (`<Routes>`)      |
-| dates          | moment.js                           | dayjs                             |
-| UI             | Ant Design 4                        | (same or warehouse equivalent)    |
-| Module pattern | repos/mappers/hooks/containers      | services/context/hooks/containers |
+Aliases are defined in **both** `tsconfig.paths.json` (typecheck) and `config-overrides.js` (webpack) — keep them in sync. `config-overrides.js` also registers a raw loader so `.hbs` templates import as source strings (compiled at runtime with `handlebars`, used for notification/ticket templates).
 
 ---
 
-## API / Business Logic Reference
+## Conventions at a Glance
 
-When implementing a feature, look up the existing implementation in `delivery_management` for:
+| Concern | Approach                                                        |
+| ------- | --------------------------------------------------------------- |
+| HTTP    | `caller()` wrapper + `urlMaker()`; services return `ApiResult`  |
+| State   | Context + `useReducer` per module                               |
+| Routing | React Router v6 (`<Routes>`/`<Route>`), lazy-loaded per module  |
+| Dates   | `dayjs`                                                         |
+| UI      | Ant Design v5 + styled-components; shared `form` / `next-table` |
+| i18n    | `i18next` / `react-i18next` (language stored in localStorage)   |
+| Module  | `services` → `context` → `hooks` → `containers` → `pages`       |
 
-- API endpoint URLs (`/api/admin/...`)
-- Request/response field names
-- Business rules, status codes, permission names
-- Constants and enums
-
-Then re-implement using the patterns above (warehouse architecture, not the DI/Redux approach).
+Admin API endpoints live under `/api/admin/...`. Field names, status codes, permission names, and enums are owned by the backend contract — match them exactly in `interfaces/` and `constants/`.
 
 ---
 
 ## Hook Subfolder Naming Convention
 
-Hook subfolders use **camelCase** (not kebab-case). Reference: `delivery_management/src/hooks/`.
+Hook subfolders use **camelCase** (not kebab-case).
 
 Multi-word examples: `notificationTemplates`, `smsNotifications`, `smsNotificationsQueue`, `emailNotifications`, `emailNotificationsQueue`, `whatsappNotifications`, `whatsappNotificationsQueue`, `ticketTemplates`, `declarationDetail`, `archiveStatus`, `azerpostQueues`, `bbsQueues`, `branchPartners`, `deliveryProofs`, `productTypes`, `returnTypes`, `shopNames`, `unitedQueues`.
 
@@ -165,9 +178,9 @@ Multi-word examples: `notificationTemplates`, `smsNotifications`, `smsNotificati
 Hook files inside `hooks/<subfolder>/use-*.ts` are **two levels below** the module root — always use `../../`:
 
 ```ts
-import { XyzService } from "../../services"; // ✓
-import { IXyz } from "../../interfaces"; // ✓
-import { XyzService } from "../services"; // ✗ wrong depth
+import { XyzService } from '../../services'; // ✓
+import { IXyz } from '../../interfaces'; // ✓
+import { XyzService } from '../services'; // ✗ wrong depth
 ```
 
 **Verify no single-level imports remain inside hook subfolders:**
@@ -181,8 +194,8 @@ grep -rP 'from "\.\./(?!\.\.)' src/modules --include="*.ts" --include="*.tsx" | 
 `hooks/index.ts` re-exports from camelCase subfolders:
 
 ```ts
-export * from "./notificationTemplates";
-export * from "./smsNotifications";
+export * from './notificationTemplates';
+export * from './smsNotifications';
 // ...
 ```
 
@@ -193,8 +206,8 @@ Containers and pages import from the barrel `'../hooks'`, never direct file path
 Module root `index.ts` re-exports from `'./hooks'` barrel, not direct hook file paths:
 
 ```ts
-export { useBranches } from "./hooks"; // ✓
-export { useBranches } from "./hooks/use-branches"; // ✗ breaks when hook moves to subfolder
+export { useBranches } from './hooks'; // ✓
+export { useBranches } from './hooks/use-branches'; // ✗ breaks when hook moves to subfolder
 ```
 
 ---
