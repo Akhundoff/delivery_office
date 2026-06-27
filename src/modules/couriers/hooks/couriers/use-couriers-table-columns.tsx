@@ -103,7 +103,6 @@ const RowActions: React.FC<{ original: ICourier }> = ({ original }) => {
 };
 
 export const useCouriersTableColumns = (): Column<ICourier>[] => {
-  const { handleFetch } = useContext(CouriersTableContext);
   const branches = useBranches();
 
   const { data: regionsResult } = useQuery(['regions-for-couriers-filter'], () => RegionsService.getList({ per_page: 200 }), { staleTime: 5 * 60 * 1000 });
