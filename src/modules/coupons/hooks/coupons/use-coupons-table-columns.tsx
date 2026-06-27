@@ -83,19 +83,19 @@ export const useCouponsTableColumns = (): Column<ICoupon>[] => {
     [navigate, handleFetch],
   );
 
-  const genderLabel = (gender: number) => {
-    switch (gender) {
-      case UserGender.MALE:
-        return 'Kişi';
-      case UserGender.FEMALE:
-        return 'Qadın';
-      default:
-        return 'Hər ikisi';
-    }
-  };
+  const baseColumns = useMemo<Column<ICoupon>[]>(() => {
+    const genderLabel = (gender: number) => {
+      switch (gender) {
+        case UserGender.MALE:
+          return 'Kişi';
+        case UserGender.FEMALE:
+          return 'Qadın';
+        default:
+          return 'Hər ikisi';
+      }
+    };
 
-  const baseColumns = useMemo<Column<ICoupon>[]>(
-    () => [
+    return [
       { ...nextTableColumns.small, Header: 'Kod', id: 'id', accessor: (r) => r.id },
       { accessor: (r) => r.name, id: 'name', Header: 'Ad' },
       { accessor: (r) => r.tag, id: 'tag', Header: 'Teq' },
@@ -125,9 +125,8 @@ export const useCouponsTableColumns = (): Column<ICoupon>[] => {
       { ...nextTableColumns.date, accessor: (r) => r.userRegister?.from, id: 'user_register_from', Header: 'Qeydiyyat başlanğıcı' },
       { ...nextTableColumns.date, accessor: (r) => r.userRegister?.to, id: 'user_register_to', Header: 'Qeydiyyat sonu' },
       { ...nextTableColumns.date, accessor: (r) => r.createdAt, id: 'created_at', Header: 'Yaradılıb' },
-    ],
-    [genderLabel],
-  );
+    ];
+  }, []);
 
   return useMemo(() => [actionsColumn, ...baseColumns], [actionsColumn, baseColumns]);
 };

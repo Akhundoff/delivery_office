@@ -1,4 +1,4 @@
-import { FC, useMemo } from 'react';
+import { FC } from 'react';
 import { NextTableProvider } from '@shared/modules/next-table/context/provider';
 import { PageContent } from '@shared/styled/page-content';
 import { AzerpostQueuesTableContext } from '../context';

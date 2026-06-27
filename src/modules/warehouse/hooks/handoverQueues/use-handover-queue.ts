@@ -1,7 +1,7 @@
 import { useCallback, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
-import { Modal, message } from 'antd';
+import { message } from 'antd';
 import { MeContext } from '@modules/me';
 import { WarehouseService } from '../../services';
 import { IDetailedHandoverQueue } from '../../interfaces';
