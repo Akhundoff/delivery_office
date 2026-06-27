@@ -23,7 +23,7 @@ export const useBranchesTableColumns = (): Column<IBranchListItem>[] => {
   const navigate = useBackgroundNavigate();
   const branches = useBranches();
   const { data: statusesResult } = useQuery(['statuses-for-branches', 40], () => StatusesService.getList({ per_page: 500, model_id: 40 }));
-  const statuses = statusesResult?.status === 200 ? statusesResult.data.data : [];
+  const statuses = useMemo(() => (statusesResult?.status === 200 ? statusesResult.data.data : []), [statusesResult]);
 
   const actionsColumn = useMemo<Column<IBranchListItem>>(
     () => ({

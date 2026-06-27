@@ -1,4 +1,4 @@
-import { FC, Fragment, useMemo, useState } from 'react';
+import { FC, Fragment, useState } from 'react';
 import { Card, Col, Descriptions, Menu, Result, Row, Spin, Statistic } from 'antd';
 import { useParams } from 'react-router-dom';
 import { useQuery } from 'react-query';
@@ -18,14 +18,6 @@ export const AppointmentPage: FC = () => {
   const { data: userResult, isLoading } = useQuery(['users', userId], () => UsersService.getUserById(userId!), { enabled: !!userId });
 
   const user = userResult?.status === 200 ? userResult.data : null;
-
-  const defaultTableState = useMemo(
-    () => ({
-      filters: [{ id: 'user_id', value: userId }],
-      hiddenColumns: ['user_id', 'user_name'],
-    }),
-    [userId],
-  );
 
   if (isLoading) return <Spin size="large" style={{ display: 'block', padding: 40 }} />;
   if (!user) return <Result status="404" title="İstifadəçi tapılmadı." />;

@@ -48,7 +48,7 @@ export const CreateCourier: FC = () => {
   const users = usersResult?.status === 200 ? usersResult.data.data : [];
 
   const { data: regionsResult } = useQuery(['regions-for-courier'], () => RegionsService.getList({ per_page: 200 }));
-  const regions = regionsResult?.status === 200 ? regionsResult.data.data : [];
+  const regions = useMemo(() => (regionsResult?.status === 200 ? regionsResult.data.data : []), [regionsResult]);
 
   const selectedRegion = useMemo(() => regions.find((r) => r.id === Number(selectedRegionId)), [regions, selectedRegionId]);
   const isShipping = selectedRegion?.shipping === 1;

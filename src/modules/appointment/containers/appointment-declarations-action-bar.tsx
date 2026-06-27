@@ -7,8 +7,7 @@ import { useAppointmentDeclarationsActionBar } from '../hooks';
 
 export const AppointmentDeclarationsActionBar = () => {
   const { can } = useContext(MeContext);
-  const { selectionCount, selectedIds, handleSelectAll, handleResetSelection, handoverDeclarations, isReceiptVisible, totalPrice, totalWeight, handoverDeliverReceipt } =
-    useAppointmentDeclarationsActionBar();
+  const { selectionCount, handleSelectAll, handleResetSelection, handoverDeclarations, isReceiptVisible, totalPrice, totalWeight, handoverDeliverReceipt } = useAppointmentDeclarationsActionBar();
 
   return (
     <Space style={{ backgroundColor: '#1e2a31', width: '100%' }} size={0}>

@@ -55,7 +55,7 @@ export const useRefundsTableColumns = (): Column<IRefund>[] => {
   const printSticker = usePrintSticker();
 
   const { data: statusesResult } = useQuery(['statuses-for-refunds-actions', 38], () => StatusesService.getList({ per_page: 500, model_id: 38 }));
-  const statuses = statusesResult?.status === 200 ? statusesResult.data.data : [];
+  const statuses = useMemo(() => (statusesResult?.status === 200 ? statusesResult.data.data : []), [statusesResult]);
 
   const updateStatus = useCallback(
     async (refundId: number, stateId: number) => {

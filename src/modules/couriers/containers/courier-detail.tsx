@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { Button, Dropdown, MenuProps, Result, Space, Spin, Tag, Tooltip } from 'antd';
+import { Button, Dropdown, MenuProps, Result, Space, Spin, Tooltip } from 'antd';
 import * as Icons from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import { DetailPage, DetailHeader, DetailCard, DetailDescriptions, DetailRow, DetailCol } from '@shared/styled/detail';
